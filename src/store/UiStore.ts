@@ -1,0 +1,49 @@
+import { create } from 'zustand'
+import { isMuted, setMuted, sound } from '../audio/sound'
+
+type Overlay = 'lexikon' | 'lehrkraefte' | 'vorbilder' | null
+
+interface UiState {
+  overlay: Overlay
+  lexiconId: string | null
+  openLexicon: (id?: string) => void
+  openTeacherNotes: () => void
+  openAlbum: () => void
+  /** Mit welchem Kapitel ein neues Spiel beginnt */
+  startChapter: 1 | 2
+  setStartChapter: (c: 1 | 2) => void
+  close: () => void
+  /** Welche Zwischensequenzen in dieser Sitzung schon liefen */
+  introSeen: number | null
+  nightSeen: number | null
+  markIntro: (week: number) => void
+  markNight: (week: number) => void
+  resetCutscenes: () => void
+  muted: boolean
+  toggleMuted: () => void
+}
+
+/** Flüchtiger Oberflächenzustand, wird nicht gespeichert */
+export const useUi = create<UiState>()((set) => ({
+  overlay: null,
+  lexiconId: null,
+  openLexicon: (id) => set({ overlay: 'lexikon', lexiconId: id ?? null }),
+  openTeacherNotes: () => set({ overlay: 'lehrkraefte' }),
+  openAlbum: () => set({ overlay: 'vorbilder' }),
+  startChapter: 1,
+  setStartChapter: (c) => set({ startChapter: c }),
+  close: () => set({ overlay: null, lexiconId: null }),
+  introSeen: null,
+  nightSeen: null,
+  markIntro: (week) => set({ introSeen: week }),
+  markNight: (week) => set({ nightSeen: week }),
+  resetCutscenes: () => set({ introSeen: null, nightSeen: null }),
+  muted: isMuted(),
+  toggleMuted: () =>
+    set((u) => {
+      setMuted(!u.muted)
+      // Beim Einschalten sofort ein leiser Klick: So öffnet das iPad den Tonkanal während der Berührung
+      if (u.muted) sound.click()
+      return { muted: !u.muted }
+    }),
+}))

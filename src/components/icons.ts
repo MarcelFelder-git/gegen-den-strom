@@ -1,0 +1,53 @@
+import {
+  Camera,
+  Gift,
+  Luggage,
+  BookOpenText,
+  Cog,
+  Ear,
+  Globe,
+  HandHeart,
+  Package,
+  Users,
+  Warehouse,
+  FileText,
+  HandCoins,
+  HeartHandshake,
+  IdCard,
+  Newspaper,
+  PaintBucket,
+  Paintbrush,
+  Printer,
+  ScrollText,
+  type LucideIcon,
+} from 'lucide-react'
+import type { ItemKey, MissionType } from '../game/types'
+
+export const MISSION_ICONS: Record<MissionType, LucideIcon> = {
+  spenden: HandCoins,
+  papier: FileText,
+  druck: Printer,
+  verteilen: Newspaper,
+  parolen: Paintbrush,
+  unterschlupf: HeartHandshake,
+  ausweise: IdCard,
+  presse: Cog,
+  transport: Package,
+  keller: Warehouse,
+  zeitung: BookOpenText,
+  rotehilfe: HandHeart,
+  warnung: Ear,
+  nachrichten: Globe,
+  sportverein: Users,
+  ausreise: Luggage,
+  pakete: Gift,
+  reporter: Camera,
+}
+
+export const ITEM_ICONS: Record<ItemKey, LucideIcon> = {
+  papier: FileText,
+  farbe: PaintBucket,
+  flugblaetter: ScrollText,
+  ausweise: IdCard,
+}
+

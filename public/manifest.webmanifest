@@ -1,0 +1,17 @@
+{
+  "name": "Gegen den Strom. Berlin 1933",
+  "short_name": "Gegen den Strom",
+  "description": "Ein Geschichtsspiel über eine Widerstandsgruppe in Berlin 1933 bis 1938.",
+  "lang": "de",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1c1c1e",
+  "theme_color": "#1c1c1e",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
