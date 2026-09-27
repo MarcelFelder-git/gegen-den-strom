@@ -92,6 +92,8 @@ interface GameData extends ResourceState {
   crisis: boolean
   /** Stand der geholfenen Menschen zu Beginn des Kapitels, für die Bewertung */
   chapterHelpedStart: number
+  /** Die Einführung auf der Stadtkarte wurde in diesem Spiel schon gezeigt */
+  tutorialSeen: boolean
 }
 
 interface GameActions {
@@ -112,6 +114,7 @@ interface GameActions {
   helpPrisoner: (memberId: string, kind: PrisonHelp) => string | null
   endWeek: () => void
   nextWeek: () => void
+  markTutorial: () => void
 }
 
 export type GameState = GameData & GameActions
@@ -150,6 +153,7 @@ const initialData: GameData = {
   pendingCards: [],
   crisis: false,
   chapterHelpedStart: 0,
+  tutorialSeen: false,
 }
 
 const rng: Rng = Math.random
@@ -667,6 +671,8 @@ export const useGame = create<GameState>()(
           pendingCards: [...state.pendingCards, ...missionCards],
         })
       },
+
+      markTutorial: () => set({ tutorialSeen: true }),
 
       nextWeek: () => {
         const s = get()

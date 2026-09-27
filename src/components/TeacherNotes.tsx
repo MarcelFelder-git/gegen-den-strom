@@ -129,7 +129,9 @@ export function TeacherNotes() {
             Wochenschau, dann vier klar getrennte Schritte: Zeitung, Quelle der Woche, Begegnung mit Menschen aus der Stadt und
             Geschichten aus der eigenen Gruppe. Mit „Zurück“ lässt sich alles noch einmal lesen, Entscheidungen bleiben bestehen.
             Danach werden Aufträge auf der Stadtkarte verteilt. Erfolg und Entdeckung werden offen ausgewürfelt, der Wochenbericht
-            zeigt jeden Wurf. Ein Kapitel dauert je nach Lesetempo ungefähr 40 bis 60 Minuten.
+            zeigt jeden Wurf. Beim ersten Mal auf der Stadtkarte erklärt eine kurze Einführung das Spielprinzip, danach führt die
+            Liste „Erste Schritte“ durch den ersten Auftrag. Über „So geht’s“ lässt sich die Einführung jederzeit wieder öffnen. Ein
+            Kapitel dauert je nach Lesetempo ungefähr 40 bis 60 Minuten.
           </Block>
 
           <Block title="Spielstand auf dem iPad">

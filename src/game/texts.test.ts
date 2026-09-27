@@ -14,9 +14,10 @@ import { SOLIDARITY_RATINGS, HONEST_NOTE } from './data/fates'
 import { PRISON_HELP } from './data/prison'
 import { COMPANIONS } from './data/companions'
 import { PROFESSIONS, IDEOLOGIES } from './data/professions'
+import { TUTORIAL, TUTORIAL_RESOURCES, TUTORIAL_WEEK } from './data/tutorial'
 import { isLeveled, resolve, type Leveled } from './text'
 
-const ALL = { WEEKS, MISSIONS, STORIES, SOURCES, CARDS, LEXICON, TIMELINE, TIMELINE_INTRO, TIMELINE_OUTRO, DISTRICTS, SOLIDARITY_RATINGS, HONEST_NOTE, PRISON_HELP, COMPANIONS, PROFESSIONS, IDEOLOGIES }
+const ALL = { WEEKS, MISSIONS, STORIES, SOURCES, CARDS, LEXICON, TIMELINE, TIMELINE_INTRO, TIMELINE_OUTRO, DISTRICTS, SOLIDARITY_RATINGS, HONEST_NOTE, PRISON_HELP, COMPANIONS, PROFESSIONS, IDEOLOGIES, TUTORIAL, TUTORIAL_RESOURCES, TUTORIAL_WEEK }
 
 /** Sammelt alle zweistufigen Texte aus einem Datenbaum */
 function collect(value: unknown, out: Leveled[] = []): Leveled[] {

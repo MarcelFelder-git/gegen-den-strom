@@ -147,3 +147,26 @@ test('beschädigter Spielstand führt nicht zu einer weißen Seite', async ({ pa
     await expect(page.locator('#root')).not.toBeEmpty()
   }
 })
+
+test('Einführung erklärt beim ersten Mal das Spielprinzip und lässt sich wieder öffnen', async ({ page }) => {
+  const problems = watch(page)
+  await page.goto('./')
+  // Bis zur ersten Seite der Einführung spielen
+  await play(page, problems, { level: 1, start: /^Neues Spiel beginnen/, until: () => false, stopAtDialog: /^So geht’s/, maxSteps: 300 })
+  const dialog = page.getByRole('dialog', { name: /^So geht’s/ })
+  await expect(dialog).toContainText('Worum es geht')
+  for (let i = 0; i < 6; i++) await dialog.getByRole('button', { name: /^Weiter/ }).tap()
+  await dialog.getByRole('button', { name: /Los geht/ }).tap()
+  await expect(dialog).toHaveCount(0)
+  await expect(page.getByText('Erste Schritte')).toBeVisible()
+  // Nach dem Neuladen kommt die Einführung nicht noch einmal von selbst
+  await page.reload()
+  await page.getByRole('button', { name: /Spiel fortsetzen/ }).tap()
+  await expect(page.getByRole('button', { name: 'Woche beenden' })).toBeVisible()
+  await expect(dialog).toHaveCount(0)
+  await page.getByRole('button', { name: /So geht/ }).tap()
+  await expect(dialog).toBeVisible()
+  await dialog.getByRole('button', { name: 'Erklärung schließen' }).tap()
+  await expect(dialog).toHaveCount(0)
+  report(problems)
+})

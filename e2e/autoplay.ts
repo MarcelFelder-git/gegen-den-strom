@@ -70,6 +70,8 @@ export interface PlayOptions {
   start: RegExp
   /** Beendet das Spielen, sobald dieser Bildschirm erreicht ist */
   until: (s: Screen) => boolean
+  /** Hält an, sobald ein Dialog mit diesem Namen offen ist */
+  stopAtDialog?: RegExp
   maxSteps?: number
   missionsPerWeek?: number
 }
@@ -88,6 +90,7 @@ export async function play(page: Page, problems: Problems, o: PlayOptions): Prom
     if (s.overflow > 1) problems.overflow.push(`${s.dialog ?? 'Seite'}: ${s.overflow}px zu breit`)
     for (const x of s.small) problems.smallTargets.add(`${s.dialog ?? 'Seite'}: ${x}`)
     if (started && s.dialog === null && o.until(s)) return log
+    if (o.stopAtDialog && s.dialog && o.stopAtDialog.test(s.dialog)) return log
     const find = (re: RegExp) => s.btns.find((b) => re.test(b.label))
     let hit: Btn | undefined
     if (!started) {

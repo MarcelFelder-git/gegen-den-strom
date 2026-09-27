@@ -34,6 +34,8 @@ export default function App() {
   const history = useGame((g) => g.history)
   const decisions = useGame((g) => g.decisions)
   const groupName = useGame((g) => g.groupName)
+  // Vorbild-Karten erst nach der Einführung, damit nicht zwei Fenster übereinanderliegen
+  const tutorialPending = useGame((g) => !g.tutorialSeen && g.history.length === 0)
   const { introSeen, nightSeen, markIntro, markNight, resetCutscenes, draftLevel, setDraftLevel, startChapter } = useUi()
   const [before, setBefore] = useState<Before>('title')
 
@@ -123,7 +125,7 @@ export default function App() {
       {overlay === 'vorbilder' && <CardAlbum />}
       {overlay === 'chronik' && <Chronicle />}
       {overlay === 'bildnachweis' && <PhotoCredits />}
-      {inGame && (phase === 'map' || (phase === 'report' && nightSeen === weekIndex)) && <CardReveal />}
+      {inGame && ((phase === 'map' && !tutorialPending) || (phase === 'report' && nightSeen === weekIndex)) && <CardReveal />}
       {phase === 'end' && <PrintSheet />}
     </>
   )

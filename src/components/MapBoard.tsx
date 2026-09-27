@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { Check, CircleAlert, Flag, HandHeart, Lightbulb } from 'lucide-react'
+import { Check, CircleAlert, CircleHelp, Flag, HandHeart, Lightbulb } from 'lucide-react'
 import s from '../styles/period.module.css'
 import { Avatar } from './Avatar'
 import { CityMap } from './CityMap'
 import { MissionDossier } from './MissionDossier'
 import { StampButton } from './ui/StampButton'
+import { Tutorial } from './Tutorial'
 import { MISSION_ICONS } from './icons'
 import { DISTRICTS, getDistrict, getPlace, situationAt, surveillanceAt, surveillanceLevel } from '../game/data/districts'
 import { MISSIONS } from '../game/data/missions'
@@ -29,8 +30,17 @@ import type { MissionTemplate } from '../game/data/missions'
 import type { Resolved } from '../game/text'
 
 export function MapBoard() {
-  const { missions, members, weekIndex, kasse, inventory, endWeek, trust, flags, groupName } = useGame()
+  const { missions, members, weekIndex, kasse, inventory, endWeek, trust, flags, groupName, history, tutorialSeen, markTutorial, phase } = useGame()
   const [openUid, setOpenUid] = useState<string | null>(null)
+  // Beim ersten Mal auf der Karte erklärt eine kurze Einführung das Spielprinzip
+  const [help, setHelp] = useState(false)
+  // Erst wenn die Karte wirklich dran ist, nicht schon unter Wochenschau oder Zeitung
+  const showHelp = help || (phase === 'map' && !tutorialSeen && history.length === 0)
+  const closeHelp = () => {
+    setHelp(false)
+    markTutorial()
+  }
+  const [opened, setOpened] = useState(false)
   const [hovered, setHovered] = useState<string | null>(null)
   const [district, setDistrict] = useState<DistrictKey | null>(null)
   const [confirmIdle, setConfirmIdle] = useState(false)
@@ -41,6 +51,11 @@ export function MapBoard() {
   const visible = missions.filter((m) => !district || m.district === district)
   const selected = district ? getDistrict(district) : null
 
+  const openMission = (uid: string) => {
+    setOpened(true)
+    setOpenUid(uid)
+  }
+
   const finish = () => {
     if (missions.every((m) => m.assigned.length === 0) && !confirmIdle) return setConfirmIdle(true)
     setConfirmIdle(false)
@@ -50,7 +65,7 @@ export function MapBoard() {
   return (
     <section aria-labelledby="karte-titel" className="min-w-0 space-y-4">
       <WeekSteps />
-      <div>
+      <div className="flex items-start justify-between gap-3">
         <div>
           <h2 id="karte-titel" className="font-serif text-2xl font-bold">
             Stadtkarte Berlin
@@ -59,6 +74,12 @@ export function MapBoard() {
             Plant hier die Einsätze eurer Widerstandsgruppe {quoted(groupName)}. Tippt einen Auftrag an, um Gefährten einzuteilen.
           </p>
         </div>
+        <button
+          onClick={() => setHelp(true)}
+          className={`${s.typewriter} flex h-11 shrink-0 items-center gap-1.5 border border-archive-light/60 px-3 text-xs font-bold tracking-[0.1em] text-archive-light uppercase hover:bg-archive-light hover:text-ink`}
+        >
+          <CircleHelp size={16} aria-hidden /> So geht’s
+        </button>
       </div>
 
       <div className="-mx-3 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0">
@@ -72,7 +93,7 @@ export function MapBoard() {
             onSelect={setDistrict}
             hovered={hovered}
             onHover={setHovered}
-            onOpen={setOpenUid}
+            onOpen={openMission}
           />
         </div>
       </div>
@@ -115,7 +136,7 @@ export function MapBoard() {
                 plannable={m.assigned.length > 0 || canPlan(m)}
                 highlighted={hovered === m.uid}
                 onHover={setHovered}
-                onOpen={setOpenUid}
+                onOpen={openMission}
               />
             ))}
           </ul>
@@ -127,13 +148,16 @@ export function MapBoard() {
           weekIndex={weekIndex}
           trust={trust}
           flags={flags}
-          onOpen={setOpenUid}
+          onOpen={openMission}
           confirmIdle={confirmIdle}
           onFinish={finish}
+          firstWeek={history.length === 0}
+          opened={opened}
         />
       </div>
 
       {open && <MissionDossier mission={open} onClose={() => setOpenUid(null)} />}
+      {showHelp && <Tutorial weekIndex={weekIndex} onClose={closeHelp} />}
     </section>
   )
 }
@@ -245,6 +269,8 @@ function WeekPlan({
   onOpen,
   confirmIdle,
   onFinish,
+  firstWeek,
+  opened,
 }: {
   missions: Mission[]
   members: Character[]
@@ -254,6 +280,8 @@ function WeekPlan({
   onOpen: (uid: string) => void
   confirmIdle: boolean
   onFinish: () => void
+  firstWeek: boolean
+  opened: boolean
 }) {
   const templates = useMissions()
   const diff = useDifficulty()
@@ -268,6 +296,7 @@ function WeekPlan({
         Wochenplan
       </h3>
 
+      {firstWeek && <FirstSteps opened={opened || planned.length > 0} planned={planned.length > 0} />}
       <GoalCard weekIndex={weekIndex} />
       <ProjectCard flags={flags} weekIndex={weekIndex} />
 
@@ -425,6 +454,42 @@ function DistrictBar({
           </button>
         )
       })}
+    </div>
+  )
+}
+
+/** In der ersten Woche: drei Schritte zum Abhaken, damit jedes Kind den Ablauf einmal selbst macht */
+function FirstSteps({ opened, planned }: { opened: boolean; planned: boolean }) {
+  const steps = [
+    { done: opened, text: 'Einen Auftrag antippen' },
+    { done: planned, text: 'Leute auswählen und „Einteilen“ tippen' },
+    { done: false, text: 'Unten „Woche beenden“ tippen' },
+  ]
+  const current = steps.findIndex((st) => !st.done)
+  return (
+    <div className="border-2 border-archive-light/60 bg-archive/40 p-3">
+      <p className="font-type text-[10px] font-bold tracking-[0.2em] text-archive-light uppercase">Erste Schritte</p>
+      <ol className="mt-2 space-y-1.5">
+        {steps.map((st, i) => (
+          <li
+            key={st.text}
+            className={`flex items-center gap-2 font-type text-sm ${st.done ? 'text-fog line-through' : i === current ? 'font-bold text-paper' : 'text-paper/70'}`}
+          >
+            <span
+              className={`grid h-5 w-5 shrink-0 place-items-center border ${
+                st.done ? 'border-archive-light bg-archive-light text-ink' : i === current ? 'border-paper' : 'border-paper/40'
+              }`}
+              aria-hidden
+            >
+              {st.done ? <Check size={13} /> : <span className="text-[11px]">{i + 1}</span>}
+            </span>
+            <span>
+              {st.text}
+              {st.done && <span className="sr-only"> (erledigt)</span>}
+            </span>
+          </li>
+        ))}
+      </ol>
     </div>
   )
 }

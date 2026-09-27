@@ -57,6 +57,17 @@ describe('Spielablauf', () => {
   })
 })
 
+describe('Einführung', () => {
+  it('erscheint in jedem neuen Spiel einmal', () => {
+    useGame.getState().startGame(draft('lehrer', 'christlich'))
+    expect(useGame.getState().tutorialSeen).toBe(false)
+    useGame.getState().markTutorial()
+    expect(useGame.getState().tutorialSeen).toBe(true)
+    useGame.getState().startGame(draft('lehrer', 'christlich'))
+    expect(useGame.getState().tutorialSeen).toBe(false)
+  })
+})
+
 describe('Doppeltes Tippen auf dem Tablet', () => {
   it('überspringt keine Woche und keine Geschichte', () => {
     useGame.getState().startGame(draft('arbeiter', 'kommunistisch'))
