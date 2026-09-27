@@ -245,7 +245,7 @@ function PrisonHelpBox({ m, canHelp }: { m: Character; canHelp: boolean }) {
                   const err = helpPrisoner(m.id, o.kind)
                   setMsg(err ?? r(o.text))
                 }}
-                className={`${s.chip} px-2 py-1 text-xs`}
+                className={`${s.chip} min-h-10 px-2 py-2 text-xs`}
               >
                 {t(o.label)} ({o.cost} RM)
               </button>

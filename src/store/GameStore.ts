@@ -403,6 +403,8 @@ export const useGame = create<GameState>()(
 
       finishEvent: () => {
         let s = get()
+        // Doppeltes Tippen darf keine Geschichte überspringen
+        if (s.phase !== 'event' || !s.eventOutcome) return
         if (s.moral <= 0) {
           if (difficultyOf(s.level).gameOver) return set({ phase: 'end', endReason: 'moral' })
           set(withCrisis(s))
@@ -668,6 +670,8 @@ export const useGame = create<GameState>()(
 
       nextWeek: () => {
         const s = get()
+        // Doppeltes Tippen darf keine Woche überspringen
+        if (s.phase !== 'report') return
         const diff = difficultyOf(s.level)
         const leader = s.members.find((m) => m.isLeader)
         if (diff.gameOver) {

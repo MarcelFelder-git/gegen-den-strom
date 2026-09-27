@@ -85,6 +85,22 @@
   }
 }
 
+/* Kleine Textknöpfe bekommen eine unsichtbar größere Tippfläche, damit Kinderfinger sie sicher treffen */
+@layer components {
+  .tap-area {
+    position: relative;
+  }
+  .tap-area::after {
+    content: '';
+    position: absolute;
+    inset: -12px -6px;
+  }
+  .tap-area-round::after {
+    inset: -15px;
+    border-radius: 9999px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -57,6 +57,11 @@ export function IntroTimeline({ level, chapter, onDone, onBack }: IntroTimelineP
     return () => sound.stopLoop('projektor')
   }, [])
 
+  // Die Fotos schon beim Lesen der Einleitung laden, damit sie im langsamen Schul-WLAN sofort da sind
+  useEffect(() => {
+    for (const e of entries) if (e.photo) new Image().src = e.photo.src
+  }, [entries])
+
   return (
     <main className={`${s.vignette} relative flex min-h-dvh flex-col bg-[#101012] px-4 py-5 sm:px-8`} aria-label="Vorgeschichte">
       {/* Zeitleiste oben: jedes Jahr ein Punkt */}
@@ -71,7 +76,7 @@ export function IntroTimeline({ level, chapter, onDone, onBack }: IntroTimelineP
                   onClick={() => go(i + 1)}
                   aria-current={active ? 'step' : undefined}
                   aria-label={`${e.date}: ${e.title}`}
-                  className={`h-3.5 w-3.5 rounded-full border-2 transition-colors ${
+                  className={`tap-area tap-area-round h-3.5 w-3.5 rounded-full border-2 transition-colors ${
                     active ? 'border-ember bg-ember' : done ? 'border-paper bg-paper' : 'border-paper/40 bg-transparent'
                   }`}
                 />
@@ -126,7 +131,7 @@ export function IntroTimeline({ level, chapter, onDone, onBack }: IntroTimelineP
         </span>
         <div className="flex items-center gap-4">
           {!last && (
-            <button onClick={onDone} className="font-type text-sm text-fog underline decoration-dotted underline-offset-4 hover:text-paper">
+            <button onClick={onDone} className="tap-area font-type text-sm text-fog underline decoration-dotted underline-offset-4 hover:text-paper">
               Überspringen
             </button>
           )}

@@ -29,7 +29,8 @@ function audio(): { ctx: AudioContext; out: GainNode } | null {
       master.gain.value = 0.8
       master.connect(ctx.destination)
     }
-    if (ctx.state === 'suspended') void ctx.resume()
+    // Safari meldet nach Sperrbildschirm oder App-Wechsel auch "interrupted"
+    if (ctx.state !== 'running' && !document.hidden) void ctx.resume().catch(() => {})
     return { ctx, out: master! }
   } catch {
     return null
@@ -213,21 +214,33 @@ export const sound = {
 /**
  * iPad und iPhone erlauben Ton nur nach einer Berührung. Beim ersten Tippen
  * wird der Tonkanal geöffnet, danach funktionieren auch automatische Geräusche.
+ * Nach Sperrbildschirm, App-Wechsel oder einem Anruf hält Safari den Tonkanal an.
+ * Dann öffnet ihn die nächste Berührung wieder. Ist die Seite verborgen, pausiert der Ton.
  */
 export function unlockAudioOnFirstTouch() {
-  const unlock = () => {
-    const a = audio()
-    if (a) {
+  let primed = false
+  const wake = () => {
+    if (muted) return
+    if (!primed) {
+      const a = audio()
+      if (!a) return
       const src = a.ctx.createBufferSource()
       src.buffer = a.ctx.createBuffer(1, 1, 22050)
       src.connect(a.out)
       src.start(0)
+      primed = true
+    } else if (ctx && ctx.state !== 'running') {
+      void ctx.resume().catch(() => {})
     }
-    window.removeEventListener('pointerdown', unlock)
-    window.removeEventListener('touchend', unlock)
   }
-  window.addEventListener('pointerdown', unlock, { passive: true })
-  window.addEventListener('touchend', unlock, { passive: true })
+  window.addEventListener('pointerdown', wake, { passive: true, capture: true })
+  window.addEventListener('touchend', wake, { passive: true, capture: true })
+  window.addEventListener('keydown', wake, { capture: true })
+  document.addEventListener('visibilitychange', () => {
+    if (!ctx) return
+    if (document.hidden) void ctx.suspend().catch(() => {})
+    else if (!muted) void ctx.resume().catch(() => {})
+  })
 }
 
 export function isMuted(): boolean {

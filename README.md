@@ -35,6 +35,15 @@ npm run typecheck
 npm test
 ```
 
+Vor einer Unterrichtsstunde lohnt zusätzlich der iPad-Test. Er baut das Spiel und spielt es in der Safari-Engine (WebKit) auf simulierten iPads automatisch durch: beide Kapitel in beiden Stufen, hochkant, quer, iPad mini und geteilter Bildschirm. Beim ersten Mal muss die Engine einmalig geladen werden.
+
+```bash
+npx playwright install webkit
+npm run test:ipad
+```
+
+Der iPad-Test achtet auf Abstürze, Fehler in der Konsole, Fotos, die nicht laden, Seiten, die breiter als der Bildschirm sind, und darauf, dass der Spielstand Neuladen übersteht. Ein beschädigter Spielstand führt zu einer Fehlerseite mit Ausweg statt zu einer weißen Seite.
+
 Die Tests prüfen Spiellogik, Haft und Nachfolge, beide Sprachstufen (keine Gedankenstriche, keine offenen Platzhalter, kurze Sätze in der leichten Stufe), die Bildnachweise und die Spielbalance, indem sie Hunderte Partien in beiden Stufen automatisch durchspielen.
 
 ## Aufbau

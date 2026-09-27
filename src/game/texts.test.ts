@@ -101,8 +101,8 @@ describe('Inhalte', () => {
     }
   })
 
-  it('fast jedes Vorbild hat ein echtes Foto', () => {
-    expect(CARDS.filter((c) => c.photo).length).toBeGreaterThanOrEqual(12)
+  it('jedes Vorbild hat ein echtes Foto oder Dokument', () => {
+    expect(CARDS.filter((c) => !c.photo).map((c) => c.name)).toEqual([])
   })
 
   it('die Zeitleiste des Intros beginnt 1918 und nennt Hitlerputsch, Neugründung und Denkschrift', () => {

@@ -93,7 +93,7 @@ export function MapBoard() {
             <p>
               Vertrauen {trust[selected.key]} von {TRUST_MAX}: Gefahr hier {trust[selected.key] * TRUST_RISK_RELIEF} Punkte niedriger
             </p>
-            <button onClick={() => setDistrict(null)} className="mt-1 text-paper underline decoration-dotted underline-offset-4">
+            <button onClick={() => setDistrict(null)} className="tap-area mt-1 text-paper underline decoration-dotted underline-offset-4">
               Alle Bezirke zeigen
             </button>
           </div>

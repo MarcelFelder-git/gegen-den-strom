@@ -1,7 +1,7 @@
 /**
  * Echte Fotos mit Bildnachweis. Alle Dateien liegen unter public/fotos und stammen
  * von Wikimedia Commons, überwiegend aus dem Bundesarchiv. Die Lizenzen erlauben die Nutzung
- * mit Namensnennung (CC BY-SA 3.0 de, CC BY 3.0) oder die Bilder sind gemeinfrei.
+ * mit Namensnennung (CC BY-SA 3.0 de, CC BY 3.0, CC BY 4.0) oder die Bilder sind gemeinfrei.
  */
 export interface Photo {
   src: string
@@ -10,6 +10,8 @@ export interface Photo {
   credit: string
   license: string
   url: string
+  /** Querformatige Dokumente wie Plakate werden ganz gezeigt statt beschnitten */
+  fit?: 'contain'
 }
 
 const f = (file: string) => `./fotos/${file}`
@@ -102,6 +104,15 @@ export const PHOTOS = {
     credit: 'OTFW, Berlin',
     license: 'CC BY-SA 3.0',
     url: 'https://commons.wikimedia.org/wiki/File:Gedenktafel_Auguststr_82_(Mitte)_Elisabeth_Schmitz.jpg',
+  },
+  roteHilfe: {
+    src: f('rotehilfe-plakat.jpg'),
+    alt: 'Plakat: Öffentliche Versammlung der Roten Hilfe, Thema: Die Rote Hilfe und ihre Aufgaben',
+    caption: 'Plakat der Roten Hilfe in Villingen, 1931. Ab 1933 war die Rote Hilfe verboten und arbeitete heimlich weiter',
+    credit: 'Landesarchiv Baden-Württemberg, Staatsarchiv Freiburg W 110-1 Nr. 0365',
+    license: 'CC BY 4.0',
+    url: 'https://commons.wikimedia.org/wiki/File:Rote_Hilfe,_Ortsgruppe_Villingen-_Die_Rote_Hilfe_und_ihre_Aufgaben_-_LABW_-_Staatsarchiv_Freiburg_W_110-1_Nr._0365.jpeg',
+    fit: 'contain',
   },
   neueSynagoge: {
     src: f('neue-synagoge.jpg'),

@@ -142,3 +142,12 @@ describe('Bezirke', () => {
     }
   })
 })
+
+describe('Keine Sackgassen', () => {
+  it('jede Begegnung und Geschichte hat eine Wahl, die kein Geld kostet', () => {
+    const events = [...WEEKS.map((w) => w.event), ...STORIES.map((st) => st.event)]
+    for (const ev of events) {
+      expect(ev.choices.some((c) => !c.needsKasse), t(ev.title, 'schwer')).toBe(true)
+    }
+  })
+})

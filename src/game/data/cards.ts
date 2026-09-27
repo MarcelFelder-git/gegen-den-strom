@@ -227,6 +227,7 @@ export const CARDS: HeroCard[] = [
     hint: L('Hilf erfolgreich den Familien von Verhafteten.', 'Unterstütze erfolgreich die Familien von Verhafteten.'),
     unlock: { mission: 'rotehilfe' },
     source: 'https://de.wikipedia.org/wiki/Rote_Hilfe_Deutschlands',
+    photo: PHOTOS.roteHilfe,
   },
   {
     id: 'baum',

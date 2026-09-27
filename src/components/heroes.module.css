@@ -49,6 +49,16 @@
   filter: grayscale(1) sepia(0.35) contrast(1.05);
 }
 
+.portrait:has(img.contain) {
+  background: var(--color-paper-deep);
+}
+
+.portrait img.contain {
+  object-fit: contain;
+  object-position: 50% 50%;
+  padding: 6px;
+}
+
 /* Die Einblendung: dunkler Raum, ein Lichtkegel, die Karte dreht sich herein */
 .stage {
   position: fixed;

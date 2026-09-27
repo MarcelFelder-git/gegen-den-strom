@@ -27,7 +27,7 @@ function Portrait({ card, className = '' }: { card: Card; className?: string }) 
   if (card.photo) {
     return (
       <div className={`${h.portrait} ${className}`}>
-        <img src={card.photo.src} alt={card.photo.alt} loading="lazy" decoding="async" />
+        <img src={card.photo.src} alt={card.photo.alt} loading="lazy" decoding="async" className={card.photo.fit === 'contain' ? h.contain : undefined} />
       </div>
     )
   }
@@ -49,7 +49,7 @@ export function HeroCardView({ card, number }: { card: Card; number: number }) {
           <Portrait card={card} className="aspect-[3/4] w-full max-w-[180px]" />
           {card.photo && (
             <p className="mt-2 font-type text-[10px] leading-snug text-slate">
-              {card.photo.caption}. Foto: {card.photo.credit}, {card.photo.license}
+              {card.photo.caption}. {card.photo.fit === 'contain' ? 'Quelle' : 'Foto'}: {card.photo.credit}, {card.photo.license}
             </p>
           )}
         </div>

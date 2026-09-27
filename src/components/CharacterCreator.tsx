@@ -103,7 +103,7 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
   return (
     <main className="min-h-dvh px-4 py-6 sm:py-10">
       <div className="mx-auto max-w-6xl">
-        <button onClick={onBack} className={`${s.typewriter} mb-4 inline-flex items-center gap-2 text-sm text-fog hover:text-paper`}>
+        <button onClick={onBack} className={`${s.typewriter} tap-area mb-4 inline-flex items-center gap-2 text-sm text-fog hover:text-paper`}>
           <ArrowLeft size={16} aria-hidden /> Zurück zur Vorgeschichte
         </button>
 

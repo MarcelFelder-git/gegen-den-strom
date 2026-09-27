@@ -57,6 +57,28 @@ describe('Spielablauf', () => {
   })
 })
 
+describe('Doppeltes Tippen auf dem Tablet', () => {
+  it('überspringt keine Woche und keine Geschichte', () => {
+    useGame.getState().startGame(draft('arbeiter', 'kommunistisch'))
+    useGame.getState().closeNewspaper()
+    useGame.getState().chooseEventOption(0)
+    const stage = useGame.getState().eventStage
+    useGame.getState().finishEvent()
+    const after = useGame.getState()
+    // Zweites Tippen, bevor die nächste Geschichte beantwortet ist, ändert nichts
+    after.finishEvent()
+    expect(useGame.getState().eventStage).toBe(after.eventStage)
+    expect(after.eventStage === stage + 1 || after.phase === 'map').toBe(true)
+
+    useGame.setState({ phase: 'map' })
+    useGame.getState().endWeek()
+    const week = useGame.getState().weekIndex
+    useGame.getState().nextWeek()
+    useGame.getState().nextWeek()
+    expect(useGame.getState().weekIndex).toBe(week + 1)
+  })
+})
+
 /**
  * Spielt viele Partien mit einer einfachen, vernünftigen Strategie.
  * Dient als Prüfung der Spielbalance: gut spielbar, aber nicht trivial.
@@ -69,8 +91,10 @@ function autoplay(profession: ProfessionKey, ideology: IdeologyKey, level: Level
     if (s.phase === 'newspaper') s.closeNewspaper()
     else if (s.phase === 'event') {
       const { event } = currentEvent(s)
-      const idx = event.choices.findIndex((c) => (c.needsKasse ?? 0) <= s.kasse && (c.effects.moral ?? 0) >= 0)
-      s.chooseEventOption(Math.max(0, idx))
+      const affordable = (c: (typeof event.choices)[number]) => (c.needsKasse ?? 0) <= s.kasse
+      let idx = event.choices.findIndex((c) => affordable(c) && (c.effects.moral ?? 0) >= 0)
+      if (idx < 0) idx = event.choices.findIndex(affordable)
+      s.chooseEventOption(idx)
       useGame.getState().finishEvent()
     } else if (s.phase === 'map') {
       for (const type of ['druck', 'besorgung', 'rotehilfe', 'verteilen', 'papier', 'unterschlupf', 'parolen', 'spenden', 'ausweise'] as const) {

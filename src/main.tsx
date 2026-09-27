@@ -9,6 +9,7 @@ import '@fontsource/old-standard-tt/latin-400-italic.css'
 import '@fontsource/unifrakturmaguntia/400.css'
 import './index.css'
 import App from './App'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { unlockAudioOnFirstTouch } from './audio/sound'
 
 unlockAudioOnFirstTouch()
@@ -20,7 +21,9 @@ if (import.meta.env.DEV && new URLSearchParams(location.search).has('szenen')) {
 } else {
   root.render(
     <StrictMode>
-      <App />
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
     </StrictMode>,
   )
 }

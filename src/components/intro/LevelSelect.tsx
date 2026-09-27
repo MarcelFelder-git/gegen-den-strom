@@ -9,7 +9,7 @@ export function LevelSelect({ value, onChange, onNext, onBack }: { value: Level;
   return (
     <main className={`${s.vignette} flex min-h-dvh flex-col items-center justify-center px-4 py-8`}>
       <div className="w-full max-w-4xl">
-        <button onClick={onBack} className={`${s.typewriter} mb-4 inline-flex items-center gap-2 text-sm text-fog hover:text-paper`}>
+        <button onClick={onBack} className={`${s.typewriter} tap-area mb-4 inline-flex items-center gap-2 text-sm text-fog hover:text-paper`}>
           <ArrowLeft size={16} aria-hidden /> Zurück zum Titel
         </button>
         <p className={`${s.typewriter} text-center text-sm tracking-[0.3em] text-fog uppercase`}>Bevor es losgeht</p>

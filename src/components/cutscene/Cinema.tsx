@@ -37,9 +37,10 @@ export function Cinema({ shots, label, onDone, doneLabel = 'Weiter' }: { shots: 
   // Wer zurückblättert, will in Ruhe lesen: dann läuft nichts mehr von allein weiter
   const [manual, setManual] = useState(false)
   const nextRef = useRef<HTMLButtonElement>(null)
-  const shot = shots[index]
+  // Tippt jemand genau dann auf Weiter, wenn die Szene von selbst weiterläuft, darf der Zähler nie über das Ende hinaus
+  const shot = shots[Math.min(index, shots.length - 1)]
   const full = typed >= shot.caption.length
-  const last = index === shots.length - 1
+  const last = index >= shots.length - 1
 
   // Zwischentitel Buchstabe für Buchstabe. Abhängig von der Kennung, nicht vom Array,
   // damit ein neues Rendern der Eltern das Tippen nicht zurücksetzt.
@@ -83,8 +84,8 @@ export function Cinema({ shots, label, onDone, doneLabel = 'Weiter' }: { shots: 
   const next = useCallback(() => {
     if (!full) return setTyped(shot.caption.length)
     if (last) onDone()
-    else setIndex((i) => i + 1)
-  }, [full, last, onDone, shot.caption.length])
+    else setIndex((i) => Math.min(i + 1, shots.length - 1))
+  }, [full, last, onDone, shot.caption.length, shots.length])
 
   // Automatisch weiter, wenn die Szene das vorsieht
   useEffect(() => {
@@ -141,13 +142,13 @@ export function Cinema({ shots, label, onDone, doneLabel = 'Weiter' }: { shots: 
                 setManual(true)
                 setIndex((i) => Math.max(0, i - 1))
               }}
-              className="font-type text-sm text-fog underline decoration-dotted underline-offset-4 hover:text-paper"
+              className="tap-area font-type text-sm text-fog underline decoration-dotted underline-offset-4 hover:text-paper"
             >
               Zurück
             </button>
           )}
           {!last && (
-            <button onClick={onDone} className="font-type text-sm text-fog underline decoration-dotted underline-offset-4 hover:text-paper">
+            <button onClick={onDone} className="tap-area font-type text-sm text-fog underline decoration-dotted underline-offset-4 hover:text-paper">
               Überspringen
             </button>
           )}
