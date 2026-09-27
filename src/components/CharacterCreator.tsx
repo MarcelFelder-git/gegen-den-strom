@@ -27,7 +27,9 @@ import type {
 import { useGame } from '../store/GameStore'
 import { useUi } from '../store/UiStore'
 import { CHAPTERS } from '../game/data/chapters'
-import { CODENAMES, GROUP_NAMES, MOTTOS } from '../game/data/group'
+import { CODENAMES, GROUP_NAMES, GROUP_RULES, MOTTOS } from '../game/data/group'
+import { resolve } from '../game/text'
+import { DIFFICULTIES } from '../game/difficulty'
 
 const FACE_LABELS: Record<FaceShape, string> = { oval: 'Oval', rund: 'Rund', kantig: 'Kantig', schmal: 'Schmal' }
 const HEADWEAR_LABELS: Record<Headwear, string> = {
@@ -63,6 +65,9 @@ const NAME_PATTERN = /^[A-Za-zÄÖÜäöüß][A-Za-zÄÖÜäöüß\- ]{1,19}$/
 export function CharacterCreator({ onBack }: { onBack: () => void }) {
   const startGame = useGame((g) => g.startGame)
   const startChapter = useUi((u) => u.startChapter)
+  const level = useUi((u) => u.draftLevel)
+  const professions = resolve(PROFESSIONS, level)
+  const ideologies = resolve(IDEOLOGIES, level)
   const later = startChapter === 2
   const [avatar, setAvatar] = useState<AvatarConfig>(DEFAULT_AVATAR.m)
   const [name, setName] = useState('Karl')
@@ -76,8 +81,8 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
 
   const gender = avatar.gender
   const stats = useMemo(() => leaderStats(profession, ideology), [profession, ideology])
-  const prof = getProfession(profession)
-  const ideo = getIdeology(ideology)
+  const prof = resolve(getProfession(profession), level)
+  const ideo = resolve(getIdeology(ideology), level)
   const nameValid = NAME_PATTERN.test(name.trim())
 
   const setGender = (g: Gender) => {
@@ -92,14 +97,14 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
   const submit = () => {
     setTouched(true)
     if (!nameValid || !groupValid) return
-    startGame({ name: name.trim(), avatar, profession, ideology, groupName: groupName.trim(), motto, codename }, later ? CHAPTERS[2].first : 0)
+    startGame({ level, name: name.trim(), avatar, profession, ideology, groupName: groupName.trim(), motto, codename }, later ? CHAPTERS[2].first : 0)
   }
 
   return (
     <main className="min-h-dvh px-4 py-6 sm:py-10">
       <div className="mx-auto max-w-6xl">
         <button onClick={onBack} className={`${s.typewriter} mb-4 inline-flex items-center gap-2 text-sm text-fog hover:text-paper`}>
-          <ArrowLeft size={16} aria-hidden /> Zurück zum Titel
+          <ArrowLeft size={16} aria-hidden /> Zurück zur Vorgeschichte
         </button>
 
         <div className={`${s.paper} relative px-5 py-7 sm:px-10 sm:py-10`}>
@@ -107,8 +112,12 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
             <p className={`${s.typewriter} text-sm tracking-[0.25em] text-slate uppercase`}>{later ? 'Berlin, im März 1936' : 'Berlin, im Januar 1933'}</p>
             <h1 className="mt-2 font-serif text-4xl font-bold sm:text-5xl">Wer bist du?</h1>
             <p className="mt-2 max-w-2xl font-serif text-lg italic text-sepia">
-              Schreib es auf, lies es noch einmal, und dann wirf das Blatt ins Feuer. Solche Dinge bewahrt man in diesen
-              Zeiten nicht auf.
+              {level === 'leicht'
+                ? 'Du bist ein ganz normaler Mensch in Berlin. Dir geht es gut. Niemand verfolgt dich. Aber du willst nicht wegsehen.'
+                : 'Du gehörst nicht zu denen, die das Regime verfolgt. Du könntest dich heraushalten. Schreib auf, wer du bist, und dann wirf das Blatt ins Feuer.'}
+            </p>
+            <p className={`${s.typewriter} mt-3 inline-block border border-ink px-2 py-1 text-xs font-bold tracking-[0.1em] uppercase`}>
+              Stufe: {DIFFICULTIES[level].label}
             </p>
             <span
               className={`${s.rubber} absolute top-6 right-5 hidden text-crimson sm:inline-block`}
@@ -241,7 +250,7 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
 
               <Section numeral="III" title="Beruf">
                 <ChipGroup label="Beruf" className="grid gap-3 sm:grid-cols-2">
-                  {PROFESSIONS.map((p) => (
+                  {professions.map((p) => (
                     <Chip key={p.key} checked={profession === p.key} onClick={() => setProfession(p.key)} className="p-4">
                       <span className="block font-serif text-xl font-bold">{p.label[gender]}</span>
                       <span className="mt-1 block font-serif text-base leading-snug">{p.text}</span>
@@ -253,7 +262,7 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
 
               <Section numeral="IV" title="Gesinnung">
                 <ChipGroup label="Gesinnung" className="grid gap-3 sm:grid-cols-2">
-                  {IDEOLOGIES.map((i) => (
+                  {ideologies.map((i) => (
                     <Chip key={i.key} checked={ideology === i.key} onClick={() => setIdeology(i.key)} className="p-4">
                       <span className="block font-serif text-xl font-bold">{i.label}</span>
                       <span className="mt-1 block font-serif text-base leading-snug">{i.text}</span>
@@ -266,9 +275,19 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
               <Section numeral="V" title="Eure Widerstandsgruppe">
                 <p className="max-w-2xl font-serif text-lg leading-relaxed">
                   {later
-                    ? 'Seit drei Jahren trefft ihr euch heimlich. Ihr seid eine Widerstandsgruppe: Menschen, die nicht mitmachen, sondern dagegen handeln.'
-                    : 'Du bist nicht allein. Mit drei Gefährten gründest du eine Widerstandsgruppe: Menschen, die nicht mitmachen, sondern heimlich dagegen handeln. Gebt euch einen Namen, den nur ihr kennt.'}
+                    ? 'Seit drei Jahren trefft ihr euch heimlich. Ihr seid eine Widerstandsgruppe: Menschen, die nicht mitmachen, sondern für andere einstehen.'
+                    : 'Du bist nicht allein. Mit drei Gefährten gründest du eine Widerstandsgruppe. Euch selbst droht erst einmal nichts. Gerade deshalb könnt ihr denen helfen, die verfolgt werden. Gebt euch einen Namen, den nur ihr kennt.'}
                 </p>
+                <div className="max-w-2xl border-l-4 border-crimson bg-paper-dark px-4 py-3">
+                  <p className={`${s.typewriter} text-xs font-bold tracking-[0.15em] uppercase`}>Eure Regeln</p>
+                  <ol className="mt-1 list-decimal space-y-0.5 pl-5 font-serif text-[16px] leading-snug">
+                    {GROUP_RULES.map((rule, i) => (
+                      <li key={rule} className={i === 0 ? 'font-bold' : ''}>
+                        {rule}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
                 <Field label="Name der Gruppe" htmlFor="group-name">
                   <input
                     id="group-name"

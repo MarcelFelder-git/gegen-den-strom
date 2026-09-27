@@ -1,5 +1,6 @@
 import {
   Camera,
+  Handshake,
   Gift,
   Luggage,
   BookOpenText,
@@ -42,6 +43,7 @@ export const MISSION_ICONS: Record<MissionType, LucideIcon> = {
   ausreise: Luggage,
   pakete: Gift,
   reporter: Camera,
+  besorgung: Handshake,
 }
 
 export const ITEM_ICONS: Record<ItemKey, LucideIcon> = {

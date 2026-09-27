@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { BookOpen, House, Medal, Volume2, VolumeX } from 'lucide-react'
+import { BookOpen, HandHeart, House, Medal, Volume2, VolumeX } from 'lucide-react'
 import s from '../styles/period.module.css'
-import { WEEKS } from '../game/data/weeks'
 import { chapterOf, weekInChapter, weeksInChapter } from '../game/data/chapters'
 import { CARDS } from '../game/data/cards'
 import { quoted } from '../game/data/group'
@@ -9,6 +8,9 @@ import { ITEM_LABELS } from '../game/logic'
 import type { ItemKey } from '../game/types'
 import { useGame } from '../store/GameStore'
 import { useUi } from '../store/UiStore'
+import { useWeeks } from '../store/content'
+import { DIFFICULTIES } from '../game/difficulty'
+import { sound } from '../audio/sound'
 import { ITEM_ICONS } from './icons'
 
 const ITEM_ORDER: ItemKey[] = ['papier', 'farbe', 'flugblaetter', 'ausweise']
@@ -29,7 +31,8 @@ function useFlash(value: number): string {
 }
 
 export function ResourceBar({ onMenu }: { onMenu: () => void }) {
-  const { moral, supporters, kasse, inventory, weekIndex } = useGame()
+  const { moral, supporters, kasse, inventory, weekIndex, helped, level } = useGame()
+  const weeks = useWeeks()
   const openLexicon = useUi((u) => u.openLexicon)
   const openAlbum = useUi((u) => u.openAlbum)
   const cardCount = useGame((g) => g.cards.length)
@@ -49,11 +52,11 @@ export function ResourceBar({ onMenu }: { onMenu: () => void }) {
             Widerstandsgruppe {quoted(groupName)}
           </p>
           <p className={`${s.typewriter} text-[10px] tracking-[0.2em] text-fog uppercase`}>
-            {chapter.id === 1 ? '1933' : '1936 bis 1938'} · Woche {weekInChapter(weekIndex)} von {weeksInChapter(chapter)}
+            {chapter.id === 1 ? '1933' : '1936 bis 1938'} · Woche {weekInChapter(weekIndex)} von {weeksInChapter(chapter)} · {DIFFICULTIES[level].label}
           </p>
-          <p className="font-serif text-xl leading-tight font-bold whitespace-nowrap">{WEEKS[weekIndex].dateLabel.replace('Woche vom ', '')}</p>
+          <p className="font-serif text-xl leading-tight font-bold whitespace-nowrap">{weeks[weekIndex].dateLabel.replace('Woche vom ', '')}</p>
           <div className="mt-1.5 flex gap-1" aria-hidden>
-            {WEEKS.slice(chapter.first, chapter.last + 1).map((w, j) => {
+            {weeks.slice(chapter.first, chapter.last + 1).map((w, j) => {
               const i = chapter.first + j
               return (
               <span
@@ -96,7 +99,8 @@ export function ResourceBar({ onMenu }: { onMenu: () => void }) {
         </div>
 
         {/* Kennzahlen */}
-        <dl className="col-span-2 grid grid-cols-2 gap-3 md:col-span-1 lg:order-4 xl:order-none xl:col-span-2 xl:flex xl:gap-0 xl:divide-x xl:divide-paper/15">
+        <dl className="col-span-2 grid grid-cols-3 gap-2 md:col-span-1 lg:order-4 xl:order-none xl:col-span-2 xl:flex xl:gap-0 xl:divide-x xl:divide-paper/15">
+          <HelpedTile value={helped} />
           <Tile label="Unterstützer" value={supporters} />
           <Tile label="Kasse" value={kasse} unit="RM" />
         </dl>
@@ -123,6 +127,30 @@ function Tile({ label, value, unit }: { label: string; value: number; unit?: str
       <dd className={`${s.typewriter} text-xl leading-tight font-bold tabular-nums whitespace-nowrap`}>
         {value}
         {unit && <span className="ml-1 text-sm text-fog">{unit}</span>}
+      </dd>
+    </div>
+  )
+}
+
+/** Die wichtigste Zahl im Spiel: wie vielen Menschen die Gruppe beigestanden hat */
+function HelpedTile({ value }: { value: number }) {
+  const flash = useFlash(value)
+  const prev = useRef(value)
+  useEffect(() => {
+    if (value > prev.current) sound.helped()
+    prev.current = value
+  }, [value])
+  return (
+    <div
+      className={`border-2 border-group-light/70 bg-group/50 px-3 py-1.5 xl:border-y-0 xl:border-r-0 xl:border-l-2 xl:px-5 xl:py-0 ${flash}`}
+      title="Menschen, denen eure Gruppe geholfen hat. Darum geht es im Spiel."
+    >
+      <dt className={`${s.typewriter} flex items-center gap-1 text-[10px] font-bold tracking-[0.15em] text-group-light uppercase`}>
+        <HandHeart size={12} aria-hidden /> Geholfen
+      </dt>
+      <dd className={`${s.typewriter} text-xl leading-tight font-bold tabular-nums whitespace-nowrap`}>
+        {value}
+        <span className="ml-1 text-sm text-group-light">{value === 1 ? 'Mensch' : 'Menschen'}</span>
       </dd>
     </div>
   )

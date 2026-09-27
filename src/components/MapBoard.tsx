@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, CircleAlert } from 'lucide-react'
+import { Check, CircleAlert, Flag, HandHeart, Lightbulb } from 'lucide-react'
 import s from '../styles/period.module.css'
 import { Avatar } from './Avatar'
 import { CityMap } from './CityMap'
@@ -8,6 +8,7 @@ import { StampButton } from './ui/StampButton'
 import { MISSION_ICONS } from './icons'
 import { DISTRICTS, getDistrict, getPlace, situationAt, surveillanceAt, surveillanceLevel } from '../game/data/districts'
 import { MISSIONS } from '../game/data/missions'
+import { weekGoal } from '../game/data/goals'
 import { quoted } from '../game/data/group'
 import {
   TRUST_MAX,
@@ -23,6 +24,9 @@ import {
 } from '../game/logic'
 import type { Character, DistrictKey, Mission } from '../game/types'
 import { useGame } from '../store/GameStore'
+import { useDifficulty, useMissions, useT } from '../store/content'
+import type { MissionTemplate } from '../game/data/missions'
+import type { Resolved } from '../game/text'
 
 export function MapBoard() {
   const { missions, members, weekIndex, kasse, inventory, endWeek, trust, flags, groupName } = useGame()
@@ -30,6 +34,7 @@ export function MapBoard() {
   const [hovered, setHovered] = useState<string | null>(null)
   const [district, setDistrict] = useState<DistrictKey | null>(null)
   const [confirmIdle, setConfirmIdle] = useState(false)
+  const t = useT()
 
   const open = missions.find((m) => m.uid === openUid)
   const canPlan = (m: Mission) => canAfford(MISSIONS[m.type], kasse, inventory)
@@ -80,11 +85,11 @@ export function MapBoard() {
         <div className={`${s.panel} ${s.riseIn} grid gap-3 p-4 sm:grid-cols-[1fr_auto]`}>
           <div>
             <p className={`${s.typewriter} text-[10px] tracking-[0.2em] text-fog uppercase`}>Lage in {selected.name}</p>
-            <p className="mt-1 font-serif text-[17px] leading-relaxed">{situationAt(selected.key, weekIndex)}</p>
-            <p className="mt-2 font-serif text-[15px] leading-relaxed text-paper/80">{selected.text}</p>
+            <p className="mt-1 font-serif text-[17px] leading-relaxed">{t(situationAt(selected.key, weekIndex))}</p>
+            <p className="mt-2 font-serif text-[15px] leading-relaxed text-paper/80">{t(selected.text)}</p>
           </div>
           <div className={`${s.typewriter} space-y-1 text-xs text-fog sm:w-56`}>
-            <p>Nur hier: {selected.special}</p>
+            <p>Nur hier: {t(selected.special)}</p>
             <p>
               Vertrauen {trust[selected.key]} von {TRUST_MAX}: Gefahr hier {trust[selected.key] * TRUST_RISK_RELIEF} Punkte niedriger
             </p>
@@ -179,11 +184,13 @@ function MissionRow({
   onHover: (uid: string | null) => void
   onOpen: (uid: string) => void
 }) {
-  const t = MISSIONS[m.type]
+  const templates = useMissions()
+  const diff = useDifficulty()
+  const t = templates[m.type]
   const Icon = MISSION_ICONS[m.type]
   const place = getPlace(m.placeId)
   const assigned = m.assigned.length > 0
-  const tier = dangerTier(dangerEstimate(t, m.district, weekIndex, trust))
+  const tier = dangerTier(dangerEstimate(MISSIONS[m.type], m.district, weekIndex, trust, diff.riskFactor))
   return (
     <li>
       <button
@@ -208,7 +215,10 @@ function MissionRow({
           <Icon size={19} aria-hidden />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-serif text-base font-bold">{t.title}</span>
+          <span className="flex items-center gap-1.5 font-serif text-base font-bold">
+            <span className="truncate">{t.title}</span>
+            {t.solidarity && <HandHeart size={14} className="shrink-0 text-group-light" aria-label="hilft Verfolgten" />}
+          </span>
           <span className={`${s.typewriter} block truncate text-xs text-fog`}>
             {place.name}, {getDistrict(m.district).name}
           </span>
@@ -245,6 +255,8 @@ function WeekPlan({
   confirmIdle: boolean
   onFinish: () => void
 }) {
+  const templates = useMissions()
+  const diff = useDifficulty()
   const planned = missions.filter((m) => m.assigned.length > 0)
   const busy = new Set(planned.flatMap((m) => m.assigned))
   const idle = members.filter((m) => m.status === 'bereit' && !busy.has(m.id))
@@ -256,6 +268,7 @@ function WeekPlan({
         Wochenplan
       </h3>
 
+      <GoalCard weekIndex={weekIndex} />
       <ProjectCard flags={flags} weekIndex={weekIndex} />
 
       {planned.length === 0 ? (
@@ -265,11 +278,11 @@ function WeekPlan({
       ) : (
         <ul className="space-y-2.5">
           {planned.map((m) => {
-            const t = MISSIONS[m.type]
+            const t: Resolved<MissionTemplate> = templates[m.type]
             const Icon = MISSION_ICONS[m.type]
             const team = m.assigned.map(byId).filter((c): c is Character => !!c)
-            const chance = successChance(t, team)
-            const risk = detectionRisk(t, m.district, team, weekIndex, trust[m.district])
+            const chance = successChance(t, team, diff.successBonus)
+            const risk = detectionRisk(t, m.district, team, weekIndex, trust[m.district], diff.riskFactor)
             return (
               <li key={m.uid}>
                 <button onClick={() => onOpen(m.uid)} className="w-full border border-paper/25 p-2.5 text-left hover:border-paper">
@@ -303,6 +316,7 @@ function WeekPlan({
           Ohne Auftrag: {joinNames(idle.map(firstName))}. Wer ruht, gerät aus dem Blick der Polizei.
         </p>
       )}
+      {diff.level === 'leicht' && <Tip weekIndex={weekIndex} />}
 
       <div className="mt-auto space-y-2 border-t border-paper/20 pt-3">
         {confirmIdle && (
@@ -333,10 +347,10 @@ function MiniBar({ label, value, tone }: { label: string; value: number; tone: '
 }
 
 const STEPS = [
-  { phase: 'newspaper', label: 'Zeitung lesen' },
-  { phase: 'event', label: 'Entscheiden' },
+  { phase: 'newspaper', label: 'Zeitung und Quelle' },
+  { phase: 'event', label: 'Begegnungen' },
   { phase: 'map', label: 'Aufträge planen' },
-  { phase: 'report', label: 'Bericht' },
+  { phase: 'report', label: 'Die Nacht' },
 ] as const
 
 /** Zeigt, wo in der Woche man gerade steht */
@@ -412,6 +426,38 @@ function DistrictBar({
         )
       })}
     </div>
+  )
+}
+
+/** Das Ziel der Woche: klein, erreichbar, mit Belohnung im Wochenbericht */
+function GoalCard({ weekIndex }: { weekIndex: number }) {
+  const t = useT()
+  const goal = weekGoal(weekIndex)
+  return (
+    <div className="border-2 border-group-light/60 bg-group/30 p-3">
+      <p className="flex items-center gap-1.5 font-type text-[10px] font-bold tracking-[0.2em] text-group-light uppercase">
+        <Flag size={12} aria-hidden /> Ziel der Woche
+      </p>
+      <p className="mt-1 font-serif text-[15px] leading-snug font-bold">{t(goal.text)}</p>
+    </div>
+  )
+}
+
+const TIPS = [
+  'Tippe einen Auftrag auf der Karte an. Dann kannst du Leute aus deiner Gruppe einteilen.',
+  'Aufträge mit einem Herz-Zeichen helfen verfolgten Menschen direkt. Sie zählen für eure Solidarität.',
+  'Wer oft unterwegs ist, wird von der Polizei gesucht. Lass diese Person eine Woche ausruhen.',
+  'Druckt erst Flugblätter, bevor ihr sie verteilt. Dafür braucht ihr Papier und Farbe.',
+  'Kein Geld mehr? Dann sammelt heimlich Spenden.',
+  'Ist jemand verhaftet? Bei der Gruppe rechts könnt ihr Hilfe von außen schicken.',
+]
+
+function Tip({ weekIndex }: { weekIndex: number }) {
+  return (
+    <p className="flex gap-2 border border-dashed border-paper/30 p-2.5 font-type text-xs leading-relaxed text-paper/85">
+      <Lightbulb size={15} className="mt-0.5 shrink-0 text-archive-light" aria-hidden />
+      {TIPS[weekIndex % TIPS.length]}
+    </p>
   )
 }
 

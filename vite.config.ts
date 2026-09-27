@@ -7,7 +7,7 @@ export default defineConfig({
   base: './',
   plugins: [react(), tailwindcss()],
   build: {
-    // Alle Texte beider Kapitel stecken im Bundle, gezippt sind es rund 180 KB. Das ist gewollt.
-    chunkSizeWarningLimit: 700,
+    // Alle Texte beider Kapitel in zwei Sprachstufen stecken im Bundle, gezippt rund 230 KB. Das ist gewollt.
+    chunkSizeWarningLimit: 900,
   },
 })

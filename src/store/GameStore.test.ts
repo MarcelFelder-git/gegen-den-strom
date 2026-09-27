@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { MISSIONS } from '../game/data/missions'
-import { WEEKS } from '../game/data/weeks'
 import { canAfford, isWanted, successChance } from '../game/logic'
 import type { IdeologyKey, ProfessionKey } from '../game/types'
+import type { Level } from '../game/text'
 import { currentEvent, useGame } from './GameStore'
 
 const draft = (profession: ProfessionKey, ideology: IdeologyKey) => ({
@@ -61,19 +61,19 @@ describe('Spielablauf', () => {
  * Spielt viele Partien mit einer einfachen, vernünftigen Strategie.
  * Dient als Prüfung der Spielbalance: gut spielbar, aber nicht trivial.
  */
-function autoplay(profession: ProfessionKey, ideology: IdeologyKey) {
-  useGame.getState().startGame(draft(profession, ideology))
-  for (let guard = 0; guard < 120; guard++) {
+function autoplay(profession: ProfessionKey, ideology: IdeologyKey, level: Level) {
+  useGame.getState().startGame({ ...draft(profession, ideology), level })
+  for (let guard = 0; guard < 160; guard++) {
     const s = useGame.getState()
     if (s.phase === 'end') break
     if (s.phase === 'newspaper') s.closeNewspaper()
     else if (s.phase === 'event') {
-      const choices = WEEKS[s.weekIndex].event.choices
-      const idx = choices.findIndex((c) => (c.needsKasse ?? 0) <= s.kasse && (c.effects.moral ?? 0) >= 0)
+      const { event } = currentEvent(s)
+      const idx = event.choices.findIndex((c) => (c.needsKasse ?? 0) <= s.kasse && (c.effects.moral ?? 0) >= 0)
       s.chooseEventOption(Math.max(0, idx))
       useGame.getState().finishEvent()
     } else if (s.phase === 'map') {
-      for (const type of ['druck', 'verteilen', 'papier', 'unterschlupf', 'parolen', 'spenden', 'ausweise'] as const) {
+      for (const type of ['druck', 'besorgung', 'rotehilfe', 'verteilen', 'papier', 'unterschlupf', 'parolen', 'spenden', 'ausweise'] as const) {
         const cur = useGame.getState()
         const mission = cur.missions.find((m) => m.type === type && m.assigned.length === 0)
         if (!mission || !canAfford(MISSIONS[type], cur.kasse, cur.inventory)) continue
@@ -87,79 +87,115 @@ function autoplay(profession: ProfessionKey, ideology: IdeologyKey) {
       }
       const cur = useGame.getState()
       for (const m of cur.members) if (cur.inventory.ausweise > 0 && m.heat >= 50) cur.giveAusweis(m.id)
+      for (const m of useGame.getState().members) if (m.status === 'verhaftet') useGame.getState().helpPrisoner(m.id, 'paket')
       useGame.getState().endWeek()
     } else if (s.phase === 'report') s.nextWeek()
   }
   return useGame.getState()
 }
 
+const COMBOS: [ProfessionKey, IdeologyKey][] = [
+  ['arbeiter', 'kommunistisch'],
+  ['journalist', 'sozialdemokratisch'],
+  ['lehrer', 'christlich'],
+  ['haendler', 'humanistisch'],
+]
+
 describe('Spielbalance', () => {
-  it('ist mit umsichtiger Strategie meist zu schaffen, aber nicht immer', () => {
-    const combos: [ProfessionKey, IdeologyKey][] = [
-      ['arbeiter', 'kommunistisch'],
-      ['journalist', 'sozialdemokratisch'],
-      ['lehrer', 'christlich'],
-      ['haendler', 'humanistisch'],
-    ]
+  it('schwere Stufe: mit umsichtiger Strategie meist zu schaffen, aber nicht immer', () => {
     let survived = 0
     let total = 0
-    let supporters = 0
+    let helped = 0
     const reasons: Record<string, number> = {}
-    for (const [p, i] of combos) {
+    for (const [p, i] of COMBOS) {
       for (let n = 0; n < 60; n++) {
-        const end = autoplay(p, i)
+        const end = autoplay(p, i, 'schwer')
         total++
         reasons[end.endReason ?? 'offen'] = (reasons[end.endReason ?? 'offen'] ?? 0) + 1
-        if (end.endReason === 'kapitelende') {
-          survived++
-          supporters += end.supporters
-        }
+        if (end.endReason === 'kapitelende') survived++
+        helped += end.helped
       }
     }
     const rate = survived / total
-    console.info(`Überlebensrate ${(rate * 100).toFixed(0)}%, Unterstützer im Schnitt ${(supporters / Math.max(1, survived)).toFixed(1)}`, reasons)
+    console.info(`Schwer: Überlebensrate ${(rate * 100).toFixed(0)}%, geholfen im Schnitt ${(helped / total).toFixed(1)}`, reasons)
     expect(rate).toBeGreaterThan(0.45)
     // Die Simulation spielt sehr umsichtig. Kinder spielen mutiger, für sie ist es schwerer.
     expect(rate).toBeLessThan(0.995)
   })
+
+  it('leichte Stufe: die Gruppe kommt immer bis zum Kapitelende', () => {
+    let helped = 0
+    let total = 0
+    for (const [p, i] of COMBOS) {
+      for (let n = 0; n < 40; n++) {
+        const end = autoplay(p, i, 'leicht')
+        total++
+        helped += end.helped
+        expect(end.endReason).toBe('kapitelende')
+        expect(end.weekIndex).toBe(9)
+      }
+    }
+    console.info(`Leicht: geholfen im Schnitt ${(helped / total).toFixed(1)}`)
+    expect(helped / total).toBeGreaterThan(5)
+  })
 })
 
-describe('Kapitel 2', () => {
-  it('lässt sich direkt beginnen und bis Dezember 1938 spielen', () => {
-    useGame.getState().startGame(draft('lehrer', 'christlich'), 10)
-    expect(useGame.getState().weekIndex).toBe(10)
-    for (let guard = 0; guard < 120; guard++) {
-      const s = useGame.getState()
-      if (s.phase === 'end') break
-      if (s.phase === 'newspaper') {
-        s.answerSource(0)
-        s.closeNewspaper()
-      } else if (s.phase === 'event') {
-        const idx = currentEvent(s).event.choices.findIndex((c) => (c.needsKasse ?? 0) <= s.kasse)
-        s.chooseEventOption(Math.max(0, idx))
-        useGame.getState().finishEvent()
-      } else if (s.phase === 'map') s.endWeek()
-      else if (s.phase === 'report') s.nextWeek()
-    }
-    const end = useGame.getState()
-    expect(end.phase).toBe('end')
-    expect(Object.keys(end.sourceAnswers).length).toBeGreaterThan(0)
-    // Ohne Aufträge überlebt die Gruppe nicht immer, aber die Karten der Wochen sind da
-    if (end.endReason === 'kapitelende') {
-      expect(end.weekIndex).toBe(17)
-      expect(end.cards).toContain('kruetzfeld')
-    }
+describe('Haft', () => {
+  it('Verhaftete kommen in der leichten Stufe nach einigen Wochen zurück', () => {
+    useGame.getState().startGame({ ...draft('arbeiter', 'humanistisch'), level: 'leicht' })
+    const s = useGame.getState()
+    useGame.setState({
+      phase: 'map',
+      members: s.members.map((m) =>
+        m.id === 'g1' ? { ...m, status: 'verhaftet', prison: { weeks: 2, place: 'im Polizeipräsidium am Alexanderplatz', helpedThisWeek: false, lawyer: false, packages: 0 } } : m,
+      ),
+      missions: [],
+    })
+    expect(useGame.getState().helpPrisoner('g1', 'familie')).toBeNull()
+    expect(useGame.getState().helped).toBe(1)
+    expect(useGame.getState().helpPrisoner('g1', 'paket')).toMatch(/schon Hilfe/)
+    useGame.getState().endWeek()
+    expect(useGame.getState().members.find((m) => m.id === 'g1')?.status).toBe('verhaftet')
+    useGame.setState({ phase: 'map', missions: [] })
+    useGame.getState().endWeek()
+    const g1 = useGame.getState().members.find((m) => m.id === 'g1')!
+    expect(g1.status).toBe('bereit')
+    expect(useGame.getState().report?.released).toContain('g1')
   })
 
-  it('führt nach Kapitel 1 mit derselben Gruppe weiter', () => {
-    useGame.getState().startGame(draft('arbeiter', 'humanistisch'))
-    useGame.setState({ weekIndex: 9, phase: 'end', endReason: 'kapitelende' })
-    const leaderBefore = useGame.getState().members.find((m) => m.isLeader)?.name
-    useGame.getState().continueToChapter2()
+  it('in der leichten Stufe übernimmt jemand die Gruppe, wenn die Anführerin in Haft ist', () => {
+    useGame.getState().startGame({ ...draft('arbeiter', 'humanistisch'), level: 'leicht' })
     const s = useGame.getState()
-    expect(s.weekIndex).toBe(10)
-    expect(s.phase).toBe('newspaper')
-    expect(s.members.find((m) => m.isLeader)?.name).toBe(leaderBefore)
-    expect(s.members.filter((m) => !m.isLeader && m.status !== 'verhaftet' && m.status !== 'ausgewandert').length).toBeGreaterThanOrEqual(3)
+    useGame.setState({
+      phase: 'map',
+      missions: [],
+      members: s.members.map((m) =>
+        m.isLeader ? { ...m, status: 'verhaftet', prison: { weeks: 3, place: 'im Lager Oranienburg', helpedThisWeek: false, lawyer: false, packages: 0 } } : m,
+      ),
+    })
+    useGame.getState().endWeek()
+    expect(useGame.getState().report?.actingLeader).toBeDefined()
+    useGame.getState().nextWeek()
+    expect(useGame.getState().phase).toBe('newspaper')
+  })
+
+  it('in der schweren Stufe endet das Spiel, wenn die Anführerin verhaftet ist', () => {
+    useGame.getState().startGame({ ...draft('arbeiter', 'humanistisch'), level: 'schwer' })
+    const s = useGame.getState()
+    useGame.setState({
+      phase: 'report',
+      members: s.members.map((m) => (m.isLeader ? { ...m, status: 'verhaftet' } : m)),
+    })
+    useGame.getState().nextWeek()
+    expect(useGame.getState().endReason).toBe('verhaftet')
+  })
+
+  it('leichte Stufe: Bei Moral null rafft sich die Gruppe wieder auf', () => {
+    useGame.getState().startGame({ ...draft('arbeiter', 'humanistisch'), level: 'leicht' })
+    useGame.setState({ phase: 'map', missions: [], moral: 1 })
+    useGame.getState().endWeek()
+    const st = useGame.getState()
+    expect(st.moral).toBeGreaterThan(0)
+    expect(st.report?.crisis).toBe(true)
   })
 })

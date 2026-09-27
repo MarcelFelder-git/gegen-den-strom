@@ -34,6 +34,8 @@ export function Cinema({ shots, label, onDone, doneLabel = 'Weiter' }: { shots: 
   const reduced = usePrefersReducedMotion()
   const [index, setIndex] = useState(0)
   const [typed, setTyped] = useState(0)
+  // Wer zurückblättert, will in Ruhe lesen: dann läuft nichts mehr von allein weiter
+  const [manual, setManual] = useState(false)
   const nextRef = useRef<HTMLButtonElement>(null)
   const shot = shots[index]
   const full = typed >= shot.caption.length
@@ -86,10 +88,10 @@ export function Cinema({ shots, label, onDone, doneLabel = 'Weiter' }: { shots: 
 
   // Automatisch weiter, wenn die Szene das vorsieht
   useEffect(() => {
-    if (!full || !shot.auto || last) return
+    if (!full || !shot.auto || last || manual) return
     const t = setTimeout(next, shot.auto)
     return () => clearTimeout(t)
-  }, [full, shot.auto, last, next])
+  }, [full, shot.auto, last, next, manual])
 
   useEffect(() => {
     nextRef.current?.focus({ preventScroll: true })
@@ -132,7 +134,18 @@ export function Cinema({ shots, label, onDone, doneLabel = 'Weiter' }: { shots: 
             <span key={sh.id} className={`h-1.5 w-5 ${i <= index ? 'bg-paper' : 'bg-paper/20'}`} />
           ))}
         </div>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-3">
+          {index > 0 && (
+            <button
+              onClick={() => {
+                setManual(true)
+                setIndex((i) => Math.max(0, i - 1))
+              }}
+              className="font-type text-sm text-fog underline decoration-dotted underline-offset-4 hover:text-paper"
+            >
+              Zurück
+            </button>
+          )}
           {!last && (
             <button onClick={onDone} className="font-type text-sm text-fog underline decoration-dotted underline-offset-4 hover:text-paper">
               Überspringen

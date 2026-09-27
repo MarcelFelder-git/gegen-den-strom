@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BookOpen, GraduationCap, Volume2, VolumeX } from 'lucide-react'
+import { BookOpen, GraduationCap, History, Volume2, VolumeX } from 'lucide-react'
 import s from '../styles/period.module.css'
 import { StampButton } from './ui/StampButton'
 import { useUi } from '../store/UiStore'
@@ -10,9 +10,10 @@ interface TitleScreenProps {
   canContinue: boolean
   onNew: (chapter?: 1 | 2) => void
   onContinue: () => void
+  onPrologue: () => void
 }
 
-export function TitleScreen({ canContinue, onNew, onContinue }: TitleScreenProps) {
+export function TitleScreen({ canContinue, onNew, onContinue, onPrologue }: TitleScreenProps) {
   const [confirming, setConfirming] = useState<false | 1 | 2>(false)
   const { openLexicon, openTeacherNotes, muted, toggleMuted } = useUi()
   const leaderName = useGame((g) => g.members.find((m) => m.isLeader)?.name)
@@ -21,19 +22,20 @@ export function TitleScreen({ canContinue, onNew, onContinue }: TitleScreenProps
   return (
     <main className={`${s.vignette} relative flex min-h-dvh flex-col overflow-hidden`}>
       <div className="relative z-10 mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center px-4 pt-12 pb-56 text-center sm:pb-64">
-        <p className={`${s.typewriter} text-sm tracking-[0.35em] text-fog uppercase ${s.riseIn}`}>Kapitel 1. Das Jahr 1933</p>
+        <p className={`${s.typewriter} text-sm tracking-[0.35em] text-fog uppercase ${s.riseIn}`}>Ein Geschichtsspiel</p>
         <h1
-          className={`${s.flicker} mt-5 font-serif text-5xl leading-none font-bold tracking-tight text-paper sm:text-7xl`}
+          lang="en"
+          className={`${s.flicker} mt-5 font-serif text-5xl leading-[0.95] font-bold tracking-tight text-balance text-paper sm:text-7xl`}
           style={{ textShadow: '3px 3px 0 #8b0000' }}
         >
-          Gegen den Strom
+          Solidarity is Resistance
         </h1>
-        <p className={`${s.fraktur} mt-4 text-3xl text-paper sm:text-4xl`}>Berlin 1933</p>
+        <p className={`${s.fraktur} mt-4 text-3xl text-paper sm:text-4xl`}>Berlin 1933 bis 1938</p>
         <hr className="my-7 w-40 border-t border-fog/50" />
         <p className={`${s.riseIn} max-w-xl font-serif text-lg leading-relaxed text-paper/90`}>
-          Berlin, im Januar 1933. Die Republik liegt im Sterben. In den Hinterhöfen von Wedding und Neukölln flüstern
-          Menschen miteinander, die nicht schweigen wollen. Sie haben keine Waffen und keine Macht. Sie haben nur Papier,
-          Druckfarbe und ihren Mut. Du gründest mit ihnen eine Widerstandsgruppe.
+          Berlin, im Januar 1933. Die meisten Menschen sagen: „Uns geht es doch gut.“ Sie sehen weg, als die Nazis ihre
+          Nachbarn jagen. Einige sehen nicht weg. Sie haben keine Waffen und keine Macht, nur Papier, Mut und einander. Du
+          gründest mit ihnen eine Widerstandsgruppe.
         </p>
 
         <div className="mt-9 flex w-full max-w-sm flex-col gap-4">
@@ -73,6 +75,9 @@ export function TitleScreen({ canContinue, onNew, onContinue }: TitleScreenProps
               Kapitel 2 direkt beginnen: 1936 bis 1938
             </StampButton>
           )}
+          <StampButton variant="quiet" className="text-paper" onClick={onPrologue}>
+            <History size={16} aria-hidden /> Vorgeschichte: Wie konnte es so weit kommen?
+          </StampButton>
           <div className="grid grid-cols-2 gap-3">
             <StampButton variant="quiet" className="text-paper" onClick={() => openLexicon()}>
               <BookOpen size={16} aria-hidden /> Wörter
@@ -89,8 +94,8 @@ export function TitleScreen({ canContinue, onNew, onContinue }: TitleScreenProps
         </button>
 
         <p className="mt-6 max-w-md font-type text-xs leading-relaxed text-fog">
-          Die Menschen in diesem Spiel sind erfunden. Die Ereignisse, von denen die Zeitung berichtet, haben sich
-          wirklich zugetragen.
+          Die Menschen in deiner Gruppe sind erfunden. Die Ereignisse, Quellen, Zeitzeugenberichte und Vorbilder sind echt.
+          Die Zeitungen sind nachgestellt, berichten aber über wirkliche Ereignisse.
         </p>
       </div>
       <Skyline />

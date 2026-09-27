@@ -18,6 +18,12 @@
   --color-navy: #1d2735;
   --color-navy-2: #27344a;
   --color-fog: #b3ad9e;
+  /* Eigene Farben für die Schritte der Woche, gegen WCAG AA geprüft:
+     archive auf paper 7,7:1, archive-light auf coal 8,4:1, group auf paper 6,9:1, group-light auf coal 8,7:1 */
+  --color-archive: #5a4a1f;
+  --color-archive-light: #d8c07a;
+  --color-group: #1e5a63;
+  --color-group-light: #8fd0d6;
 
   --font-type: 'Courier Prime', 'Courier New', Courier, monospace;
   --font-serif: 'Old Standard TT', Georgia, 'Times New Roman', serif;

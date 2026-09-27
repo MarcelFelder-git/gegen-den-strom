@@ -1,9 +1,10 @@
+import { L, type Txt } from '../text'
 import type { AvatarConfig, Stats } from '../types'
 
 export interface CompanionTemplate {
   name: string
   beruf: string
-  bio: string
+  bio: Txt
   stats: Stats
   avatar: AvatarConfig
 }
@@ -45,11 +46,14 @@ export const COMPANIONS: CompanionTemplate[] = [
     avatar: { gender: 'm', face: 'rund', headwear: 'schiebermuetze', hairTone: 'dunkel', glasses: false, clothing: 'trenchcoat' },
   },
   {
-    name: 'Ruth Levin',
-    beruf: 'Studentin der Medizin',
-    bio: 'Will Kinderärztin werden. Als Jüdin weiß sie genau, was ihr unter dieser Regierung droht.',
-    stats: { heimlichkeit: 3, propaganda: 2, empathie: 4, staerke: 1, bildung: 4 },
-    avatar: { gender: 'w', face: 'schmal', headwear: 'kurz', hairTone: 'dunkel', glasses: true, clothing: 'weste' },
+    name: 'Grete Hoffmann',
+    beruf: 'Sprechstundenhilfe',
+    bio: L(
+      'Arbeitet seit zehn Jahren in der Praxis von Dr. Levin, einem jüdischen Arzt. Sie selbst wird nicht verfolgt. Aber sie lässt die Familie Levin nicht allein.',
+      'Arbeitet seit zehn Jahren in der Praxis des jüdischen Arztes Dr. Levin in Mitte. Sie selbst hat nichts zu befürchten, aber sie sieht jeden Tag, wie seine Familie ausgegrenzt wird.',
+    ),
+    stats: { heimlichkeit: 3, propaganda: 2, empathie: 4, staerke: 2, bildung: 3 },
+    avatar: { gender: 'w', face: 'schmal', headwear: 'kurz', hairTone: 'hell', glasses: true, clothing: 'weste' },
   },
   {
     name: 'Johannes Hartmann',

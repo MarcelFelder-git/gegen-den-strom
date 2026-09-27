@@ -17,7 +17,7 @@ import {
   type Landmark,
   type Point,
 } from '../game/data/districts'
-import { MISSIONS } from '../game/data/missions'
+import { useDifficulty, useMissions } from '../store/content'
 import { WEEKS } from '../game/data/weeks'
 import { dangerEstimate, dangerTier, describeItem, firstName, joinNames } from '../game/logic'
 import type { Character, DistrictKey, ItemKey, Mission } from '../game/types'
@@ -90,6 +90,8 @@ interface CityMapProps {
 export function CityMap({ weekIndex, missions, members, canPlan, selected, onSelect, hovered, onHover, onOpen }: CityMapProps) {
   const reduced = useReducedMotion()
   const trust = useGame((g) => g.trust)
+  const templates = useMissions()
+  const diff = useDifficulty()
   const hoveredMission = missions.find((m) => m.uid === hovered)
   const dread = weekIndex / 9
 
@@ -269,13 +271,13 @@ export function CityMap({ weekIndex, missions, members, canPlan, selected, onSel
 
         {/* Aufträge */}
         {missions.map((m) => {
-          const t = MISSIONS[m.type]
+          const t = templates[m.type]
           const place = getPlace(m.placeId)
           const Icon = MISSION_ICONS[m.type]
           const assigned = m.assigned.length > 0
           const plannable = assigned || canPlan(m)
           const isHover = hovered === m.uid
-          const risk = dangerEstimate(t, m.district, weekIndex, trust[m.district])
+          const risk = dangerEstimate(t, m.district, weekIndex, trust[m.district], diff.riskFactor)
           const circ = 2 * Math.PI * 26
           const dim = selected !== null && selected !== m.district
           return (
@@ -428,9 +430,10 @@ function HoverCard({
   plannable: boolean
   districtTrust: number
 }) {
-  const t = MISSIONS[mission.type]
+  const t = useMissions()[mission.type]
+  const diff = useDifficulty()
   const place = getPlace(mission.placeId)
-  const risk = dangerEstimate(t, mission.district, weekIndex, districtTrust)
+  const risk = dangerEstimate(t, mission.district, weekIndex, districtTrust, diff.riskFactor)
   const tier = dangerTier(risk)
   const team = mission.assigned.map((id) => members.find((c) => c.id === id)).filter((c): c is Character => !!c)
   const costs: string[] = []

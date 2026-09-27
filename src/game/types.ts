@@ -19,8 +19,27 @@ export interface AvatarConfig {
 export type ProfessionKey = 'arbeiter' | 'journalist' | 'lehrer' | 'haendler'
 export type IdeologyKey = 'sozialdemokratisch' | 'kommunistisch' | 'christlich' | 'humanistisch'
 
-/** Verhaftet und ausgewandert sind endgültig. "Gesucht" wird aus dem Fahndungsdruck abgeleitet. */
-export type MemberStatus = 'bereit' | 'verletzt' | 'verhaftet' | 'ausgewandert'
+/**
+ * „Verhaftet“ dauert einige Wochen. „Lager“ heißt: verurteilt oder verschleppt, kehrt in diesem Kapitel
+ * nicht zurück. „Tot“ und „ausgewandert“ sind endgültig. „Gesucht“ wird aus dem Fahndungsdruck abgeleitet.
+ */
+export type MemberStatus = 'bereit' | 'verletzt' | 'verhaftet' | 'lager' | 'tot' | 'ausgewandert'
+
+/** Was Verhafteten während der Haft geschieht */
+export interface Prison {
+  /** Wochen, bis über die Freilassung entschieden wird */
+  weeks: number
+  /** Wo die Person festgehalten wird */
+  place: string
+  /** Hilfe von außen in dieser Woche schon geleistet */
+  helpedThisWeek: boolean
+  /** Ein Anwalt kümmert sich */
+  lawyer: boolean
+  /** Pakete und Briefe halten den Mut aufrecht */
+  packages: number
+}
+
+export type PrisonHelp = 'paket' | 'anwalt' | 'familie'
 
 export interface Character {
   id: string
@@ -37,6 +56,10 @@ export interface Character {
   injuredWeeks: number
   /** Deckname in der Widerstandsgruppe */
   codename?: string
+  /** Nur während der Haft */
+  prison?: Prison
+  /** Wie oft die Person schon in Haft war */
+  arrests?: number
 }
 
 export interface Inventory {
@@ -68,6 +91,7 @@ export type MissionType =
   | 'ausreise'
   | 'pakete'
   | 'reporter'
+  | 'besorgung'
 
 export interface Effects {
   moral?: number
@@ -84,6 +108,8 @@ export interface Effects {
   self?: { heat?: number; stat?: StatKey; statDelta?: number; emigrates?: boolean }
   /** Vertrauen der Menschen in einem Bezirk */
   trust?: Partial<Record<DistrictKey, number>>
+  /** Verfolgte und bedrängte Menschen, denen die Gruppe geholfen hat */
+  helped?: number
 }
 
 export interface Mission {
@@ -122,6 +148,20 @@ export interface WeekReport {
   idleCooled: string[]
   healed: string[]
   heatArrests: string[]
+  /** Wer aus der Haft zurückkam, wer verurteilt wurde und wer nicht überlebte */
+  released: string[]
+  sentenced: string[]
+  died: string[]
+  /** Wer die Gruppe führt, solange die Anführerin oder der Anführer in Haft ist */
+  actingLeader?: string
+  /** Die Gruppe war am Ende und hat sich neu aufgerafft (nur leichte Stufe) */
+  crisis?: boolean
+  /** Neue Mitglieder, weil sonst niemand mehr frei war (nur leichte Stufe) */
+  recruited: string[]
+  helpedBefore: number
+  helpedAfter: number
+  /** Ziel der Woche erreicht? */
+  goalMet?: boolean
   moralBefore: number
   moralAfter: number
   supportersBefore: number
@@ -144,6 +184,8 @@ export type Phase = 'title' | 'creation' | 'newspaper' | 'event' | 'map' | 'repo
 export type EndReason = 'kapitelende' | 'moral' | 'verhaftet'
 
 export interface LeaderDraft {
+  /** Schwierigkeitsstufe, leicht für Klasse 6 bis 8 */
+  level?: import('./text').Level
   name: string
   groupName: string
   motto: string

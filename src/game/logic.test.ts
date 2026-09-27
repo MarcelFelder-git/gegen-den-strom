@@ -19,6 +19,7 @@ import {
   type ResourceState,
 } from './logic'
 import type { Character, Stats } from './types'
+import { t as txt } from './text'
 
 const stats = (v: number): Stats => ({ heimlichkeit: v, propaganda: v, empathie: v, staerke: v, bildung: v })
 
@@ -65,7 +66,8 @@ describe('Texte', () => {
     for (const t of Object.values(MISSIONS)) {
       for (const text of [...t.texts.success, ...t.texts.failure, ...t.texts.detected]) {
         for (const size of [1, 2]) {
-          expect(fillMissionText(text, team.slice(0, size), 'im Hof')).not.toMatch(/[{}]/)
+          expect(fillMissionText(txt(text, 'leicht'), team.slice(0, size), 'im Hof')).not.toMatch(/[{}]/)
+          expect(fillMissionText(txt(text, 'schwer'), team.slice(0, size), 'im Hof')).not.toMatch(/[{}]/)
         }
       }
     }
@@ -143,6 +145,7 @@ describe('Effekte', () => {
       members: [person('leader', 'Karl', 'm', 95), person('g1', 'Lotte', 'w', 3)],
       flags: [],
       trust: { ...EMPTY_TRUST },
+      helped: 0,
     }
     const n = applyEffects(s, { moral: 20, supporters: -5, kasse: -50, items: { papier: -4 }, heatAll: 10, heatLeader: 10 })
     expect(n.moral).toBe(100)
@@ -164,7 +167,7 @@ describe('Historische Daten', () => {
     }
     for (const w of WEEKS) {
       expect(w.event.choices.length).toBeGreaterThanOrEqual(2)
-      expect(w.event.choices.length).toBeLessThanOrEqual(3)
+      expect(w.event.choices.length).toBeLessThanOrEqual(4)
       for (const id of w.lexicon) expect(LEXICON.some((e) => e.id === id)).toBe(true)
     }
   })

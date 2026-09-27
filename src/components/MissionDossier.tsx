@@ -9,7 +9,7 @@ import { StatPips } from './ui/StatPips'
 import { MISSION_ICONS } from './icons'
 import { statusOf } from './GroupPanel'
 import { getDistrict, getPlace, surveillanceAt, surveillanceLabel } from '../game/data/districts'
-import { DETECTION_HEAT, MISSIONS } from '../game/data/missions'
+import { DETECTION_HEAT } from '../game/data/missions'
 import { STAT_LABELS } from '../game/data/professions'
 import {
   MAX_TEAM,
@@ -25,6 +25,7 @@ import {
 } from '../game/logic'
 import type { ItemKey, Mission } from '../game/types'
 import { useGame } from '../store/GameStore'
+import { useDifficulty, useMissions } from '../store/content'
 
 interface MissionDossierProps {
   mission: Mission
@@ -36,7 +37,9 @@ export function MissionDossier({ mission, onClose }: MissionDossierProps) {
   const [selected, setSelected] = useState<string[]>(mission.assigned)
   const [error, setError] = useState<string | null>(null)
 
-  const t = MISSIONS[mission.type]
+  const templates = useMissions()
+  const diff = useDifficulty()
+  const t = templates[mission.type]
   const place = getPlace(mission.placeId)
   const district = getDistrict(mission.district)
   const Icon = MISSION_ICONS[mission.type]
@@ -45,14 +48,14 @@ export function MissionDossier({ mission, onClose }: MissionDossierProps) {
 
   const busyElsewhere = useMemo(() => {
     const map = new Map<string, string>()
-    for (const m of missions) if (m.uid !== mission.uid) for (const id of m.assigned) map.set(id, MISSIONS[m.type].title)
+    for (const m of missions) if (m.uid !== mission.uid) for (const id of m.assigned) map.set(id, templates[m.type].title)
     return map
-  }, [missions, mission.uid])
+  }, [missions, mission.uid, templates])
 
   const team = selected.map((id) => members.find((m) => m.id === id)).filter((m) => !!m)
-  const chance = successChance(t, team)
+  const chance = successChance(t, team, diff.successBonus)
   const districtTrust = trust[mission.district]
-  const risk = detectionRisk(t, mission.district, team, weekIndex, districtTrust)
+  const risk = detectionRisk(t, mission.district, team, weekIndex, districtTrust, diff.riskFactor)
   const wanted = team.filter(isWanted)
 
   const toggle = (id: string) => {
@@ -169,9 +172,9 @@ export function MissionDossier({ mission, onClose }: MissionDossierProps) {
                   const full = !checked && selected.length >= MAX_TEAM
                   const st = statusOf(m)
                   const reason = m.status === 'verhaftet'
-                    ? 'Verhaftet'
-                    : m.status === 'ausgewandert'
-                      ? 'Ausgewandert'
+                    ? 'In Haft'
+                    : m.status === 'lager' || m.status === 'tot' || m.status === 'ausgewandert'
+                      ? st.label
                     : m.status === 'verletzt'
                       ? 'Verletzt, erholt sich'
                       : other
@@ -186,7 +189,7 @@ export function MissionDossier({ mission, onClose }: MissionDossierProps) {
                         onClick={() => toggle(m.id)}
                         className={`${s.chip} flex w-full items-center gap-3 p-2`}
                       >
-                        <Avatar config={m.avatar} size={48} title="" crossed={m.status === 'verhaftet'} />
+                        <Avatar config={m.avatar} size={48} title="" crossed={m.status === 'tot'} />
                         <span className="min-w-0 flex-1">
                           <span className="flex items-center gap-2">
                             <span className="truncate font-serif text-base font-bold">{m.name}</span>
@@ -229,6 +232,16 @@ export function MissionDossier({ mission, onClose }: MissionDossierProps) {
               Mehr Gefährten erhöhen die Aussicht auf Erfolg. Aber je mehr Menschen unterwegs sind, desto leichter
               werden sie gesehen. Wer Heimlichkeit besitzt, senkt die Gefahr für alle.
             </p>
+            {t.solidarity && (
+              <p className="border-2 border-group bg-[#dfe9e8] p-3 font-type text-sm text-group">
+                Dieser Auftrag hilft verfolgten Menschen direkt. Er zählt für eure Solidarität.
+              </p>
+            )}
+            {diff.level === 'leicht' && team.length > 0 && chance < 50 && (
+              <p className="border-2 border-dashed border-ink/50 bg-paper p-3 font-type text-sm">
+                Tipp: Die Aussicht ist niedrig. Nimm jemanden dazu, der gut in {STAT_LABELS[t.primary]} ist.
+              </p>
+            )}
 
             {wanted.length > 0 && (
               <p className="flex gap-2 border-2 border-crimson bg-paper p-3 font-type text-sm text-crimson" role="alert">

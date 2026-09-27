@@ -1,3 +1,4 @@
+import { L, type Txt } from '../text'
 import type { Gender, IdeologyKey, ProfessionKey, StatKey, Stats } from '../types'
 
 export const STAT_LABELS: Record<StatKey, string> = {
@@ -23,7 +24,7 @@ export const STAT_MAX = 6
 export interface Profession {
   key: ProfessionKey
   label: Record<Gender, string>
-  text: string
+  text: Txt
   bonus: Partial<Stats>
   bonusLabel: string
   startKasse: number
@@ -34,7 +35,7 @@ export const PROFESSIONS: Profession[] = [
   {
     key: 'arbeiter',
     label: { m: 'Arbeiter', w: 'Arbeiterin' },
-    text: 'Zehn Stunden am Tag in der Fabrik. Du kennst die Hinterhöfe und die Kollegen, auf die man sich verlassen kann.',
+    text: L('Zehn Stunden am Tag arbeitest du in der Fabrik. Du kennst die Hinterhöfe und die Kollegen, auf die man sich verlassen kann.', 'Zehn Stunden am Tag in der Fabrik. Du kennst die Hinterhöfe und die Kollegen, auf die man sich verlassen kann.'),
     bonus: { staerke: 2, heimlichkeit: 2 },
     bonusLabel: 'Stärke und Heimlichkeit',
     startKasse: 40,
@@ -43,7 +44,7 @@ export const PROFESSIONS: Profession[] = [
   {
     key: 'journalist',
     label: { m: 'Journalist', w: 'Journalistin' },
-    text: 'Du schreibst für ein Blatt, das bald verboten sein wird. Du weißt, wie man mit Worten Menschen bewegt.',
+    text: L('Du schreibst für eine Zeitung, die bald verboten wird. Du weißt, wie man mit Worten Menschen erreicht.', 'Du schreibst für ein Blatt, das bald verboten sein wird. Du weißt, wie man mit Worten Menschen bewegt.'),
     bonus: { propaganda: 2, bildung: 2 },
     bonusLabel: 'Propaganda und Bildung',
     startKasse: 40,
@@ -52,7 +53,7 @@ export const PROFESSIONS: Profession[] = [
   {
     key: 'lehrer',
     label: { m: 'Lehrer', w: 'Lehrerin' },
-    text: 'Du unterrichtest an einer Volksschule. Die Kinder vertrauen dir, und die Eltern hören auf dein Wort.',
+    text: L('Du bist Lehrerin oder Lehrer an einer Volksschule. Die Kinder vertrauen dir. Die Eltern hören auf dich.', 'Du unterrichtest an einer Volksschule. Die Kinder vertrauen dir, und die Eltern hören auf dein Wort.'),
     bonus: { empathie: 2, bildung: 2 },
     bonusLabel: 'Empathie und Bildung',
     startKasse: 40,
@@ -61,7 +62,7 @@ export const PROFESSIONS: Profession[] = [
   {
     key: 'haendler',
     label: { m: 'Händler', w: 'Händlerin' },
-    text: 'Dir gehört ein kleiner Kolonialwarenladen. Die Kasse ist nie ganz leer, und die Kundschaft erzählt dir vieles.',
+    text: L('Dir gehört ein kleiner Lebensmittelladen. Du hast immer etwas Geld. Und die Kunden erzählen dir vieles.', 'Dir gehört ein kleiner Kolonialwarenladen. Die Kasse ist nie ganz leer, und die Kundschaft erzählt dir vieles.'),
     bonus: { empathie: 2 },
     bonusLabel: 'Empathie und Reichsmark',
     startKasse: 70,
@@ -72,7 +73,7 @@ export const PROFESSIONS: Profession[] = [
 export interface Ideology {
   key: IdeologyKey
   label: string
-  text: string
+  text: Txt
   bonus: Partial<Stats>
   bonusLabel: string
   startHeat: number
@@ -85,7 +86,7 @@ export const IDEOLOGIES: Ideology[] = [
   {
     key: 'sozialdemokratisch',
     label: 'Sozialdemokratisch',
-    text: 'Du glaubst an die Republik und an die Rechte der Arbeiter. Viele alte Parteifreunde halten noch zu dir.',
+    text: L('Du glaubst an die Demokratie und an die Rechte der Arbeiter. Viele alte Freunde aus der SPD halten zu dir. Nach dem Verbot der Partei musst du vorsichtig sein.', 'Du glaubst an die Republik und an die Rechte der Arbeiter. Viele alte Parteifreunde halten noch zu dir. Spätestens mit dem Verbot der SPD im Juni 1933 wirst auch du beobachtet.'),
     bonus: { propaganda: 1 },
     bonusLabel: '+1 Propaganda, mehr Unterstützer',
     startHeat: 5,
@@ -95,7 +96,7 @@ export const IDEOLOGIES: Ideology[] = [
   {
     key: 'kommunistisch',
     label: 'Kommunistisch',
-    text: 'Deine Genossen werden als erste verfolgt. Die Polizei kennt deinen Namen schon, aber du weißt, wie man sich wehrt.',
+    text: L('Deine Freunde aus der KPD werden als Erste verfolgt. Die Polizei kennt deinen Namen schon. Aber du weißt, wie man sich wehrt.', 'Deine Genossen werden als Erste verfolgt. Die Polizei kennt deinen Namen schon, aber du weißt, wie man sich wehrt und im Untergrund arbeitet.'),
     bonus: { staerke: 1 },
     bonusLabel: '+1 Stärke, aber bekannt bei der Polizei',
     startHeat: 20,
@@ -105,7 +106,7 @@ export const IDEOLOGIES: Ideology[] = [
   {
     key: 'christlich',
     label: 'Christlich-Konservativ',
-    text: 'Dein Glaube verbietet dir, Unrecht zu dulden. Als Kirchgänger bist du über jeden Verdacht erhaben, noch.',
+    text: L('Dein Glaube sagt dir: Hilf deinem Nächsten. Dir selbst tut niemand etwas. Du gehst sonntags in die Kirche und fällst nicht auf. Noch nicht.', 'Dein Glaube verbietet dir, Unrecht zu dulden. Dir selbst droht keine Gefahr, als Kirchgänger bist du über jeden Verdacht erhaben. Noch.'),
     bonus: { empathie: 1 },
     bonusLabel: '+1 Empathie, Verdacht verfliegt schneller',
     startHeat: 0,
@@ -115,7 +116,7 @@ export const IDEOLOGIES: Ideology[] = [
   {
     key: 'humanistisch',
     label: 'Parteilos und Humanistisch',
-    text: 'Du gehörst keiner Partei an. Du folgst allein deinem Gewissen, und niemand hat dich auf einer Liste.',
+    text: L('Du bist in keiner Partei. Dir geht es gut, dir tut niemand etwas. Aber du kannst nicht zusehen, wie andere gejagt werden.', 'Du gehörst keiner Partei an und stehst auf keiner Liste. Dir ginge es gut, wenn du einfach wegsehen würdest. Aber du folgst deinem Gewissen.'),
     bonus: { heimlichkeit: 1 },
     bonusLabel: '+1 Heimlichkeit, unbekannt bei der Polizei',
     startHeat: 0,

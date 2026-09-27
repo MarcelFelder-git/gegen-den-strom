@@ -835,6 +835,7 @@ const SIGNS: Partial<Record<MissionType, string>> = {
   papier: 'PAPIER UND SCHREIBWAREN',
   presse: 'BUCHDRUCKEREI',
   nachrichten: 'ZEITUNGEN AUS DEM AUSLAND',
+  besorgung: 'BÄCKEREI',
 }
 
 type Base = 'tuer' | 'laden' | 'presse' | 'strasse' | 'wand' | 'haus' | 'ausweis' | 'handwagen' | 'treffen'
@@ -858,6 +859,7 @@ const BASE: Record<MissionType, Base> = {
   ausreise: 'haus',
   pakete: 'tuer',
   reporter: 'strasse',
+  besorgung: 'laden',
 }
 
 export function MissionScene({

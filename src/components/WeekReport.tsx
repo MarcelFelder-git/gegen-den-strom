@@ -1,4 +1,4 @@
-import { Dices } from 'lucide-react'
+import { Dices, Flag, HandHeart, Lightbulb, Lock } from 'lucide-react'
 import s from '../styles/period.module.css'
 import { Avatar } from './Avatar'
 import { EffectChips } from './EffectChips'
@@ -6,13 +6,14 @@ import { Modal } from './ui/Modal'
 import { StampButton } from './ui/StampButton'
 import { MISSION_ICONS } from './icons'
 import { getPlace } from '../game/data/districts'
-import { MISSIONS } from '../game/data/missions'
-import { WEEKS } from '../game/data/weeks'
+import { weekGoal } from '../game/data/goals'
 import { chapterOf } from '../game/data/chapters'
 import { firstName, joinNames } from '../game/logic'
 import type { Character, MissionResult } from '../game/types'
 import { useGame } from '../store/GameStore'
 import { quoted } from '../game/data/group'
+import { useMissions, useT, useWeeks } from '../store/content'
+import { difficultyOf } from '../game/difficulty'
 import { useEffect } from 'react'
 import { sound } from '../audio/sound'
 
@@ -22,6 +23,9 @@ export function WeekReport() {
   const moral = useGame((g) => g.moral)
   const nextWeek = useGame((g) => g.nextWeek)
   const groupName = useGame((g) => g.groupName)
+  const level = useGame((g) => g.level)
+  const weeks = useWeeks()
+  const t = useT()
   const hasResults = (report?.results.length ?? 0) > 0
   useEffect(() => {
     if (!hasResults) return
@@ -32,9 +36,15 @@ export function WeekReport() {
 
   const byId = (id: string) => members.find((m) => m.id === id)
   const names = (ids: string[]) => joinNames(ids.map((id) => byId(id)).filter((m): m is Character => !!m).map(firstName))
-  const leaderGone = members.find((m) => m.isLeader)?.status === 'verhaftet'
+  const leader = members.find((m) => m.isLeader)
+  const gameOver = difficultyOf(level).gameOver
+  const leaderGone = !!leader && ['verhaftet', 'lager', 'tot'].includes(leader.status)
   const last = report.weekIndex === chapterOf(report.weekIndex).last
-  const nextLabel = leaderGone || moral <= 0 ? 'Weiter' : last ? 'Das Kapitel abschließen' : 'Nächste Woche'
+  const nextLabel = gameOver && (leaderGone || moral <= 0) ? 'Weiter' : last ? 'Das Kapitel abschließen' : 'Nächste Woche'
+  const week = weeks[report.weekIndex]
+  const goal = weekGoal(report.weekIndex)
+  const helpedDelta = report.helpedAfter - report.helpedBefore
+  const acting = report.actingLeader ? byId(report.actingLeader) : undefined
 
   return (
     <Modal label="Wochenbericht" width="max-w-3xl">
@@ -43,7 +53,7 @@ export function WeekReport() {
           <p className={`${s.typewriter} text-xs tracking-[0.3em] text-slate uppercase`}>Nur für die Gruppe. Nach dem Lesen verbrennen.</p>
           <h2 className="mt-2 font-serif text-4xl font-bold">Wochenbericht</h2>
           <p className="font-serif text-lg italic">der Widerstandsgruppe {quoted(groupName)}</p>
-          <p className={`${s.typewriter} mt-1 text-base`}>{WEEKS[report.weekIndex].dateLabel}</p>
+          <p className={`${s.typewriter} mt-1 text-base`}>{week.dateLabel}</p>
         </header>
 
         <div className="divide-y divide-dashed divide-ink/40">
@@ -57,6 +67,92 @@ export function WeekReport() {
             <ResultEntry key={r.uid} r={r} team={r.team.map(byId).filter((m): m is Character => !!m)} names={names} />
           ))}
         </div>
+
+        {(report.released.length > 0 || report.sentenced.length > 0 || report.died.length > 0 || members.some((m) => m.status === 'verhaftet')) && (
+          <section className="mt-4 border-2 border-crimson p-4" aria-labelledby="haft-titel">
+            <h3 id="haft-titel" className="flex items-center gap-2 font-serif text-xl font-bold text-crimson">
+              <Lock size={18} aria-hidden /> Nachrichten aus der Haft
+            </h3>
+            <ul className={`${s.typewriter} mt-2 space-y-1.5 text-[15px] leading-relaxed`}>
+              {report.released.length > 0 && (
+                <li>
+                  {names(report.released)} {report.released.length === 1 ? 'ist' : 'sind'} aus der Haft zurück. Niemand spricht darüber,
+                  was dort geschah. Die Polizei beobachtet {report.released.length === 1 ? 'diese Person' : 'sie'} jetzt genau.
+                </li>
+              )}
+              {report.sentenced.length > 0 && (
+                <li className="font-bold text-crimson">
+                  {names(report.sentenced)} {report.sentenced.length === 1 ? 'kommt' : 'kommen'} nicht frei. Ein Gericht hat Jahre im
+                  Zuchthaus verhängt, oder die Gestapo hat {report.sentenced.length === 1 ? 'die Person' : 'sie'} in ein Lager gebracht.
+                </li>
+              )}
+              {report.died.length > 0 && (
+                <li className="font-bold text-crimson">
+                  {names(report.died)} {report.died.length === 1 ? 'hat' : 'haben'} die Haft nicht überlebt. Die Familie bekam nur einen
+                  kurzen Brief. Die Gruppe trauert.
+                </li>
+              )}
+              {members
+                .filter((m) => m.status === 'verhaftet' && m.prison)
+                .map((m) => (
+                  <li key={m.id}>
+                    {firstName(m)} sitzt {m.prison!.place}. Schickt Hilfe von außen, rechts bei der Gruppe.
+                  </li>
+                ))}
+            </ul>
+          </section>
+        )}
+
+        {(acting || report.crisis || report.recruited.length > 0) && (
+          <section className="mt-4 border-2 border-dashed border-ink p-4" aria-label="Die Gruppe hält zusammen">
+            <ul className={`${s.typewriter} space-y-1.5 text-[15px] leading-relaxed`}>
+              {acting && (
+                <li>
+                  Du bist in Haft. Bis du zurück bist, führt {firstName(acting)} die Gruppe. Über heimliche Zettel aus dem Gefängnis
+                  entscheidest du weiter mit.
+                </li>
+              )}
+              {report.crisis && (
+                <li className="font-bold">
+                  Die Gruppe war kurz davor aufzugeben. Dann hat jemand gesagt: „Wenn wir aufhören, hilft ihnen niemand mehr.“ Ihr macht
+                  weiter, aber viele Unterstützer haben sich zurückgezogen.
+                </li>
+              )}
+              {report.recruited.length > 0 && (
+                <li>
+                  Niemand aus der Gruppe war mehr frei. Zwei Unterstützer sind eingesprungen: {names(report.recruited)}. Die Gruppe lebt
+                  weiter.
+                </li>
+              )}
+            </ul>
+          </section>
+        )}
+
+        <section className="mt-4 grid gap-3 sm:grid-cols-2" aria-label="Solidarität und Ziel der Woche">
+          <div className="border-2 border-group bg-[#dfe9e8] p-4 text-group">
+            <p className="flex items-center gap-2 font-type text-xs font-bold tracking-[0.15em] uppercase">
+              <HandHeart size={16} aria-hidden /> Menschen geholfen
+            </p>
+            <p className="mt-1 font-serif text-3xl font-bold tabular-nums">
+              {report.helpedAfter}
+              {helpedDelta > 0 && <span className="ml-2 font-type text-base">+{helpedDelta} diese Woche</span>}
+            </p>
+          </div>
+          <div className={`border-2 p-4 ${report.goalMet ? 'border-ink bg-paper-dark' : 'border-dashed border-slate'}`}>
+            <p className="flex items-center gap-2 font-type text-xs font-bold tracking-[0.15em] uppercase">
+              <Flag size={16} aria-hidden /> Ziel der Woche {report.goalMet ? 'erreicht' : 'nicht erreicht'}
+            </p>
+            <p className="mt-1 font-serif text-[15px] leading-snug">{t(goal.text)}</p>
+            {report.goalMet && (
+              <>
+                <p className="mt-1 font-type text-sm font-bold">{t(goal.rewardText)}</p>
+                <div className="mt-2">
+                  <EffectChips effects={goal.reward} />
+                </div>
+              </>
+            )}
+          </div>
+        </section>
 
         <section className="mt-4 border-t-2 border-ink pt-5" aria-labelledby="lage-titel">
           <h3 id="lage-titel" className="font-serif text-2xl font-bold">
@@ -91,6 +187,13 @@ export function WeekReport() {
           </dl>
         </section>
 
+        <section className="mt-6 border-2 border-ink bg-paper-dark p-4" aria-labelledby="nachdenken-woche">
+          <h3 id="nachdenken-woche" className="flex items-center gap-2 font-type text-xs font-bold tracking-[0.2em] uppercase">
+            <Lightbulb size={16} aria-hidden /> Zum Nachdenken
+          </h3>
+          <p className="mt-2 font-serif text-lg leading-relaxed">{week.reflect}</p>
+        </section>
+
         <div className="mt-7 flex justify-end">
           <StampButton variant="ink" onClick={nextWeek} data-autofocus>
             {nextLabel}
@@ -102,7 +205,7 @@ export function WeekReport() {
 }
 
 function ResultEntry({ r, team, names }: { r: MissionResult; team: Character[]; names: (ids: string[]) => string }) {
-  const t = MISSIONS[r.type]
+  const t = useMissions()[r.type]
   const Icon = MISSION_ICONS[r.type]
   const stamp = r.detected
     ? { text: r.outcome === 'gelungen' ? 'Gelungen, gesehen' : 'Entdeckt', cls: 'text-crimson' }
@@ -127,7 +230,7 @@ function ResultEntry({ r, team, names }: { r: MissionResult; team: Character[]; 
 
       <div className="mt-3 flex gap-1.5">
         {team.map((m) => (
-          <Avatar key={m.id} config={m.avatar} size={36} title={m.name} crossed={r.arrested.includes(m.id)} />
+          <Avatar key={m.id} config={m.avatar} size={36} title={m.name} crossed={m.status === 'tot'} />
         ))}
       </div>
 
@@ -140,7 +243,7 @@ function ResultEntry({ r, team, names }: { r: MissionResult; team: Character[]; 
       )}
       {r.arrested.length > 0 && (
         <p className={`${s.typewriter} mt-2 text-[15px] font-bold text-crimson`}>
-          {names(r.arrested)} {r.arrested.length === 1 ? 'wurde' : 'wurden'} verhaftet und in Schutzhaft genommen.
+          {names(r.arrested)} {r.arrested.length === 1 ? 'wurde' : 'wurden'} verhaftet und in „Schutzhaft“ genommen.
         </p>
       )}
 

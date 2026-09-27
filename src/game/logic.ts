@@ -1,15 +1,13 @@
 import { DETECTED_EFFECTS, DETECTION_HEAT, MISSIONS, type MissionTemplate } from './data/missions'
 import { getPlace, surveillanceAt } from './data/districts'
+import { t as txt, type Level } from './text'
 import type { Character, DistrictKey, Effects, Inventory, ItemKey, Mission, MissionResult, MissionType } from './types'
 
 export type Rng = () => number
 
 export const WANTED_THRESHOLD = 70
 export const MAX_TEAM = 3
-export const ARREST_CHANCE_WHEN_WANTED = 0.5
 export const INJURY_CHANCE_WHEN_DETECTED = 0.2
-export const WEEKLY_MORAL_DECAY = 3
-export const ARREST_MORAL_LOSS = 15
 export const AUSWEIS_HEAT_RELIEF = 35
 
 export const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v))
@@ -33,8 +31,31 @@ export const isWanted = (c: Pick<Character, 'heat'>) => c.heat >= WANTED_THRESHO
 
 export const isAvailable = (c: Character) => c.status === 'bereit'
 
-/** Verhaftete und Ausgewanderte gehören nicht mehr zur Gruppe */
-export const isGone = (c: Pick<Character, 'status'>) => c.status === 'verhaftet' || c.status === 'ausgewandert'
+/** Wer in Haft, im Lager, tot oder ausgewandert ist, kann gerade nicht mitmachen */
+export const isGone = (c: Pick<Character, 'status'>) =>
+  c.status === 'verhaftet' || c.status === 'lager' || c.status === 'tot' || c.status === 'ausgewandert'
+
+/** Wer in diesem Kapitel sicher nicht mehr zurückkommt */
+export const isLost = (c: Pick<Character, 'status'>) => c.status === 'lager' || c.status === 'tot' || c.status === 'ausgewandert'
+
+/** Wer die Gruppe gerade führt: die Anführerin oder der Anführer, sonst der erste freie Gefährte */
+export function actingLeader<T extends Pick<Character, 'isLeader' | 'status'>>(members: T[]): T | undefined {
+  const leader = members.find((m) => m.isLeader)
+  if (leader && !isGone(leader)) return leader
+  return members.find((m) => !m.isLeader && !isGone(m))
+}
+
+/** Stellschrauben der Schwierigkeitsstufe für einen einzelnen Auftrag */
+export interface MissionTuning {
+  successBonus: number
+  riskFactor: number
+  /** Verhaftung bei Entdeckung, wenn die Person schon gesucht wird */
+  arrestChance: number
+  /** Verhaftung bei Entdeckung, auch wenn die Person noch unbekannt ist */
+  arrestChanceUnknown: number
+}
+
+export const DEFAULT_TUNING: MissionTuning = { successBonus: 0, riskFactor: 1, arrestChance: 0.5, arrestChanceUnknown: 0 }
 
 export type Trust = Record<DistrictKey, number>
 export const EMPTY_TRUST: Trust = { wedding: 0, mitte: 0, kreuzberg: 0, neukoelln: 0 }
@@ -47,9 +68,9 @@ export function teamPower(t: MissionTemplate, members: Character[]): number {
   return members.reduce((sum, m) => sum + m.stats[t.primary] + m.stats[t.secondary] * 0.5, 0)
 }
 
-export function successChance(t: MissionTemplate, members: Character[]): number {
+export function successChance(t: MissionTemplate, members: Character[], bonus = 0): number {
   if (members.length === 0) return 0
-  return clamp(Math.round(45 + (teamPower(t, members) - t.difficulty) * 9), 5, 95)
+  return clamp(Math.round(45 + bonus + (teamPower(t, members) - t.difficulty) * 9), 5, 95)
 }
 
 export function detectionRisk(
@@ -58,6 +79,7 @@ export function detectionRisk(
   members: Character[],
   week: number,
   trust = 0,
+  factor = 1,
 ): number {
   if (members.length === 0) return 0
   const bestStealth = Math.max(...members.map((m) => m.stats.heimlichkeit))
@@ -69,7 +91,7 @@ export function detectionRisk(
     bestStealth * 3 +
     avgHeat * 0.2 -
     trust * TRUST_RISK_RELIEF
-  return clamp(Math.round(raw), 3, 90)
+  return clamp(Math.round(raw * factor), 3, 90)
 }
 
 /**
@@ -140,6 +162,7 @@ export function mergeEffects(a: Effects, b: Effects): Effects {
     flags: [...(a.flags ?? []), ...(b.flags ?? [])],
     self: b.self ?? a.self,
     trust: mergeTrust(a.trust, b.trust),
+    helped: sum(a.helped, b.helped),
   }
 }
 
@@ -158,6 +181,7 @@ export interface ResourceState {
   members: Character[]
   flags: string[]
   trust: Trust
+  helped: number
 }
 
 /**
@@ -187,6 +211,7 @@ export function applyEffects<S extends ResourceState>(s: S, e: Effects, selfId?:
     members,
     flags: Array.from(new Set([...s.flags, ...(e.flags ?? [])])),
     trust,
+    helped: Math.max(0, s.helped + (e.helped ?? 0)),
   }
 }
 
@@ -213,9 +238,12 @@ export function generateMissions(week: number, flags: string[], rng: Rng): Missi
   // Jede Woche zwei der freigeschalteten Bezirksaufträge, damit die Karte übersichtlich bleibt
   const specials = DISTRICT_SPECIALS.filter((d) => week >= d.from).map((d) => d.type)
   for (let i = 0; i < 2 && specials.length; i++) types.push(specials.splice(Math.floor(rng() * specials.length), 1)[0])
+  // Hilfe für Verfolgte vor den übrigen Aufträgen, damit sie immer einen Ort finden
+  if (flags.includes('unterschlupf')) types.push('unterschlupf')
+  // Ab dem Boykott vom 1. April 1933: jüdischen Nachbarn beistehen
+  if (week >= 5) types.push('besorgung')
   types.push('spenden', 'papier', 'druck', 'verteilen', 'parolen')
   if (week >= 2) types.push('ausweise')
-  if (flags.includes('unterschlupf')) types.push('unterschlupf')
   // Ab 1936
   if (week >= 11) types.push('pakete')
   if (week === 12) types.unshift('reporter')
@@ -236,6 +264,8 @@ export function generateMissions(week: number, flags: string[], rng: Rng): Missi
 export interface MissionContext {
   flags?: string[]
   trust?: number
+  tuning?: MissionTuning
+  level?: Level
 }
 
 export function resolveMission(
@@ -247,8 +277,9 @@ export function resolveMission(
 ): MissionResult {
   const t = MISSIONS[mission.type]
   const place = getPlace(mission.placeId)
-  const chance = successChance(t, team)
-  const risk = detectionRisk(t, mission.district, team, week, ctx.trust ?? 0)
+  const tuning = ctx.tuning ?? DEFAULT_TUNING
+  const chance = successChance(t, team, tuning.successBonus)
+  const risk = detectionRisk(t, mission.district, team, week, ctx.trust ?? 0, tuning.riskFactor)
   const roll = rollD100(rng)
   const detectRoll = rollD100(rng)
   const success = roll <= chance
@@ -260,16 +291,19 @@ export function resolveMission(
   const trustDelta = (success ? 1 : 0) - (detected ? 1 : 0)
   if (trustDelta) effects = mergeEffects(effects, { trust: { [mission.district]: trustDelta } })
 
+  const level = ctx.level ?? 'schwer'
+  const say = (list: typeof t.texts.success) => txt(pick(list, rng), level)
   let text: string
-  if (!detected) text = pick(success ? t.texts.success : t.texts.failure, rng)
-  else if (success) text = `${pick(t.texts.success, rng)} Doch {team} {wurde|wurden} dabei beobachtet.`
-  else text = pick(t.texts.detected, rng)
+  if (!detected) text = say(success ? t.texts.success : t.texts.failure)
+  else if (success) text = `${say(t.texts.success)} Doch {team} {wurde|wurden} dabei beobachtet.`
+  else text = say(t.texts.detected)
 
   const injured: string[] = []
   const arrested: string[] = []
   if (detected) {
     for (const m of team) {
-      if (isWanted(m) && rng() < ARREST_CHANCE_WHEN_WANTED) arrested.push(m.id)
+      if (isWanted(m) && rng() < tuning.arrestChance) arrested.push(m.id)
+      else if (!isWanted(m) && rng() < tuning.arrestChanceUnknown) arrested.push(m.id)
       else if (rng() < INJURY_CHANCE_WHEN_DETECTED) injured.push(m.id)
     }
   }
@@ -312,8 +346,8 @@ export function seededRng(seed: number): Rng {
 export type DangerTier = 'gering' | 'mittel' | 'hoch'
 
 /** Grobe Gefahr für eine einzelne, unauffällige Person: für die Übersicht auf der Karte */
-export function dangerEstimate(t: MissionTemplate, district: DistrictKey, week: number, trust = 0): number {
-  return clamp(Math.round(t.baseRisk + surveillanceAt(district, week) * 0.6 - 6 - trust * TRUST_RISK_RELIEF), 3, 90)
+export function dangerEstimate(t: MissionTemplate, district: DistrictKey, week: number, trust = 0, factor = 1): number {
+  return clamp(Math.round((t.baseRisk + surveillanceAt(district, week) * 0.6 - 6 - trust * TRUST_RISK_RELIEF) * factor), 3, 90)
 }
 
 export function dangerTier(risk: number): DangerTier {

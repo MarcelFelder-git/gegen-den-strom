@@ -1,10 +1,10 @@
 import { Cinema, type Shot } from './Cinema'
 import { MissionScene, MorningScene, NightfallScene, WEEK_WEATHER, type SceneOutcome, type Weather } from './scenes'
 import { getPlace } from '../../game/data/districts'
-import { MISSIONS } from '../../game/data/missions'
 import { fillMissionText } from '../../game/logic'
 import type { Character, WeekReport } from '../../game/types'
 import { sound } from '../../audio/sound'
+import { useMissions } from '../../store/content'
 
 const NIGHT_CAPTION: Record<Weather, string> = {
   schnee: 'Es schneit über Berlin. Die Schritte auf dem Pflaster klingen gedämpft. Gut für alle, die nicht gehört werden wollen.',
@@ -22,6 +22,7 @@ function hash(text: string): number {
 
 /** Die Nacht der Einsätze: jede Aktion als kurze Szene, am Ende der Stempel */
 export function NightSequence({ report, members, onDone }: { report: WeekReport; members: Character[]; onDone: () => void }) {
+  const missions = useMissions()
   const byId = (id: string) => members.find((m) => m.id === id)
   const weather = WEEK_WEATHER[report.weekIndex] ?? 'klar'
   const results = report.results
@@ -30,7 +31,7 @@ export function NightSequence({ report, members, onDone }: { report: WeekReport;
   const allGood = results.length > 0 && results.every((r) => r.outcome === 'gelungen' && !r.detected)
 
   const morning = arrested
-    ? 'Am nächsten Morgen fehlt jemand am Küchentisch.'
+    ? 'Am nächsten Morgen fehlt jemand am Küchentisch. Eine Zellentür ist ins Schloss gefallen.'
     : detected
       ? 'Am nächsten Morgen. Vor dem Haus steht ein Mann, der dort nicht hingehört.'
       : results.length === 0
@@ -61,7 +62,7 @@ export function NightSequence({ report, members, onDone }: { report: WeekReport;
             seed={hash(r.uid)}
           />
         ),
-        caption: fillMissionText(MISSIONS[r.type].night, team, getPlace(r.placeId).at),
+        caption: fillMissionText(missions[r.type].night, team, getPlace(r.placeId).at),
         stamp: r.detected
           ? { text: r.outcome === 'gelungen' ? 'Gesehen' : 'Entdeckt', tone: 'blood' }
           : r.outcome === 'gelungen'
@@ -69,7 +70,7 @@ export function NightSequence({ report, members, onDone }: { report: WeekReport;
             : { text: 'Gescheitert', tone: 'blood' },
         auto: 2800,
         ambience: weather === 'regen' ? 'regen' : undefined,
-        sfx: outcome === 'entdeckt' ? () => sound.whistle(1.4) : undefined,
+        sfx: r.arrested.length > 0 ? () => sound.cellDoor() : outcome === 'entdeckt' ? () => sound.whistle(1.4) : undefined,
       }
     }),
     {

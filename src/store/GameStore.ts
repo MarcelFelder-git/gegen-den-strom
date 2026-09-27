@@ -9,12 +9,15 @@ import { CHAPTERS, chapterOf } from '../game/data/chapters'
 import { SOURCES } from '../game/data/sources'
 import { cardsForMission, cardsForWeek } from '../game/data/cards'
 import { CODENAMES } from '../game/data/group'
+import { weekGoal } from '../game/data/goals'
+import { PRISON_HELP, prisonPlace } from '../game/data/prison'
+import { difficultyOf } from '../game/difficulty'
+import { t, type Level } from '../game/text'
 import {
-  ARREST_MORAL_LOSS,
   AUSWEIS_HEAT_RELIEF,
   MAX_TEAM,
   EMPTY_TRUST,
-  WEEKLY_MORAL_DECAY,
+  actingLeader,
   applyEffects,
   canAfford,
   clamp,
@@ -40,6 +43,7 @@ import type {
   Mission,
   MissionResult,
   Phase,
+  PrisonHelp,
   ProfessionKey,
   WeekReport,
 } from '../game/types'
@@ -59,6 +63,8 @@ export interface EventOutcome {
 
 interface GameData extends ResourceState {
   phase: Phase
+  /** Schwierigkeitsstufe: leicht für Klasse 6 bis 8, schwer ab Klasse 9 */
+  level: Level
   weekIndex: number
   profession: ProfessionKey
   ideology: IdeologyKey
@@ -82,6 +88,10 @@ interface GameData extends ResourceState {
   cards: string[]
   /** Karten, die gerade neu sind und noch gezeigt werden müssen */
   pendingCards: string[]
+  /** Die Gruppe stand vor dem Aus und hat sich neu aufgerafft (leichte Stufe) */
+  crisis: boolean
+  /** Stand der geholfenen Menschen zu Beginn des Kapitels, für die Bewertung */
+  chapterHelpedStart: number
 }
 
 interface GameActions {
@@ -98,6 +108,8 @@ interface GameActions {
   assign: (missionUid: string, memberIds: string[]) => string | null
   unassign: (missionUid: string) => void
   giveAusweis: (memberId: string) => void
+  /** Hilfe von außen für eine verhaftete Person */
+  helpPrisoner: (memberId: string, kind: PrisonHelp) => string | null
   endWeek: () => void
   nextWeek: () => void
 }
@@ -105,9 +117,12 @@ interface GameActions {
 export type GameState = GameData & GameActions
 
 export const START_MORAL = 60
+/** Auf diesen Wert rafft sich die Gruppe in der leichten Stufe wieder auf */
+const CRISIS_MORAL = 25
 
 const initialData: GameData = {
   phase: 'title',
+  level: 'leicht',
   weekIndex: 0,
   profession: 'arbeiter',
   ideology: 'humanistisch',
@@ -124,6 +139,7 @@ const initialData: GameData = {
   history: [],
   endReason: null,
   trust: { ...EMPTY_TRUST },
+  helped: 0,
   storyIds: [],
   eventStage: 0,
   decisions: [],
@@ -132,6 +148,8 @@ const initialData: GameData = {
   motto: 'Wir schweigen nicht.',
   cards: [],
   pendingCards: [],
+  crisis: false,
+  chapterHelpedStart: 0,
 }
 
 const rng: Rng = Math.random
@@ -145,23 +163,27 @@ function shuffle<T>(items: T[], r: Rng): T[] {
   return a
 }
 
-function createCompanions(leaderName: string, r: Rng): Character[] {
-  const pool = shuffle(
-    COMPANIONS.filter((c) => firstName(c) !== firstName({ name: leaderName })),
-    r,
-  )
-  return pool.slice(0, 3).map((c, i) => ({
-    id: `g${i + 1}`,
+function companionFrom(c: (typeof COMPANIONS)[number], id: string, r: Rng, level: Level): Character {
+  return {
+    id,
     name: c.name,
     isLeader: false,
     avatar: c.avatar,
     beruf: c.beruf,
-    bio: c.bio,
+    bio: t(c.bio, level),
     stats: { ...c.stats },
     heat: Math.floor(r() * 3) * 5,
     status: 'bereit',
     injuredWeeks: 0,
-  }))
+  }
+}
+
+function createCompanions(leaderName: string, r: Rng, level: Level, exclude: string[] = [], count = 3, idPrefix = 'g'): Character[] {
+  const pool = shuffle(
+    COMPANIONS.filter((c) => firstName(c) !== firstName({ name: leaderName }) && !exclude.includes(c.name)),
+    r,
+  )
+  return pool.slice(0, count).map((c, i) => companionFrom(c, `${idPrefix}${i + 1}`, r, level))
 }
 
 /** Vergibt freie Decknamen an neue Gefährten */
@@ -176,10 +198,10 @@ function withCodenames(list: Character[], taken: string[]): Character[] {
 /** Wochenbeginn: Zeitungsmeldung wirkt, neue Aufträge erscheinen */
 function beginWeek(s: GameData, index: number): GameData {
   const week = WEEKS[index]
-  const notes: WeekNote[] = [{ text: week.moodText, effects: week.effects }]
+  const notes: WeekNote[] = [{ text: t(week.moodText, s.level), effects: week.effects }]
   for (const c of week.conditional ?? []) {
     if ((c.ideology && c.ideology === s.ideology) || (c.profession && c.profession === s.profession)) {
-      notes.push({ text: c.text, effects: c.effects })
+      notes.push({ text: t(c.text, s.level), effects: c.effects })
     }
   }
   let next: GameData = { ...s, weekIndex: index }
@@ -190,6 +212,8 @@ function beginWeek(s: GameData, index: number): GameData {
     .filter((id) => !next.cards.includes(id))
   return {
     ...next,
+    // Hilfe für Gefangene ist jede Woche neu möglich
+    members: next.members.map((m) => (m.prison ? { ...m, prison: { ...m.prison, helpedThisWeek: false } } : m)),
     cards: [...next.cards, ...weekCards],
     pendingCards: [...next.pendingCards, ...weekCards],
     storyIds: storiesFor(index, present).map((st) => st.id),
@@ -219,20 +243,44 @@ export function currentEvent(s: Pick<GameData, 'weekIndex' | 'eventStage' | 'sto
 }
 
 export function eventNames(members: Character[], self?: Character): Record<string, string> {
-  const leader = members.find((m) => m.isLeader)
-  const others = members.filter((m) => !m.isLeader && !isGone(m))
+  // Ist die Anführerin oder der Anführer in Haft, spricht man die Person an, die jetzt die Gruppe führt
+  const lead = actingLeader(members)
+  const others = members.filter((m) => !m.isLeader && !isGone(m) && m.id !== lead?.id)
   return {
     self: self ? firstName(self) : '',
-    name: leader?.name ?? 'Freund',
+    name: lead ? firstName(lead) : 'Freund',
     g1: others[0] ? firstName(others[0]) : 'ein alter Freund',
     g2: others[1] ? firstName(others[1]) : others[0] ? firstName(others[0]) : 'ein Bekannter',
   }
 }
 
 /** Aussicht einer Probe in einer Entscheidungsszene */
-export function checkChance(choice: EventChoice, leader: Character | undefined): number | null {
+export function checkChance(choice: EventChoice, leader: Character | undefined, level: Level = 'schwer'): number | null {
   if (!choice.check || !leader) return null
-  return clamp(60 + (leader.stats[choice.check.stat] - choice.check.min) * 15, 15, 95)
+  const bonus = difficultyOf(level).successBonus
+  return clamp(60 + bonus + (leader.stats[choice.check.stat] - choice.check.min) * 15, 15, 95)
+}
+
+/**
+ * Leichte Stufe: Die Gruppe gibt nicht auf. Fällt die Moral auf null, rafft sie sich
+ * wieder auf, verliert aber viele Unterstützer.
+ */
+function withCrisis(s: GameData): GameData {
+  if (s.moral > 0 || difficultyOf(s.level).gameOver) return s
+  return { ...s, moral: CRISIS_MORAL, supporters: Math.floor(s.supporters * 0.6), crisis: true }
+}
+
+/** Neue Gefährten, wenn niemand mehr frei ist (nur leichte Stufe) */
+function recruitIfEmpty(s: GameData): { state: GameData; recruited: string[] } {
+  if (difficultyOf(s.level).gameOver || s.members.some((m) => !isGone(m))) return { state: s, recruited: [] }
+  const taken = s.members.map((m) => m.name)
+  const leaderName = s.members.find((m) => m.isLeader)?.name ?? ''
+  const fresh = createCompanions(leaderName, rng, s.level, taken, 2, `r${s.weekIndex}-`)
+  const joined = withCodenames(fresh, s.members.map((m) => m.codename ?? ''))
+  return {
+    state: { ...s, members: [...s.members, ...joined], supporters: Math.max(0, s.supporters - 4) },
+    recruited: joined.map((m) => m.id),
+  }
 }
 
 export const useGame = create<GameState>()(
@@ -245,13 +293,15 @@ export const useGame = create<GameState>()(
       startGame: (draft, startWeek = 0) => {
         const prof = getProfession(draft.profession)
         const ideo = getIdeology(draft.ideology)
+        const level = draft.level ?? 'leicht'
+        const diff = difficultyOf(level)
         const leader: Character = {
           id: 'leader',
           name: draft.name.trim(),
           isLeader: true,
           avatar: draft.avatar,
           beruf: prof.label[draft.avatar.gender],
-          bio: ideo.text,
+          bio: t(ideo.text, level),
           stats: leaderStats(draft.profession, draft.ideology),
           heat: startWeek > 0 ? 0 : ideo.startHeat,
           status: 'bereit',
@@ -262,13 +312,14 @@ export const useGame = create<GameState>()(
         const later = startWeek >= CHAPTERS[2].first
         const base: GameData = {
           ...initialData,
+          level,
           profession: draft.profession,
           ideology: draft.ideology,
           supporters: ideo.startSupporters + (later ? 6 : 0),
-          kasse: prof.startKasse + (later ? 20 : 0),
+          kasse: prof.startKasse + diff.startKasse + (later ? 20 : 0),
           flags: later ? ['unterschlupf'] : [],
           inventory: { papier: 2, farbe: 1, flugblaetter: 0, ausweise: 0 },
-          members: [leader, ...withCodenames(createCompanions(leader.name, rng), [draft.codename])],
+          members: [leader, ...withCodenames(createCompanions(leader.name, rng, level), [draft.codename])],
           groupName: draft.groupName.trim() || 'Morgenrot',
           motto: draft.motto,
         }
@@ -278,17 +329,17 @@ export const useGame = create<GameState>()(
       continueToChapter2: () => {
         const s = get()
         if (s.endReason !== 'kapitelende' || chapterOf(s.weekIndex).id !== 1) return
-        // Drei Jahre vergehen: Wunden heilen, der Verdacht verblasst, Lücken werden gefüllt
-        let members = s.members.map((m) =>
-          isGone(m) ? m : { ...m, status: 'bereit' as const, injuredWeeks: 0, heat: Math.max(0, m.heat - 40) },
-        )
+        // Drei Jahre vergehen: Haft endet, Wunden heilen, der Verdacht verblasst.
+        // Wer 1933 verurteilt wurde, kommt oft erst nach Jahren im Zuchthaus zurück.
+        let members = s.members.map((m): Character => {
+          if (m.status === 'tot' || m.status === 'ausgewandert') return m
+          if (m.status === 'lager' && rng() < 0.4) return m
+          return { ...m, status: 'bereit', injuredWeeks: 0, prison: undefined, heat: Math.max(0, m.heat - 40) }
+        })
         const free = members.filter((m) => !m.isLeader && !isGone(m)).length
         if (free < 3) {
-          const taken = new Set(members.map((m) => m.name))
-          const extra = createCompanions(members.find((m) => m.isLeader)?.name ?? '', rng)
-            .filter((c) => !taken.has(c.name))
-            .slice(0, 3 - free)
-            .map((c, i) => ({ ...c, id: `n${i + 1}` }))
+          const taken = members.map((m) => m.name)
+          const extra = createCompanions(members.find((m) => m.isLeader)?.name ?? '', rng, s.level, taken, 3 - free, 'n')
           members = [...members, ...withCodenames(extra, members.map((m) => m.codename ?? ''))]
         }
         set(
@@ -299,6 +350,8 @@ export const useGame = create<GameState>()(
               moral: Math.max(s.moral, 45),
               endReason: null,
               report: null,
+              crisis: false,
+              chapterHelpedStart: s.helped,
             },
             CHAPTERS[2].first,
           ),
@@ -326,17 +379,18 @@ export const useGame = create<GameState>()(
         const { event, self } = currentEvent(s)
         const choice = event.choices[index]
         if (!choice || (choice.needsKasse ?? 0) > s.kasse) return
-        const leader = s.members.find((m) => m.isLeader)
-        const chance = checkChance(choice, leader)
+        const lead = actingLeader(s.members)
+        const chance = checkChance(choice, lead, s.level)
         const success = chance === null ? null : rng() * 100 < chance
         const effects = success === false ? (choice.failEffects ?? {}) : choice.effects
-        const text = success === false ? (choice.failResult ?? choice.result) : choice.result
+        const rawText = success === false ? (choice.failResult ?? choice.result) : choice.result
+        const text = t(rawText, s.level)
         const names = eventNames(s.members, self)
         const decision: Decision = {
           weekIndex: s.weekIndex,
-          title: event.title,
+          title: t(event.title, s.level),
           companion: self?.name,
-          choice: fillNames(choice.label, names),
+          choice: fillNames(t(choice.label, s.level), names),
           success,
           result: fillNames(text, names),
         }
@@ -348,8 +402,12 @@ export const useGame = create<GameState>()(
       },
 
       finishEvent: () => {
-        const s = get()
-        if (s.moral <= 0) return set({ phase: 'end', endReason: 'moral' })
+        let s = get()
+        if (s.moral <= 0) {
+          if (difficultyOf(s.level).gameOver) return set({ phase: 'end', endReason: 'moral' })
+          set(withCrisis(s))
+          s = get()
+        }
         // Weitere Geschichten dieser Woche, sofern die Person noch da ist
         let stage = s.eventStage + 1
         while (stage <= s.storyIds.length) {
@@ -407,12 +465,42 @@ export const useGame = create<GameState>()(
         })
       },
 
+      helpPrisoner: (memberId, kind) => {
+        const s = get()
+        if (s.phase !== 'map') return 'Hilfe lässt sich nur während der Planung organisieren.'
+        const m = s.members.find((x) => x.id === memberId)
+        const option = PRISON_HELP.find((o) => o.kind === kind)
+        if (!m || m.status !== 'verhaftet' || !m.prison || !option) return 'Diese Person ist nicht in Haft.'
+        if (m.prison.helpedThisWeek) return 'Für diese Woche ist schon Hilfe unterwegs.'
+        if (kind === 'anwalt' && m.prison.lawyer) return 'Ein Anwalt kümmert sich bereits.'
+        if (s.kasse < option.cost) return 'Dafür reicht das Geld in der Kasse nicht.'
+        const prison = {
+          ...m.prison,
+          helpedThisWeek: true,
+          lawyer: m.prison.lawyer || kind === 'anwalt',
+          packages: m.prison.packages + (kind === 'paket' ? 1 : 0),
+          // Ein Anwalt kann die Haft um eine Woche verkürzen
+          weeks: kind === 'anwalt' ? Math.max(1, m.prison.weeks - 1) : m.prison.weeks,
+        }
+        const effects: Effects =
+          kind === 'paket'
+            ? { kasse: -option.cost, moral: 2 }
+            : kind === 'anwalt'
+              ? { kasse: -option.cost }
+              : { kasse: -option.cost, moral: 2, supporters: 1, helped: 1 }
+        const next = applyEffects(s, effects)
+        set({ ...next, members: next.members.map((x) => (x.id === memberId ? { ...x, prison } : x)) })
+        return null
+      },
+
       endWeek: () => {
         const s = get()
         if (s.phase !== 'map') return
+        const diff = difficultyOf(s.level)
+        const chapterId = chapterOf(s.weekIndex).id
         const ideo = getIdeology(s.ideology)
         const prof = getProfession(s.profession)
-        const before = { moral: s.moral, supporters: s.supporters, kasse: s.kasse }
+        const before = { moral: s.moral, supporters: s.supporters, kasse: s.kasse, helped: s.helped }
 
         // Verletzungen der Vorwoche heilen aus
         const healed: string[] = []
@@ -427,6 +515,41 @@ export const useGame = create<GameState>()(
           }),
         }
 
+        // Haft: Wer schon länger sitzt, kommt frei, wird verurteilt oder überlebt nicht
+        const released: string[] = []
+        const sentenced: string[] = []
+        const died: string[] = []
+        state = {
+          ...state,
+          members: state.members.map((m): Character => {
+            if (m.status !== 'verhaftet' || !m.prison) return m
+            const weeks = m.prison.weeks - 1
+            if (weeks > 0) return { ...m, prison: { ...m.prison, weeks } }
+            const [lager, tod] = diff.noReturn[chapterId]
+            // Ein Anwalt und Pakete von außen verbessern die Aussichten
+            const lagerChance = lager * (m.prison.lawyer ? 0.5 : 1)
+            const todChance = tod * (m.prison.packages > 0 ? 0.6 : 1)
+            const roll = rng()
+            if (roll < todChance) {
+              died.push(m.id)
+              return { ...m, status: 'tot', prison: undefined }
+            }
+            if (roll < todChance + lagerChance) {
+              sentenced.push(m.id)
+              return { ...m, status: 'lager', prison: undefined }
+            }
+            released.push(m.id)
+            // Freigelassene stehen unter Beobachtung und tragen die Haft mit sich
+            return {
+              ...m,
+              status: 'bereit',
+              prison: undefined,
+              heat: 55,
+              stats: { ...m.stats, staerke: Math.max(1, m.stats.staerke - 1) },
+            }
+          }),
+        }
+
         // Aufträge auswürfeln
         const results: MissionResult[] = []
         for (const mission of s.missions) {
@@ -438,15 +561,17 @@ export const useGame = create<GameState>()(
           const r = resolveMission(mission, team, s.weekIndex, rng, {
             flags: state.flags,
             trust: state.trust[mission.district],
+            tuning: diff,
+            level: s.level,
           })
           results.push(r)
-          state = applyEffects(state, mergeEffects(r.effects, { moral: -ARREST_MORAL_LOSS * r.arrested.length }))
+          state = applyEffects(state, mergeEffects(r.effects, { moral: -diff.arrestMoralLoss * r.arrested.length }))
           const gain = heatGain(r.type, r.detected)
           state = {
             ...state,
             members: state.members.map((m) => {
               if (!r.team.includes(m.id)) return m
-              if (r.arrested.includes(m.id)) return { ...m, status: 'verhaftet' }
+              if (r.arrested.includes(m.id)) return arrest(m, s.weekIndex, diff.prisonWeeks)
               const heat = clamp(m.heat + gain, 0, 100)
               if (r.injured.includes(m.id)) return { ...m, heat, status: 'verletzt', injuredWeeks: 1 }
               return { ...m, heat }
@@ -460,7 +585,7 @@ export const useGame = create<GameState>()(
         state = {
           ...state,
           members: state.members.map((m) => {
-            if (active.has(m.id) || isGone(m) || m.heat === 0) return m
+            if (active.has(m.id) || isGone(m) || m.heat === 0 || released.includes(m.id)) return m
             idleCooled.push(m.id)
             return { ...m, heat: Math.max(0, m.heat - (m.isLeader ? ideo.cooldown : 8)) }
           }),
@@ -473,24 +598,51 @@ export const useGame = create<GameState>()(
           members: state.members.map((m) => {
             if (isGone(m) || m.heat < 100) return m
             heatArrests.push(m.id)
-            return { ...m, status: 'verhaftet' }
+            return arrest(m, s.weekIndex, diff.prisonWeeks)
           }),
         }
 
         const income = Math.floor(state.supporters / 3) + prof.weeklyIncome
         state = applyEffects(state, {
           kasse: income,
-          moral: -WEEKLY_MORAL_DECAY - ARREST_MORAL_LOSS * heatArrests.length,
+          moral:
+            -diff.moralDecay -
+            diff.arrestMoralLoss * heatArrests.length -
+            diff.arrestMoralLoss * died.length +
+            4 * released.length,
         })
+
+        // Ziel der Woche
+        const goal = weekGoal(s.weekIndex)
+        const goalMet = goal.met({ results, helpedDelta: state.helped - before.helped })
+        if (goalMet) state = applyEffects(state, goal.reward)
+
+        // Leichte Stufe: Die Gruppe gibt nicht auf, und wenn niemand mehr frei ist, springen Unterstützer ein
+        const crisis = state.crisis || (state.moral <= 0 && !diff.gameOver)
+        state = withCrisis(state)
+        const { state: withRecruits, recruited } = recruitIfEmpty(state)
+        state = withRecruits
+
+        const leader = state.members.find((m) => m.isLeader)
+        const acting = leader && isGone(leader) && !diff.gameOver ? actingLeader(state.members) : undefined
 
         const report: WeekReport = {
           weekIndex: s.weekIndex,
           results,
           income,
-          moralDecay: WEEKLY_MORAL_DECAY,
+          moralDecay: diff.moralDecay,
           idleCooled,
           healed,
           heatArrests,
+          released,
+          sentenced,
+          died,
+          actingLeader: acting?.id,
+          crisis,
+          recruited,
+          helpedBefore: before.helped,
+          helpedAfter: state.helped,
+          goalMet,
           moralBefore: before.moral,
           moralAfter: state.moral,
           supportersBefore: before.supporters,
@@ -505,6 +657,7 @@ export const useGame = create<GameState>()(
           .filter((id, i, all) => !state.cards.includes(id) && all.indexOf(id) === i)
         set({
           ...state,
+          crisis: false,
           phase: 'report',
           report,
           history: [...s.history, report],
@@ -515,9 +668,12 @@ export const useGame = create<GameState>()(
 
       nextWeek: () => {
         const s = get()
+        const diff = difficultyOf(s.level)
         const leader = s.members.find((m) => m.isLeader)
-        if (!leader || leader.status === 'verhaftet') return set({ phase: 'end', endReason: 'verhaftet' })
-        if (s.moral <= 0) return set({ phase: 'end', endReason: 'moral' })
+        if (diff.gameOver) {
+          if (!leader || isGone(leader)) return set({ phase: 'end', endReason: 'verhaftet' })
+          if (s.moral <= 0) return set({ phase: 'end', endReason: 'moral' })
+        }
         if (s.weekIndex === chapterOf(s.weekIndex).last || s.weekIndex + 1 >= TOTAL_WEEKS)
           return set({ phase: 'end', endReason: 'kapitelende' })
         set(beginWeek(s, s.weekIndex + 1))
@@ -525,9 +681,18 @@ export const useGame = create<GameState>()(
     }),
     {
       name: 'gegen-den-strom-spielstand',
-      version: 2,
-      // Ältere Spielstände bekommen die neuen Felder mit ihren Anfangswerten
-      migrate: (persisted) => ({ ...initialData, ...(persisted as Partial<GameData>) }) as GameState,
+      version: 3,
+      // Ältere Spielstände bekommen die neuen Felder mit ihren Anfangswerten.
+      // Verhaftete aus älteren Ständen bekommen eine Haftdauer, damit sie zurückkehren können.
+      migrate: (persisted) => {
+        const data = { ...initialData, ...(persisted as Partial<GameData>) }
+        data.members = data.members.map((m) =>
+          m.status === 'verhaftet' && !m.prison
+            ? { ...m, prison: { weeks: 2, place: 'im Polizeipräsidium am Alexanderplatz', helpedThisWeek: false, lawyer: false, packages: 0 } }
+            : m,
+        )
+        return data as unknown as GameState
+      },
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => {
         const data: Partial<GameState> = { ...s }
@@ -540,10 +705,31 @@ export const useGame = create<GameState>()(
   ),
 )
 
+/** Verhaftung: Die Person kommt für einige Wochen in Haft */
+function arrest(m: Character, week: number, [min, max]: [number, number]): Character {
+  return {
+    ...m,
+    status: 'verhaftet',
+    injuredWeeks: 0,
+    arrests: (m.arrests ?? 0) + 1,
+    prison: {
+      weeks: min + Math.floor(rng() * (max - min + 1)),
+      place: prisonPlace(week, rng),
+      helpedThisWeek: false,
+      lawyer: false,
+      packages: 0,
+    },
+  }
+}
+
 export const selectLeader = (s: GameState) => s.members.find((m) => m.isLeader)
+
+/** Wer die Gruppe gerade führt */
+export const selectActingLeader = (s: GameState) => actingLeader(s.members)
 
 export function hasSavedGame(s: GameState): boolean {
   if (s.members.length === 0) return false
   // Nach Kapitel 1 bleibt der Spielstand erhalten, damit es mit derselben Gruppe weitergehen kann
   return s.phase !== 'end' || (s.endReason === 'kapitelende' && s.weekIndex === CHAPTERS[1].last)
 }
+

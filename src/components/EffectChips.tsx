@@ -12,6 +12,7 @@ const signed = (n: number) => (n > 0 ? `+${n}` : `−${Math.abs(n)}`)
 
 export function effectChips(e: Effects): Chip[] {
   const chips: Chip[] = []
+  if (e.helped) chips.push({ text: `${e.helped} ${e.helped === 1 ? 'Mensch' : 'Menschen'} geholfen`, good: e.helped > 0 })
   if (e.moral) chips.push({ text: `Moral ${signed(e.moral)}`, good: e.moral > 0 })
   if (e.supporters) chips.push({ text: `Unterstützer ${signed(e.supporters)}`, good: e.supporters > 0 })
   if (e.kasse) chips.push({ text: `Kasse ${signed(e.kasse)} RM`, good: e.kasse > 0 })

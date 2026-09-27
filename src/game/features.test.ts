@@ -16,6 +16,7 @@ import {
   type ResourceState,
 } from './logic'
 import type { Character } from './types'
+import { t, type Level } from './text'
 
 function person(id: string, name: string): Character {
   return {
@@ -37,9 +38,10 @@ const base = (): ResourceState => ({
   supporters: 5,
   kasse: 50,
   inventory: { papier: 2, farbe: 1, flugblaetter: 0, ausweise: 0 },
-  members: [person('leader', 'Frieda'), person('g1', 'Ruth Levin')],
+  members: [person('leader', 'Frieda'), person('g1', 'Grete Hoffmann')],
   flags: [],
   trust: { ...EMPTY_TRUST },
+  helped: 0,
 })
 
 describe('Gefährten-Geschichten', () => {
@@ -56,15 +58,17 @@ describe('Gefährten-Geschichten', () => {
   })
 
   it('erscheinen nur für Personen in der Gruppe', () => {
-    expect(storiesFor(5, ['Ruth Levin']).map((s) => s.companion)).toEqual(['Ruth Levin'])
+    expect(storiesFor(5, ['Grete Hoffmann']).map((s) => s.companion)).toEqual(['Grete Hoffmann'])
     expect(storiesFor(5, ['Hans Wendt'])).toEqual([])
   })
 
   it('lassen nach dem Füllen keine Platzhalter übrig', () => {
-    const names = { self: 'Ruth', name: 'Frieda', g1: 'Hans', g2: 'Lotte' }
-    for (const st of STORIES) {
-      for (const text of [st.event.text, ...st.event.choices.flatMap((c) => [c.label, c.result, c.failResult ?? ''])]) {
-        expect(fillNames(text, names)).not.toMatch(/[{}]/)
+    const names = { self: 'Grete', name: 'Frieda', g1: 'Hans', g2: 'Lotte' }
+    for (const level of ['leicht', 'schwer'] as Level[]) {
+      for (const st of STORIES) {
+        for (const text of [st.event.text, ...st.event.choices.flatMap((c) => [c.label, c.result, c.failResult ?? ''])]) {
+          expect(fillNames(t(text, level), names)).not.toMatch(/[{}]/)
+        }
       }
     }
   })
@@ -102,7 +106,7 @@ describe('Bezirke', () => {
   it('jeder Bezirk hat eine Lage für die erste Woche und einen eigenen Auftrag', () => {
     for (const d of DISTRICTS) {
       expect(d.situation[0].from).toBe(0)
-      expect(d.special.length).toBeGreaterThan(0)
+      expect(t(d.special, 'leicht').length).toBeGreaterThan(0)
     }
   })
 

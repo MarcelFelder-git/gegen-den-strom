@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 import { isMuted, setMuted, sound } from '../audio/sound'
+import type { Level } from '../game/text'
 
-type Overlay = 'lexikon' | 'lehrkraefte' | 'vorbilder' | null
+type Overlay = 'lexikon' | 'lehrkraefte' | 'vorbilder' | 'chronik' | 'bildnachweis' | null
 
 interface UiState {
   overlay: Overlay
@@ -9,9 +10,14 @@ interface UiState {
   openLexicon: (id?: string) => void
   openTeacherNotes: () => void
   openAlbum: () => void
+  openChronicle: () => void
+  openCredits: () => void
   /** Mit welchem Kapitel ein neues Spiel beginnt */
   startChapter: 1 | 2
   setStartChapter: (c: 1 | 2) => void
+  /** Gewählte Stufe, bevor das Spiel beginnt */
+  draftLevel: Level
+  setDraftLevel: (l: Level) => void
   close: () => void
   /** Welche Zwischensequenzen in dieser Sitzung schon liefen */
   introSeen: number | null
@@ -30,8 +36,12 @@ export const useUi = create<UiState>()((set) => ({
   openLexicon: (id) => set({ overlay: 'lexikon', lexiconId: id ?? null }),
   openTeacherNotes: () => set({ overlay: 'lehrkraefte' }),
   openAlbum: () => set({ overlay: 'vorbilder' }),
+  openChronicle: () => set({ overlay: 'chronik' }),
+  openCredits: () => set({ overlay: 'bildnachweis' }),
   startChapter: 1,
   setStartChapter: (c) => set({ startChapter: c }),
+  draftLevel: 'leicht',
+  setDraftLevel: (l) => set({ draftLevel: l }),
   close: () => set({ overlay: null, lexiconId: null }),
   introSeen: null,
   nightSeen: null,

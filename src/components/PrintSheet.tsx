@@ -1,24 +1,27 @@
 import { getProfession, getIdeology } from '../game/data/professions'
-import { MISSIONS } from '../game/data/missions'
 import { TOTAL_WEEKS, WEEKS } from '../game/data/weeks'
 import { useGame } from '../store/GameStore'
 import { getCard } from '../game/data/cards'
 import { quoted } from '../game/data/group'
+import { useMissions } from '../store/content'
+import { DIFFICULTIES } from '../game/difficulty'
+import { chapterOf } from '../game/data/chapters'
 
 const QUESTIONS = [
   'Welche Entscheidung ist dir im Spiel am schwersten gefallen? Warum?',
-  'Die Zeitung berichtete über die Lager und die Verhaftungen. Warum haben trotzdem so wenige Menschen widersprochen?',
-  'Was bedeutet es heute, nicht wegzusehen, wenn andere ausgegrenzt werden?',
+  'Eure Gruppe wurde nicht verfolgt. Ihr hättet sagen können: „Uns geht es doch gut.“ Warum haben die meisten Menschen genau das getan?',
+  'Was bedeutet es heute, nicht wegzusehen, wenn andere ausgegrenzt werden? Wo erlebst du das?',
 ]
 
-const END_TITLE = { kapitelende: 'Das erste Kapitel überstanden', moral: 'Die Gruppe ist zerbrochen', verhaftet: 'Verhaftet' }
+const END_TITLE = { kapitelende: 'Kapitel überstanden', moral: 'Die Gruppe ist zerbrochen', verhaftet: 'Verhaftet' }
 
 /**
  * Das Abschlussblatt für den Unterricht. Es ist nur beim Drucken sichtbar
  * und bewusst schlicht gehalten: schwarz auf weiß, gut lesbar, sparsam mit Toner.
  */
 export function PrintSheet() {
-  const { members, decisions, history, supporters, moral, endReason, profession, ideology, sourceAnswers, cards, groupName, motto } = useGame()
+  const { members, decisions, history, supporters, moral, endReason, profession, ideology, sourceAnswers, cards, groupName, motto, helped, level, weekIndex } = useGame()
+  const templates = useMissions()
   const answers = Object.values(sourceAnswers)
   const heroes = cards.map((id) => getCard(id)?.name).filter(Boolean)
   const leader = members.find((m) => m.isLeader)
@@ -27,7 +30,7 @@ export function PrintSheet() {
   return (
     <section className="print-sheet" aria-hidden>
       <header style={{ borderBottom: '2px solid #000', paddingBottom: '6mm', marginBottom: '6mm' }}>
-        <p style={{ fontSize: '9pt', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Gegen den Strom. Berlin 1933</p>
+        <p style={{ fontSize: '9pt', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Solidarity is Resistance. Berlin 1933 bis 1938 · Stufe: {DIFFICULTIES[level].label}</p>
         <h1 style={{ fontSize: '22pt', fontWeight: 700, margin: '2mm 0' }}>Abschlussblatt</h1>
         <p style={{ fontSize: '11pt' }}>
           Name: ______________________ &nbsp; Klasse: ________ &nbsp; Datum: ______________
@@ -37,8 +40,8 @@ export function PrintSheet() {
       <h2 style={h2}>Meine Spielfigur</h2>
       <p style={p}>
         {leader?.name}, {leader ? getProfession(profession).label[leader.avatar.gender] : ''}, {getIdeology(ideology).label.toLowerCase()}.
-        {' '}Ergebnis: <strong>{endReason ? END_TITLE[endReason] : 'noch nicht beendet'}</strong> nach {history.length} von{' '}
-        {TOTAL_WEEKS} Wochen (beide Kapitel). Unterstützer: {supporters}. Moral zuletzt: {moral} %. Gelungene Aufträge: {results.filter((r) => r.outcome === 'gelungen').length} von {results.length}.
+        {' '}Ergebnis in {chapterOf(weekIndex).title}: <strong>{endReason ? END_TITLE[endReason] : 'noch nicht beendet'}</strong> nach {history.length} von{' '}
+        {TOTAL_WEEKS} Wochen (beide Kapitel). <strong>Menschen geholfen: {helped}.</strong> Unterstützer: {supporters}. Moral zuletzt: {moral} %. Gelungene Aufträge: {results.filter((r) => r.outcome === 'gelungen').length} von {results.length}.
       </p>
 
       <h2 style={h2}>Quellen und Vorbilder</h2>
@@ -53,7 +56,7 @@ export function PrintSheet() {
       <p style={p}>
         {members
           .filter((m) => !m.isLeader)
-          .map((m) => `${m.name}, Deckname ${m.codename ?? 'unbekannt'} (${m.beruf}${m.status === 'verhaftet' ? ', verhaftet' : m.status === 'ausgewandert' ? ', ausgewandert' : ''})`)
+          .map((m) => `${m.name}, Deckname ${m.codename ?? 'unbekannt'} (${m.beruf}${STATUS_NOTE[m.status] ?? ''})`)
           .join('; ')}
       </p>
 
@@ -92,7 +95,7 @@ export function PrintSheet() {
                 {h.results.length === 0
                   ? 'Die Gruppe hat stillgehalten.'
                   : h.results
-                      .map((r) => `${MISSIONS[r.type].title}: ${r.detected ? 'entdeckt' : r.outcome}`)
+                      .map((r) => `${templates[r.type].title}: ${r.detected ? 'entdeckt' : r.outcome}`)
                       .join('; ')}
               </td>
             </tr>
@@ -113,10 +116,17 @@ export function PrintSheet() {
       ))}
 
       <p style={{ fontSize: '8.5pt', marginTop: '8mm', borderTop: '1px solid #000', paddingTop: '2mm' }}>
-        Die Menschen in diesem Spiel sind erfunden. Die Ereignisse, von denen die Zeitung berichtet, haben sich wirklich zugetragen.
+        Die Menschen in der Gruppe sind erfunden. Die Ereignisse, Quellen, Zeitzeugenberichte und Vorbilder sind echt. Die Zeitungen sind nachgestellt.
       </p>
     </section>
   )
+}
+
+const STATUS_NOTE: Partial<Record<string, string>> = {
+  verhaftet: ', in Haft',
+  lager: ', verurteilt',
+  tot: ', hat die Haft nicht überlebt',
+  ausgewandert: ', ausgewandert',
 }
 
 const h2 = { fontSize: '13pt', fontWeight: 700, margin: '6mm 0 2mm', borderBottom: '1px solid #000' } as const

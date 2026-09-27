@@ -1,3 +1,4 @@
+import { L, type Txt } from '../text'
 import type { DistrictKey } from '../types'
 
 export type Point = [number, number]
@@ -14,7 +15,7 @@ export interface Place {
 export interface District {
   key: DistrictKey
   name: string
-  text: string
+  text: Txt
   /** Umriss im Kartenraster 1000 x 700 */
   polygon: Point[]
   /** Linke obere Ecke des Bezirksschilds */
@@ -23,9 +24,9 @@ export interface District {
   /** Überwachung durch SA und Polizei je Woche (Index = Woche) */
   surveillance: number[]
   /** Wie es im Bezirk gerade aussieht, ab welcher Woche (Index) */
-  situation: { from: number; text: string }[]
+  situation: { from: number; text: Txt }[]
   /** Auftrag, den es nur hier gibt */
-  special: string
+  special: Txt
 }
 
 /*
@@ -45,7 +46,7 @@ export const DISTRICTS: District[] = [
   {
     key: 'wedding',
     name: 'Wedding',
-    text: 'Der „Rote Wedding“. Mietskasernen, Fabriken und viele Kommunisten und Sozialdemokraten.',
+    text: L('Der „Rote Wedding“. Große Mietshäuser, Fabriken und viele Kommunisten und Sozialdemokraten.', 'Der „Rote Wedding“. Mietskasernen, Fabriken und viele Kommunisten und Sozialdemokraten.'),
     polygon: [[170, 40], [420, 24], [660, 40], [700, 120], [690, 236], [520, 250], [310, 246], [200, 200]],
     plaque: [212, 56],
     places: [
@@ -55,19 +56,19 @@ export const DISTRICTS: District[] = [
       { id: 'schillerpark', name: 'Laubenkolonie am Schillerpark', at: 'in der Laubenkolonie am Schillerpark', x: 625, y: 150 },
     ],
     surveillance: [10, 12, 22, 22, 24, 24, 24, 28, 28, 30, 30, 30, 26, 30, 32, 32, 36, 34],
-    special: 'Familien von Verhafteten unterstützen',
+    special: L('Familien von Verhafteten helfen', 'Familien von Verhafteten unterstützen'),
     situation: [
-      { from: 0, text: 'Aus manchen Fenstern hängen noch rote Fahnen. In den Kneipen wird laut über die neue Regierung gestritten.' },
-      { from: 2, text: 'Nach dem Reichstagsbrand durchsucht die SA die Mietskasernen Haus für Haus. Viele Männer sind verschwunden, ihre Familien stehen ohne Lohn da.' },
+      { from: 0, text: L('Aus manchen Fenstern hängen noch rote Fahnen. In den Kneipen streiten die Leute laut über die neue Regierung.', 'Aus manchen Fenstern hängen noch rote Fahnen. In den Kneipen wird laut über die neue Regierung gestritten.') },
+      { from: 2, text: L('Nach dem Reichstagsbrand durchsucht die SA jedes Haus. Viele Männer sind verschwunden. Ihre Familien haben jetzt kein Geld mehr.', 'Nach dem Reichstagsbrand durchsucht die SA die Mietskasernen Haus für Haus. Viele Männer sind verschwunden, ihre Familien stehen ohne Lohn da.') },
       { from: 7, text: 'In den Kneipen redet niemand mehr offen. Jeder könnte ein Spitzel sein.' },
-      { from: 10, text: 'Die alten Genossen sind verhaftet, geflohen oder schweigen. Wer noch weitermacht, kennt nur zwei oder drei andere, damit er niemanden verraten kann.' },
-      { from: 16, text: 'In der Nacht des Pogroms wurden auch hier die Scheiben jüdischer Geschäfte eingeschlagen. Die Nachbarn standen am Fenster.' },
+      { from: 10, text: L('Die alten Freunde sind verhaftet, geflohen oder still. Wer noch weitermacht, kennt nur zwei oder drei andere. So kann er niemanden verraten.', 'Die alten Genossen sind verhaftet, geflohen oder schweigen. Wer noch weitermacht, kennt nur zwei oder drei andere, damit er niemanden verraten kann.') },
+      { from: 16, text: L('In der Nacht des Pogroms wurden auch hier die Scheiben jüdischer Geschäfte eingeschlagen. Die Nachbarn standen am Fenster und schauten zu.', 'In der Nacht des Pogroms wurden auch hier die Scheiben jüdischer Geschäfte eingeschlagen. Die Nachbarn standen am Fenster.') },
     ],
   },
   {
     key: 'mitte',
     name: 'Mitte',
-    text: 'Das Herz der Stadt. Regierungsviertel, Warenhäuser und das Polizeipräsidium am Alexanderplatz. Überall sind Augen.',
+    text: L('Die Mitte der Stadt. Hier sind die Regierung, große Kaufhäuser und die Polizei am Alexanderplatz. Überall wird beobachtet.', 'Das Herz der Stadt. Regierungsviertel, Warenhäuser und das Polizeipräsidium am Alexanderplatz. Überall sind Augen.'),
     polygon: [[310, 246], [520, 250], [690, 236], [770, 300], [760, 420], [620, 436], [460, 440], [330, 420], [300, 330]],
     plaque: [322, 262],
     places: [
@@ -78,19 +79,19 @@ export const DISTRICTS: District[] = [
       { id: 'alexanderplatz', name: 'Unter den Bögen am Alexanderplatz', at: 'unter den Bögen am Alexanderplatz', x: 668, y: 368 },
     ],
     surveillance: [16, 18, 22, 22, 26, 28, 28, 32, 32, 34, 34, 34, 30, 34, 36, 36, 38, 36],
-    special: 'Eine Warnung aus dem Präsidium weitergeben',
+    special: L('Eine Warnung aus der Polizei weitergeben', 'Eine Warnung aus dem Präsidium weitergeben'),
     situation: [
-      { from: 0, text: 'Rund um die Regierungsgebäude marschieren Kolonnen. Im Scheunenviertel leben viele arme jüdische Familien, die das mit Sorge beobachten.' },
-      { from: 4, text: 'Das Parlament hat sich selbst entmachtet. An den Amtsgebäuden hängen neue Fahnen, im Polizeipräsidium stapeln sich die Akten.' },
-      { from: 8, text: 'Die Gestapo hat ihren Sitz nahe der Wilhelmstraße bezogen. Wer dort hineingebracht wird, kommt oft lange nicht wieder heraus.' },
-      { from: 10, text: 'Die Stadt wird für die Olympischen Spiele herausgeputzt. Die Schilder gegen Juden verschwinden, für ein paar Wochen.' },
-      { from: 16, text: 'Im Scheunenviertel sind die Scheiben zerschlagen. Die Neue Synagoge in der Oranienburger Straße steht noch, weil ein Polizist das Feuer löschen ließ.' },
+      { from: 0, text: L('Rund um die Regierung marschieren Männer in Uniform. Im Scheunenviertel leben viele arme jüdische Familien. Sie sehen das mit Sorge.', 'Rund um die Regierungsgebäude marschieren Kolonnen. Im Scheunenviertel leben viele arme jüdische Familien, die das mit Sorge beobachten.') },
+      { from: 4, text: L('Das Parlament hat keine Macht mehr. An den Ämtern hängen neue Fahnen. Bei der Polizei stapeln sich die Akten.', 'Das Parlament hat sich selbst entmachtet. An den Amtsgebäuden hängen neue Fahnen, im Polizeipräsidium stapeln sich die Akten.') },
+      { from: 8, text: L('Die Gestapo sitzt jetzt in der Prinz-Albrecht-Straße. Wer dort hineingebracht wird, kommt oft lange nicht wieder heraus.', 'Die Gestapo hat ihren Sitz in der Prinz-Albrecht-Straße bezogen. Wer dort hineingebracht wird, kommt oft lange nicht wieder heraus.') },
+      { from: 10, text: L('Die Stadt wird für die Olympischen Spiele schön gemacht. Die Schilder gegen Juden verschwinden, für ein paar Wochen.', 'Die Stadt wird für die Olympischen Spiele herausgeputzt. Die Schilder gegen Juden verschwinden, für ein paar Wochen.') },
+      { from: 16, text: L('Im Scheunenviertel sind die Scheiben kaputt. Die Neue Synagoge steht noch, weil ein Polizist das Feuer löschen ließ.', 'Im Scheunenviertel sind die Scheiben zerschlagen. Die Neue Synagoge in der Oranienburger Straße steht noch, weil ein Polizist das Feuer löschen ließ.') },
     ],
   },
   {
     key: 'kreuzberg',
     name: 'Kreuzberg',
-    text: 'Das Zeitungsviertel an der Kochstraße, Hinterhöfe, Werkstätten und der Landwehrkanal. Hier wird gedruckt, was die Stadt liest.',
+    text: L('Hier an der Kochstraße werden die Zeitungen gemacht. Dazu Hinterhöfe, Werkstätten und der Landwehrkanal.', 'Das Zeitungsviertel an der Kochstraße, Hinterhöfe, Werkstätten und der Landwehrkanal. Hier wird gedruckt, was die Stadt liest.'),
     polygon: [[330, 420], [460, 440], [620, 436], [650, 520], [630, 660], [420, 670], [320, 620], [300, 500]],
     plaque: [340, 452],
     places: [
@@ -103,16 +104,16 @@ export const DISTRICTS: District[] = [
     special: 'Nachrichten aus dem Ausland abschreiben',
     situation: [
       { from: 0, text: 'Im Zeitungsviertel wird noch gedruckt, was der Regierung nicht gefällt. Noch.' },
-      { from: 2, text: 'Die Zeitungen der Linken sind verboten, ihre Druckereien versiegelt. Viele Setzer und Drucker stehen ohne Arbeit auf der Straße.' },
-      { from: 7, text: 'Keine Zeitung schreibt mehr gegen die Regierung. Die Wahrheit steht nur noch in Blättern aus dem Ausland.' },
-      { from: 10, text: 'Die großen Verlage gehören jetzt der Partei. Wer anders denkt, schreibt nur noch für die Schublade.' },
-      { from: 16, text: 'Jüdische Familien verkaufen ihre Möbel für einen Bruchteil des Wertes, um die Ausreise bezahlen zu können.' },
+      { from: 2, text: L('Die Zeitungen der Linken sind verboten, ihre Druckereien zugesperrt. Viele Drucker haben keine Arbeit mehr.', 'Die Zeitungen der Linken sind verboten, ihre Druckereien versiegelt. Viele Setzer und Drucker stehen ohne Arbeit auf der Straße.') },
+      { from: 7, text: L('Keine Zeitung schreibt mehr gegen die Regierung. Die Wahrheit steht nur noch in Zeitungen aus dem Ausland.', 'Keine Zeitung schreibt mehr gegen die Regierung. Die Wahrheit steht nur noch in Blättern aus dem Ausland.') },
+      { from: 10, text: L('Die großen Zeitungen gehören jetzt der Partei. Wer anders denkt, schreibt nur noch heimlich.', 'Die großen Verlage gehören jetzt der Partei. Wer anders denkt, schreibt nur noch für die Schublade.') },
+      { from: 16, text: L('Jüdische Familien müssen ihre Möbel billig verkaufen, um die Flucht ins Ausland bezahlen zu können.', 'Jüdische Familien verkaufen ihre Möbel für einen Bruchteil des Wertes, um die Ausreise bezahlen zu können.') },
     ],
   },
   {
     key: 'neukoelln',
     name: 'Neukölln',
-    text: 'Arbeiterbezirk im Südosten, mit dem alten Dorf Rixdorf in seiner Mitte. Die Menschen hier halten zusammen, wenn es darauf ankommt.',
+    text: L('Ein Bezirk der Arbeiter im Südosten, mit dem alten Dorf Rixdorf in der Mitte. Die Menschen hier halten zusammen.', 'Arbeiterbezirk im Südosten, mit dem alten Dorf Rixdorf in seiner Mitte. Die Menschen hier halten zusammen, wenn es darauf ankommt.'),
     polygon: [[620, 436], [760, 420], [900, 440], [950, 560], [920, 680], [640, 680], [630, 660], [650, 520]],
     plaque: [700, 450],
     places: [
@@ -122,13 +123,13 @@ export const DISTRICTS: District[] = [
       { id: 'hermannstrasse', name: 'Hinterhof in der Hermannstraße', at: 'im Hinterhof in der Hermannstraße', x: 760, y: 628 },
     ],
     surveillance: [10, 10, 18, 18, 20, 20, 20, 26, 26, 28, 28, 28, 24, 28, 30, 30, 34, 32],
-    special: 'Heimliches Treffen des Arbeitersportvereins',
+    special: L('Heimliches Treffen des Sportvereins der Arbeiter', 'Heimliches Treffen des Arbeitersportvereins'),
     situation: [
-      { from: 0, text: 'Die Arbeitersportvereine trainieren noch in ihren Hallen. Die Menschen hier halten zusammen.' },
-      { from: 3, text: 'Die Arbeitervereine sind verboten, ihre Hallen beschlagnahmt. Man trifft sich nun heimlich, getarnt als Wandergruppe oder Kartenrunde.' },
-      { from: 8, text: 'Im Rathaus sitzen neue Männer. Die gewählten Stadtverordneten der Linken sind abgesetzt oder verhaftet.' },
-      { from: 10, text: 'Überall hängen Fahnen, auf den Höfen wird für die Winterhilfe gesammelt. Die Menschen sind vorsichtig geworden.' },
-      { from: 16, text: 'Viele jüdische Männer aus dem Bezirk wurden nach Sachsenhausen gebracht. Ihre Frauen stehen vor den Ämtern Schlange.' },
+      { from: 0, text: L('Die Sportvereine der Arbeiter trainieren noch in ihren Hallen. Die Menschen hier halten zusammen.', 'Die Arbeitersportvereine trainieren noch in ihren Hallen. Die Menschen hier halten zusammen.') },
+      { from: 3, text: L('Die Vereine der Arbeiter sind verboten. Man trifft sich jetzt heimlich und tut so, als wäre man eine Wandergruppe.', 'Die Arbeitervereine sind verboten, ihre Hallen beschlagnahmt. Man trifft sich nun heimlich, getarnt als Wandergruppe oder Kartenrunde.') },
+      { from: 8, text: L('Im Rathaus sitzen jetzt Nazis. Die gewählten Vertreter der Linken sind abgesetzt oder verhaftet.', 'Im Rathaus sitzen neue Männer. Die gewählten Stadtverordneten der Linken sind abgesetzt oder verhaftet.') },
+      { from: 10, text: L('Überall hängen Fahnen. In den Höfen wird Geld für die Winterhilfe gesammelt. Die Menschen sind vorsichtig geworden.', 'Überall hängen Fahnen, auf den Höfen wird für die Winterhilfe gesammelt. Die Menschen sind vorsichtig geworden.') },
+      { from: 16, text: L('Viele jüdische Männer aus dem Bezirk wurden ins Lager Sachsenhausen gebracht. Ihre Frauen warten vor den Ämtern.', 'Viele jüdische Männer aus dem Bezirk wurden nach Sachsenhausen gebracht. Ihre Frauen stehen vor den Ämtern Schlange.') },
     ],
   },
 ]
@@ -181,7 +182,7 @@ export function surveillanceLabel(value: number): string {
   return 'gering'
 }
 
-export function situationAt(district: DistrictKey, week: number): string {
+export function situationAt(district: DistrictKey, week: number): Txt {
   const list = getDistrict(district).situation
   return [...list].reverse().find((x) => week >= x.from)?.text ?? list[0].text
 }

@@ -5,6 +5,7 @@
 export const GROUP_NAMES = ['Morgenrot', 'Die Unbeugsamen', 'Nordlicht', 'Freiheitsfunke', 'Die Wachsamen']
 
 export const MOTTOS = [
+  'Solidarität ist unser Widerstand.',
   'Wir schweigen nicht.',
   'Freiheit ist stärker als Angst.',
   'Keiner wird vergessen.',
@@ -14,6 +15,7 @@ export const MOTTOS = [
 export const CODENAMES = ['Amsel', 'Fuchs', 'Laterne', 'Kiefer', 'Möwe', 'Spatz', 'Uhrmacher', 'Lerche', 'Dachs', 'Kompass', 'Feder', 'Anker']
 
 export const GROUP_RULES = [
+  'Wir helfen denen, die verfolgt werden, auch wenn es uns selbst gut geht.',
   'Jeder hat einen Decknamen. Echte Namen bleiben geheim.',
   'Niemand schreibt Namen oder Adressen auf.',
   'Jeder kennt nur so viel, wie er wissen muss.',

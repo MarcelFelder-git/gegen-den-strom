@@ -125,6 +125,26 @@ export const sound = {
     o.stop(t + 0.75)
     lfo.stop(t + 0.75)
   },
+  /** Ein neues Vorbild: ein ruhiger, feierlicher Akkord wie von einer Spieluhr */
+  honor() {
+    const notes = [261.63, 329.63, 392.0, 523.25]
+    notes.forEach((freq, i) => {
+      tone({ freq, dur: 2.2, gain: 0.06, type: 'triangle', when: i * 0.18 })
+      tone({ freq: freq * 2, dur: 1.4, gain: 0.015, when: i * 0.18 })
+    })
+    tone({ freq: 130.81, dur: 2.8, gain: 0.05, when: 0.72 })
+  },
+  /** Jemandem wurde geholfen: ein heller, warmer Ton */
+  helped() {
+    tone({ freq: 659.25, dur: 0.9, gain: 0.05, type: 'triangle' })
+    tone({ freq: 987.77, dur: 1.1, gain: 0.03, type: 'triangle', when: 0.12 })
+  },
+  /** Eine Zellentür fällt ins Schloss */
+  cellDoor() {
+    tone({ freq: 90, freqEnd: 40, dur: 0.6, gain: 0.3, type: 'square' })
+    burst({ dur: 0.25, type: 'lowpass', freq: 700, gain: 0.3 })
+    burst({ dur: 0.12, type: 'bandpass', freq: 2400, q: 6, gain: 0.08, when: 0.08 })
+  },
   /** Leises Klicken für Knöpfe */
   click() {
     burst({ dur: 0.02, type: 'highpass', freq: 1800, gain: 0.05 })
