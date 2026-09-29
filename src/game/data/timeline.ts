@@ -46,7 +46,7 @@ export const TIMELINE: TimelineEntry[] = [
     title: L('Die NSDAP ist wieder da', 'Die NSDAP wird neu gegründet'),
     text: L(
       'Nur gut ein Jahr nach dem Putsch darf Hitler seine Partei neu gründen. Diesmal will er die Macht über Wahlen erobern. Viele lachen über ihn. Das ist ein Fehler.',
-      'Kaum ein Jahr nach seiner Entlassung gründet Hitler die NSDAP neu. Er ändert die Taktik: Nicht mehr mit einem Putsch, sondern über Wahlen will er an die Macht und die Demokratie dann von innen zerstören. Noch ist die Partei klein, 1928 bekommt sie nur 2,6 Prozent der Stimmen.',
+      'Gut zwei Monate nach seiner Entlassung gründet Hitler die NSDAP neu. Er ändert die Taktik: Nicht mehr mit einem Putsch, sondern über Wahlen will er an die Macht und die Demokratie dann von innen zerstören. Noch ist die Partei klein, 1928 bekommt sie nur 2,6 Prozent der Stimmen.',
     ),
   },
   {

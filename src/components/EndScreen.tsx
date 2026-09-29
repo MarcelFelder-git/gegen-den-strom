@@ -8,7 +8,6 @@ import { quoted } from '../game/data/group'
 import { chapterOf } from '../game/data/chapters'
 import { HONEST_NOTE, SOLIDARITY_RATINGS, fateOf, leaderFate } from '../game/data/fates'
 import { difficultyOf } from '../game/difficulty'
-import { firstName } from '../game/logic'
 import type { Character } from '../game/types'
 import { selectLeader, useGame } from '../store/GameStore'
 import { useUi } from '../store/UiStore'
@@ -49,14 +48,14 @@ export function EndScreen({ onNewGame, onNewChapter2 }: { onNewGame: () => void;
       : 'Ende des zweiten Kapitels'
     : endReason === 'moral'
       ? 'Die Gruppe zerbricht'
-      : 'Verhaftet'
+      : 'Die Gruppe ist zerschlagen'
   const year = chapter.id === 1 ? '1933' : 'diesen Jahren'
 
   const ending = survived
     ? t(rating.text)
     : endReason === 'moral'
       ? `Die Angst war stärker. Einer nach dem anderen blieb den Treffen fern. Zuletzt saß niemand mehr am Küchentisch. Viele Gruppen wie deine sind in ${year} so zerfallen, ohne dass jemand sie verraten musste. Die Einschüchterung allein genügte.`
-      : `Am frühen Morgen klopfte es an die Tür. Zwei Männer in Mänteln, ein Wagen mit laufendem Motor vor dem Haus. ${leader ? firstName(leader) : 'Du'} wurde in „Schutzhaft“ genommen. So erging es in ${year} Zehntausenden Menschen in Deutschland, die sich nicht fügen wollten.`
+      : `Es klopfte immer wieder früh am Morgen. Zwei Männer in Mänteln, ein Wagen mit laufendem Motor vor dem Haus. Einer nach dem anderen wurde abgeholt, zuletzt war niemand mehr frei. So erging es in ${year} Zehntausenden Menschen in Deutschland, die sich nicht fügen wollten.`
 
   const next = () => {
     resetCutscenes()
@@ -217,7 +216,7 @@ export function EndScreen({ onNewGame, onNewChapter2 }: { onNewGame: () => void;
               Eure Gruppe wurde nicht verfolgt. Ihr hättet sagen können: „Uns geht es doch gut.“ Warum haben die meisten Menschen genau das
               getan?
             </li>
-            <li>Was bedeutet es heute, nicht wegzusehen, wenn andere ausgegrenzt werden? Wo erlebst du das?</li>
+            <li>Was bedeutet es heute, nicht wegzusehen, wenn andere ausgegrenzt werden? Was könnte man dann tun?</li>
           </ol>
         </section>
 

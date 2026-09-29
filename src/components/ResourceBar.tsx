@@ -9,7 +9,6 @@ import type { ItemKey } from '../game/types'
 import { useGame } from '../store/GameStore'
 import { useUi } from '../store/UiStore'
 import { useWeeks } from '../store/content'
-import { DIFFICULTIES } from '../game/difficulty'
 import { sound } from '../audio/sound'
 import { ITEM_ICONS } from './icons'
 
@@ -31,7 +30,7 @@ function useFlash(value: number): string {
 }
 
 export function ResourceBar({ onMenu }: { onMenu: () => void }) {
-  const { moral, supporters, kasse, inventory, weekIndex, helped, level } = useGame()
+  const { moral, supporters, kasse, inventory, weekIndex, helped } = useGame()
   const weeks = useWeeks()
   const openLexicon = useUi((u) => u.openLexicon)
   const openAlbum = useUi((u) => u.openAlbum)
@@ -52,7 +51,7 @@ export function ResourceBar({ onMenu }: { onMenu: () => void }) {
             Widerstandsgruppe {quoted(groupName)}
           </p>
           <p className={`${s.typewriter} text-xs tracking-[0.12em] text-fog uppercase`}>
-            {chapter.id === 1 ? '1933' : '1936 bis 1938'} · Woche {weekInChapter(weekIndex)} von {weeksInChapter(chapter)} · {DIFFICULTIES[level].label}
+            {chapter.id === 1 ? '1933' : '1936 bis 1938'} · Woche {weekInChapter(weekIndex)} von {weeksInChapter(chapter)}
           </p>
           <p className="font-serif text-xl leading-tight font-bold whitespace-nowrap">{weeks[weekIndex].dateLabel.replace('Woche vom ', '')}</p>
           <div className="mt-1.5 flex gap-1" aria-hidden>
@@ -71,7 +70,7 @@ export function ResourceBar({ onMenu }: { onMenu: () => void }) {
 
         {/* Menü */}
         <nav className="flex items-start justify-end gap-2 lg:order-3 lg:items-center xl:order-last xl:pl-5" aria-label="Spielmenü">
-          <MenuButton label={muted ? 'Ton aus' : 'Ton an'} title={muted ? 'Geräusche einschalten' : 'Geräusche ausschalten'} onClick={toggleMuted}>
+          <MenuButton label={muted ? 'Ton: aus' : 'Ton: an'} title={muted ? 'Ton ist aus. Einschalten' : 'Ton ist an. Ausschalten'} onClick={toggleMuted}>
             {muted ? <VolumeX size={16} aria-hidden /> : <Volume2 size={16} aria-hidden />}
           </MenuButton>
           <MenuButton label={`Vorbilder ${cardCount}/${CARDS.length}`} title="Album der echten Vorbilder" onClick={openAlbum}>
@@ -101,7 +100,7 @@ export function ResourceBar({ onMenu }: { onMenu: () => void }) {
         {/* Kennzahlen */}
         <dl className="col-span-2 grid grid-cols-3 gap-2 md:col-span-1 lg:order-4 xl:order-none xl:col-span-2 xl:flex xl:gap-0 xl:divide-x xl:divide-paper/15">
           <HelpedTile value={helped} />
-          <Tile label="Unterstützer" value={supporters} />
+          <Tile label={'Unter­stützer'} value={supporters} />
           <Tile label="Kasse" value={kasse} unit="RM" />
         </dl>
 
@@ -122,8 +121,8 @@ export function ResourceBar({ onMenu }: { onMenu: () => void }) {
 function Tile({ label, value, unit }: { label: string; value: number; unit?: string }) {
   const flash = useFlash(value)
   return (
-    <div className={`border border-paper/15 px-3 py-1.5 xl:border-0 xl:px-5 xl:py-0 ${flash}`}>
-      <dt className={`${s.typewriter} text-xs tracking-[0.12em] text-fog uppercase`}>{label}</dt>
+    <div className={`min-w-0 border border-paper/15 px-3 py-1.5 xl:border-0 xl:px-5 xl:py-0 ${flash}`}>
+      <dt className={`${s.typewriter} text-xs tracking-[0.04em] break-words hyphens-manual text-fog max-xl:tracking-normal max-xl:normal-case xl:uppercase`}>{label}</dt>
       <dd className={`${s.typewriter} text-xl leading-tight font-bold tabular-nums whitespace-nowrap`}>
         {value}
         {unit && <span className="ml-1 text-sm text-fog">{unit}</span>}
@@ -154,7 +153,7 @@ function HelpedTile({ value }: { value: number }) {
       </dt>
       <dd className={`${s.typewriter} text-xl leading-tight font-bold tabular-nums whitespace-nowrap`}>
         {value}
-        <span className="ml-1 text-sm text-group-light max-xl:hidden">{value === 1 ? 'Mensch' : 'Menschen'}</span>
+        <span className="block text-xs font-normal text-group-light xl:ml-1 xl:inline xl:text-sm">{value === 1 ? 'Mensch' : 'Menschen'} ›</span>
 
       </dd>
     </div>

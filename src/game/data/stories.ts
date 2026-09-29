@@ -491,8 +491,8 @@ export const STORIES: CompanionStory[] = [
     'Der Anwalt',
     L('Das leer geräumte Büro.', 'Die ausgeräumte Kanzlei.'),
     L(
-      'Annis Chef, Dr. Frankel, ist Jude. Nach einem neuen Gesetz darf er nicht mehr als Anwalt arbeiten. Das Büro wird geschlossen. Anni verliert ihre Arbeit. Zum Abschied schiebt er ihr seine Schreibmaschine hin. „Nehmen Sie sie, Fräulein Neumann. Sie wissen besser als ich, was man damit heute schreiben muss.“',
-      'Annis Chef, Dr. Frankel, ist Jude. Nach einem neuen Gesetz darf er nicht mehr als Anwalt arbeiten. Die Kanzlei wird geschlossen, Anni verliert ihre Stelle. Zum Abschied schiebt er ihr seine Schreibmaschine hin. „Nehmen Sie sie, Fräulein Neumann. Sie wissen besser als ich, was man damit heute schreiben muss.“',
+      'Annis Chef, Dr. Frankel, ist Jude. Nach einem neuen Gesetz darf er nicht mehr als Anwalt arbeiten. Nur wer im Krieg an der Front war, darf bleiben. Dr. Frankel war es nicht. Das Büro wird geschlossen. Anni verliert ihre Arbeit. Zum Abschied schiebt er ihr seine Schreibmaschine hin. „Nehmen Sie sie, Fräulein Neumann. Sie wissen besser als ich, was man damit heute schreiben muss.“',
+      'Annis Chef, Dr. Frankel, ist Jude. Nach einem neuen Gesetz darf er nicht mehr als Anwalt arbeiten, die Ausnahme für Frontkämpfer gilt für ihn nicht. Die Kanzlei wird geschlossen, Anni verliert ihre Stelle. Zum Abschied schiebt er ihr seine Schreibmaschine hin. „Nehmen Sie sie, Fräulein Neumann. Sie wissen besser als ich, was man damit heute schreiben muss.“',
     ),
     [
       {

@@ -139,7 +139,7 @@ export function EncounterPage({ stage, readOnly }: { stage: number; readOnly: bo
               )}
               <p className={`${s.typewriter} text-[16px] leading-relaxed`}>{fill(outcome.text)}</p>
               <div className="mt-4">
-                <EffectChips effects={outcome.effects} />
+                <EffectChips effects={outcome.effects} selfName={self ? self.name.split(' ')[0] : undefined} />
               </div>
               <StampButton ref={nextRef} variant="ink" onClick={finish} className="mt-6">
                 {moreStories ? 'Weiter zu eurer Gruppe' : 'Zur Stadtkarte'}

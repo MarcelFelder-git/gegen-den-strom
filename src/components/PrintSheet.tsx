@@ -10,7 +10,7 @@ import { chapterOf } from '../game/data/chapters'
 const QUESTIONS = [
   'Welche Entscheidung ist dir im Spiel am schwersten gefallen? Warum?',
   'Eure Gruppe wurde nicht verfolgt. Ihr hättet sagen können: „Uns geht es doch gut.“ Warum haben die meisten Menschen genau das getan?',
-  'Was bedeutet es heute, nicht wegzusehen, wenn andere ausgegrenzt werden? Wo erlebst du das?',
+  'Was bedeutet es heute, nicht wegzusehen, wenn andere ausgegrenzt werden? Was könnte man dann tun?',
 ]
 
 const END_TITLE = { kapitelende: 'Kapitel überstanden', moral: 'Die Gruppe ist zerbrochen', verhaftet: 'Verhaftet' }

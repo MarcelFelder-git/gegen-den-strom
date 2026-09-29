@@ -6,12 +6,14 @@ interface ModalProps {
   children: ReactNode
   /** Breite des Inhalts, als Tailwind-Klasse */
   width?: string
+  /** Oben verankern statt mittig, damit sich der Inhalt beim Blättern nicht verschiebt */
+  top?: boolean
 }
 
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])'
 
 /** Zugänglicher Dialog: Escape schließt, der Fokus bleibt im Dialog */
-export function Modal({ label, onClose, children, width = 'max-w-3xl' }: ModalProps) {
+export function Modal({ label, onClose, children, width = 'max-w-3xl', top = false }: ModalProps) {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -48,12 +50,12 @@ export function Modal({ label, onClose, children, width = 'max-w-3xl' }: ModalPr
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/75 px-4 py-6 sm:py-10"
+      className={`fixed inset-0 z-50 flex items-start justify-center overflow-y-auto px-4 ${top ? 'bg-black/90 pt-0 pb-6' : 'bg-black/75 py-6 sm:py-10'}`}
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose?.()
       }}
     >
-      <div ref={ref} role="dialog" aria-modal="true" aria-label={label} className={`relative my-auto w-full ${width}`}>
+      <div ref={ref} role="dialog" aria-modal="true" aria-label={label} className={`relative w-full ${top ? '' : 'my-auto'} ${width}`}>
         {children}
       </div>
     </div>

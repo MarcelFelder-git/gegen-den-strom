@@ -12,9 +12,10 @@ const loops = new Map<string, () => void>()
 
 function readMuted(): boolean {
   try {
-    return localStorage.getItem(STORAGE_KEY) === 'aus'
+    // Im Klassenraum ist der Ton zuerst aus. Nur wer ihn selbst einschaltet, hört ihn.
+    return localStorage.getItem(STORAGE_KEY) !== 'an'
   } catch {
-    return false
+    return true
   }
 }
 

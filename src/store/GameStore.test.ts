@@ -27,7 +27,8 @@ describe('Spielablauf', () => {
     let s = useGame.getState()
     expect(s.phase).toBe('newspaper')
     expect(s.members).toHaveLength(4)
-    expect(s.missions.length).toBeGreaterThanOrEqual(5)
+    expect(s.missions.length).toBeGreaterThanOrEqual(4)
+    expect(s.missions.length).toBeLessThanOrEqual(7)
 
     s.closeNewspaper()
     expect(useGame.getState().phase).toBe('event')
@@ -272,7 +273,7 @@ describe('Haft', () => {
     expect(useGame.getState().phase).toBe('newspaper')
   })
 
-  it('in der schweren Stufe endet das Spiel, wenn die Anführerin verhaftet ist', () => {
+  it('in der schweren Stufe führt jemand anderes weiter, wenn die Anführerin verhaftet ist', () => {
     useGame.getState().startGame({ ...draft('arbeiter', 'humanistisch'), level: 'schwer' })
     const s = useGame.getState()
     useGame.setState({
@@ -280,7 +281,30 @@ describe('Haft', () => {
       members: s.members.map((m) => (m.isLeader ? { ...m, status: 'verhaftet' } : m)),
     })
     useGame.getState().nextWeek()
+    expect(useGame.getState().endReason).toBeNull()
+    expect(useGame.getState().phase).toBe('newspaper')
+  })
+
+  it('in der schweren Stufe ist die Gruppe zerschlagen, wenn niemand mehr frei ist', () => {
+    useGame.getState().startGame({ ...draft('arbeiter', 'humanistisch'), level: 'schwer' })
+    const s = useGame.getState()
+    useGame.setState({ phase: 'report', members: s.members.map((m) => ({ ...m, status: 'verhaftet' as const })) })
+    useGame.getState().nextWeek()
     expect(useGame.getState().endReason).toBe('verhaftet')
+  })
+
+  it('in der schweren Stufe bringt Wegsehen Sicherheit statt einer Moralstrafe', () => {
+    useGame.getState().startGame({ ...draft('arbeiter', 'humanistisch'), level: 'schwer' }, 5)
+    const s = useGame.getState()
+    useGame.setState({ phase: 'event', eventStage: 0 })
+    const ev = currentEvent(useGame.getState()).event
+    const away = ev.choices.findIndex((c) => !(c.effects.helped ?? 0) && !c.needsKasse && !c.check)
+    expect(away).toBeGreaterThanOrEqual(0)
+    const moral = s.moral
+    useGame.getState().chooseEventOption(away)
+    const after = useGame.getState()
+    expect(after.moral).toBeGreaterThanOrEqual(moral)
+    expect(after.eventOutcome?.effects.moral ?? 0).toBeGreaterThanOrEqual(0)
   })
 
   it('leichte Stufe: Bei Moral null rafft sich die Gruppe wieder auf', () => {

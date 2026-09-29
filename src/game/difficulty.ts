@@ -56,7 +56,7 @@ export const DIFFICULTIES: Record<Level, Difficulty> = {
     prisonWeeks: [2, 3],
     noReturn: { 1: [0, 0], 2: [0, 0] },
     gameOver: false,
-    helpedGoals: { 1: [6, 14], 2: [6, 14] },
+    helpedGoals: { 1: [10, 24], 2: [8, 20] },
   },
   schwer: {
     level: 'schwer',
@@ -78,7 +78,7 @@ export const DIFFICULTIES: Record<Level, Difficulty> = {
     prisonWeeks: [2, 4],
     noReturn: { 1: [0.3, 0.06], 2: [0.4, 0.12] },
     gameOver: true,
-    helpedGoals: { 1: [8, 18], 2: [8, 18] },
+    helpedGoals: { 1: [10, 22], 2: [8, 18] },
   },
 }
 

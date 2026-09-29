@@ -82,7 +82,7 @@ export const MISSION_HELP: Partial<Record<MissionType, HelpTemplate>> = {
     names: [
       { name: 'Willi Tesch', gender: 'm' },
       { name: 'Ernst Hanke', gender: 'm' },
-      { name: 'Grete Wolter', gender: 'w' },
+      { name: 'Paul Wolter', gender: 'm' },
       { name: 'Max Bartsch', gender: 'm' },
     ],
   },

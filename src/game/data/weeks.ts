@@ -361,7 +361,7 @@ const WEEKS_1933: WeekData[] = [
       'Am 27. Februar 1933 brannte das Reichstagsgebäude. Die Regierung machte sofort die Kommunisten verantwortlich. Ob van der Lubbe allein handelte, ist unter Historikern bis heute umstritten. Schon am nächsten Tag setzte die „Reichstagsbrandverordnung“ die wichtigsten Grundrechte außer Kraft. Nun konnte die Polizei Menschen ohne Gericht unbegrenzt einsperren. Tausende wurden verhaftet.',
     ),
     reflect: L(
-      'Willi steht mitten in der Nacht vor deiner Tür. Was hättest du getan? Warum?',
+      'Willi stand mitten in der Nacht vor der Tür. Welche Gründe hatten Menschen damals, zu helfen? Und welche, die Tür nicht zu öffnen?',
       'Wer Verfolgten half, brachte sich selbst in Gefahr. Wie wägt man die eigene Sicherheit gegen die Not eines anderen Menschen ab?',
     ),
     lexicon: ['reichstag', 'notverordnung', 'schutzhaft', 'kpd'],
@@ -774,8 +774,8 @@ const WEEKS_1933: WeekData[] = [
       'Beamte „nicht arischer Abstammung“ und politisch unzuverlässige Beamte werden aus dem Dienst entfernt.',
     ),
     lead: L(
-      'Die Regierung hat ein neues Gesetz gemacht. Beamte, die sie „nicht arisch“ nennt, müssen gehen. Gemeint sind vor allem Juden. Auch Beamte, die in der SPD oder der KPD waren, können entlassen werden. Das trifft Richter, Professoren und Lehrer.',
-      'Die Reichsregierung hat ein Gesetz beschlossen, nach dem Beamte, die „nicht arischer Abstammung“ sind, in den Ruhestand zu versetzen sind. Entlassen werden auch Beamte, die nach ihrer bisherigen politischen Betätigung nicht die Gewähr dafür bieten, jederzeit rückhaltlos für den nationalen Staat einzutreten. Betroffen sind Richter, Verwaltungsbeamte, Professoren und Lehrer.',
+      'Die Regierung hat ein neues Gesetz gemacht. Beamte, die sie „nicht arisch“ nennt, müssen gehen. Gemeint sind vor allem Juden. Nur wer im Weltkrieg an der Front war, darf vorerst bleiben. Auch Beamte, die in der SPD oder der KPD waren, können entlassen werden. Das trifft Richter, Professoren und Lehrer.',
+      'Die Reichsregierung hat ein Gesetz beschlossen, nach dem Beamte, die „nicht arischer Abstammung“ sind, in den Ruhestand zu versetzen sind. Ausgenommen sind vorerst Beamte, die schon vor dem Weltkrieg im Dienst standen oder an der Front gekämpft haben. Entlassen werden auch Beamte, die nach ihrer bisherigen politischen Betätigung nicht die Gewähr dafür bieten, jederzeit rückhaltlos für den nationalen Staat einzutreten. Betroffen sind Richter, Verwaltungsbeamte, Professoren und Lehrer.',
     ),
     articles: [
       {

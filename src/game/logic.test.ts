@@ -109,7 +109,8 @@ describe('Aufträge', () => {
     for (let seed = 1; seed < 50; seed++) {
       const ms = generateMissions(5, ['unterschlupf'], seededRng(seed))
       expect(new Set(ms.map((m) => m.placeId)).size).toBe(ms.length)
-      expect(ms.some((m) => m.type === 'unterschlupf')).toBe(true)
+      expect(ms.filter((m) => MISSIONS[m.type].solidarity).length).toBe(2)
+      expect(ms.length).toBeLessThanOrEqual(7)
     }
   })
 
@@ -121,7 +122,7 @@ describe('Aufträge', () => {
   it('verhaftet bei Entdeckung nur Gesuchte', () => {
     for (let seed = 1; seed < 300; seed++) {
       const team = [person('a', 'A', 'm', 10, 1), person('b', 'B', 'w', 80, 1)]
-      const [mission] = generateMissions(9, [], seededRng(seed)).filter((m) => m.type === 'verteilen')
+      const [mission] = generateMissions(9, [], seededRng(seed), { kasse: 40, inventory: { papier: 0, farbe: 0, flugblaetter: 4, ausweise: 0 } }).filter((m) => m.type === 'verteilen')
       const r = resolveMission(mission, team, 9, seededRng(seed))
       if (!r.detected) expect(r.arrested).toEqual([])
       expect(r.arrested).not.toContain('a')

@@ -748,8 +748,8 @@ export const MISSIONS: Record<MissionType, MissionTemplate> = {
     texts: {
       success: [
         L(
-          '{team} {saß|saßen} {ort} bis tief in die Nacht über Formularen. Drei Wochen später kam die Nachricht: Die Familie darf nach Amerika.',
-          '{team} {saß|saßen} {ort} bis tief in die Nacht über Formularen. Drei Wochen später kam die Nachricht: Die Familie hat ein Visum für Amerika.',
+          '{team} {saß|saßen} {ort} bis tief in die Nacht über Formularen. Auf ein Visum für Amerika müsste die Familie Jahre warten. Mit dem jüdischen Hilfsverein findet sie einen anderen Weg: ein Schiff nach Shanghai. Dorthin braucht man kein Visum.',
+          '{team} {saß|saßen} {ort} bis tief in die Nacht über Formularen. Auf ein Visum für die USA müsste die Familie wegen der Einwanderungsquoten Jahre warten. Gemeinsam mit dem Hilfsverein der Juden in Deutschland findet sie einen anderen Weg: Plätze auf einem Schiff nach Shanghai, wo man kein Visum braucht.',
         ),
       ],
       failure: [

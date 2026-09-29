@@ -27,6 +27,7 @@ const INK = '#0c0d10'
 const PAPER = '#f4f1ea'
 const FOG = '#b3ad9e'
 const BLOOD = '#8b0000'
+const GROUP = '#1e5a63'
 const EMBER = '#e0735f'
 const LAMP = '#f0c96a'
 
@@ -313,7 +314,7 @@ export function CityMap({ weekIndex, missions, members, canPlan, selected, onSel
                 strokeDasharray={`${(circ * Math.min(risk, 60)) / 60} ${circ}`}
                 transform="rotate(-90)"
               />
-              <circle r="21" fill={assigned ? BLOOD : plannable ? PAPER : '#3a3d44'} stroke={INK} strokeWidth="2" />
+              <circle r="21" fill={assigned ? GROUP : plannable ? PAPER : '#3a3d44'} stroke={INK} strokeWidth="2" />
               <Icon x={-11} y={-11} width={22} height={22} color={assigned ? PAPER : plannable ? '#1c1c1e' : '#9a968c'} aria-hidden />
               {assigned && (
                 <g transform="translate(18 -18)">
@@ -328,7 +329,7 @@ export function CityMap({ weekIndex, missions, members, canPlan, selected, onSel
                 y="30"
                 width="76"
                 height="19"
-                fill={assigned ? BLOOD : plannable ? PAPER : '#2a2d33'}
+                fill={assigned ? GROUP : plannable ? PAPER : '#2a2d33'}
                 stroke={plannable ? INK : '#6b6860'}
                 strokeDasharray={plannable ? undefined : '3 2'}
               />

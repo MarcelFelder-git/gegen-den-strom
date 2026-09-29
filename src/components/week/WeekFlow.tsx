@@ -85,7 +85,7 @@ export function WeekFlow() {
   const label = `${STEP_STYLE[step.kind].name}, Schritt ${shown + 1} von ${steps.length}`
 
   return (
-    <Modal label={label} width="max-w-5xl">
+    <Modal label={label} width="max-w-5xl" top>
       <StepHeader steps={steps} shown={shown} live={live} onJump={(i) => setView(i >= live ? null : i)} />
       <div key={`${shown}-${step.storyId ?? ''}`}>
         {step.kind === 'zeitung' && <NewspaperPage />}
@@ -126,7 +126,7 @@ function LiveNext({ kind, hasSource, onNext }: { kind: StepKind; hasSource: bool
 /** Oben die Schritte der Woche: wo man ist, was schon gelesen wurde */
 function StepHeader({ steps, shown, live, onJump }: { steps: WeekStep[]; shown: number; live: number; onJump: (i: number) => void }) {
   return (
-    <ol className="mb-3 flex flex-wrap gap-2" aria-label="Schritte dieser Woche">
+    <ol className="sticky top-0 z-20 -mx-4 mb-3 flex flex-wrap gap-2 bg-coal px-4 pt-4 pb-3 shadow-[0_8px_16px_-8px_rgba(0,0,0,0.8)]" aria-label="Schritte dieser Woche">
       {steps.map((st, i) => {
         const style = STEP_STYLE[st.kind]
         const Icon = style.icon
@@ -138,11 +138,10 @@ function StepHeader({ steps, shown, live, onJump }: { steps: WeekStep[]; shown: 
               onClick={() => reachable && onJump(i)}
               disabled={!reachable}
               aria-current={current ? 'step' : undefined}
-              className={`flex items-center gap-1.5 border-2 px-2.5 py-1.5 font-type text-xs font-bold tracking-[0.08em] uppercase transition-colors disabled:cursor-default disabled:opacity-35 ${
+              className={`flex min-h-11 items-center gap-1.5 border-2 px-3 py-2 font-type text-[13px] font-bold tracking-[0.04em] uppercase transition-colors disabled:cursor-default disabled:border-dashed disabled:border-fog/50 disabled:text-fog ${
                 current ? style.active : style.chip
               }`}
             >
-              <span className="tabular-nums">{i + 1}.</span>
               <Icon size={15} aria-hidden />
               {st.kind === 'gruppe' ? `Gruppe: ${st.label}` : style.name}
             </button>

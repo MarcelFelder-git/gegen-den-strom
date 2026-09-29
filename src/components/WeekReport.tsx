@@ -37,11 +37,10 @@ export function WeekReport() {
 
   const byId = (id: string) => members.find((m) => m.id === id)
   const names = (ids: string[]) => joinNames(ids.map((id) => byId(id)).filter((m): m is Character => !!m).map(firstName))
-  const leader = members.find((m) => m.isLeader)
   const gameOver = difficultyOf(level).gameOver
-  const leaderGone = !!leader && ['verhaftet', 'lager', 'tot'].includes(leader.status)
+  const allGone = members.every((m) => ['verhaftet', 'lager', 'tot', 'ausgewandert'].includes(m.status))
   const last = report.weekIndex === chapterOf(report.weekIndex).last
-  const nextLabel = gameOver && (leaderGone || moral <= 0) ? 'Weiter' : last ? 'Das Kapitel abschließen' : 'Nächste Woche'
+  const nextLabel = gameOver && (allGone || moral <= 0) ? 'Weiter' : last ? 'Das Kapitel abschließen' : 'Nächste Woche'
   const week = weeks[report.weekIndex]
   const goal = goalById(report.goalId, report.weekIndex)
   const helpedDelta = report.helpedAfter - report.helpedBefore
@@ -99,7 +98,7 @@ export function WeekReport() {
                 .filter((m) => m.status === 'verhaftet' && m.prison)
                 .map((m) => (
                   <li key={m.id}>
-                    {firstName(m)} sitzt {m.prison!.place}. Schickt Hilfe von außen, rechts bei der Gruppe.
+                    {firstName(m)} sitzt {m.prison!.place}. Schickt Hilfe von außen, bei eurer Gruppe auf der Stadtkarte.
                   </li>
                 ))}
             </ul>

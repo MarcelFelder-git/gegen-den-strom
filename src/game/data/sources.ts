@@ -107,7 +107,7 @@ export const SOURCES: WeekSource[] = [
     ],
     answer: 0,
     explain: L(
-      'Damit gab das Parlament seine Macht ab. Nur die 94 Abgeordneten der SPD stimmten mit Nein. Otto Wels hielt die letzte freie Rede im Reichstag.',
+      'Damit gab das Parlament seine Macht ab. Nur die 94 anwesenden Abgeordneten der SPD stimmten mit Nein. Otto Wels hielt die letzte freie Rede im Reichstag.',
       'Gesetzgebung und Regierung lagen nun in einer Hand. Der Reichstag bestand weiter, war aber nur noch Kulisse. Nur die 94 anwesenden Abgeordneten der SPD stimmten mit Nein. Otto Wels hielt die letzte freie Rede im Reichstag.',
     ),
   },
@@ -353,8 +353,8 @@ export const SOURCES: WeekSource[] = [
     ],
     answer: 0,
     explain: L(
-      'Etwa 10.000 Kinder wurden so gerettet. Die meisten sahen ihre Eltern nie wieder, weil diese später ermordet wurden. Stell dir vor, du müsstest heute Abend so einen Koffer packen.',
-      'Etwa 10.000 Kinder wurden so gerettet, die meisten sahen ihre Eltern nie wieder. Die Liste macht greifbar, was Zahlen nicht zeigen. Stell dir vor, du müsstest heute Abend so einen Koffer packen.',
+      'Etwa 10.000 Kinder wurden so gerettet. Die meisten sahen ihre Eltern nie wieder, weil diese später ermordet wurden. Überlegt: Was verrät diese kurze Liste über die Lage der Familien?',
+      'Etwa 10.000 Kinder wurden so gerettet, die meisten sahen ihre Eltern nie wieder. Die Liste macht greifbar, was Zahlen nicht zeigen: Was verrät sie über die Lage der Familien, die ihre Kinder allein fortschickten?',
     ),
   },
 ]

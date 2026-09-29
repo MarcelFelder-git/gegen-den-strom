@@ -146,8 +146,8 @@ export const CARDS: HeroCard[] = [
     years: '1906 bis 1945',
     role: L('Pfarrer in Berlin', 'Pfarrer und Theologe in Berlin'),
     deed: L(
-      'Schon im April 1933 schrieb er: Die Kirche muss den verfolgten Juden helfen. Und wenn nötig muss sie das Unrecht selbst aufhalten.',
-      'Schon im April 1933 schrieb er, die Kirche müsse sich an die Seite der verfolgten Juden stellen und notfalls „dem Rad selbst in die Speichen fallen“.',
+      'Schon im April 1933 schrieb er: Die Kirche muss den Verfolgten helfen. Und wenn nötig muss sie das Unrecht selbst aufhalten. Dabei dachte er vor allem an getaufte Juden in der Kirche. Auch er hatte noch alte Vorurteile gegen Juden.',
+      'Schon im April 1933 schrieb er, die Kirche müsse den Opfern beistehen und notfalls „dem Rad selbst in die Speichen fallen“. Dabei dachte er vor allem an die getauften Juden in der Kirche, und der Text enthält auch alte kirchliche Vorurteile gegen das Judentum. Sein Denken wandelte sich in den folgenden Jahren.',
     ),
     link: L(
       'Wie Johannes in deinem Spiel musste er sich entscheiden: schweigen oder sprechen.',
@@ -243,8 +243,8 @@ export const CARDS: HeroCard[] = [
       'Deine Gruppe besteht aus Menschen, die nicht rassistisch verfolgt werden. Die Baum-Gruppe zeigt: Auch Verfolgte leisteten Widerstand, unter noch viel größerer Gefahr.',
     ),
     fate: L(
-      'Im Mai 1942 wurde die Gruppe verraten. Herbert Baum starb in der Haft. Mehr als zwanzig seiner Freunde wurden ermordet.',
-      'Nach einem Brandanschlag auf eine Propagandaausstellung im Mai 1942 wurde die Gruppe verhaftet. Herbert Baum starb in der Haft, mehr als zwanzig seiner Freundinnen und Freunde wurden hingerichtet.',
+      'Im Mai 1942 legte die Gruppe Feuer in einer Hetz-Ausstellung der Nazis. Danach wurde sie verhaftet. Herbert Baum starb in der Haft. Mehr als zwanzig seiner Freunde wurden ermordet. Zur Rache verhaftete die Gestapo 500 Berliner Juden und erschoss die Hälfte von ihnen.',
+      'Nach einem Brandanschlag auf die Propagandaausstellung „Das Sowjetparadies“ im Mai 1942 wurde die Gruppe verhaftet. Herbert Baum starb in der Haft, mehr als zwanzig seiner Freundinnen und Freunde wurden hingerichtet. Als „Vergeltung“ nahm die Gestapo 500 Berliner Juden fest und erschoss 250 von ihnen.',
     ),
     hint: L('Verteile ab 1936 erfolgreich Flugblätter.', 'Verteile ab 1936 erfolgreich Flugblätter.'),
     unlock: { mission: 'verteilen', fromWeek: 10 },
@@ -305,8 +305,8 @@ export const CARDS: HeroCard[] = [
     years: '1880 bis 1953',
     role: L('Polizist am Hackeschen Markt', 'Polizeioffizier am Hackeschen Markt'),
     deed: L(
-      'In der Nacht des Novemberpogroms jagte er die Brandstifter von der Neuen Synagoge weg. Dann ließ er die Feuerwehr löschen.',
-      'In der Nacht des Novemberpogroms jagte er die Brandstifter von der Neuen Synagoge in der Oranienburger Straße fort und ließ die Feuerwehr löschen. Er berief sich darauf, dass das Gebäude unter Denkmalschutz stand.',
+      'In der Nacht des Novemberpogroms jagten Polizisten seines Reviers die Brandstifter von der Neuen Synagoge weg. Dann ließ er die Feuerwehr löschen. Wer genau eingriff, ist heute umstritten. Augenzeugen nennen vor allem seinen Mitarbeiter Otto Bellgardt. Krützfeld stellte sich hinter ihn.',
+      'In der Nacht des Novemberpogroms vertrieben Beamte seines Reviers die Brandstifter von der Neuen Synagoge in der Oranienburger Straße, und er ließ die Feuerwehr löschen. Er berief sich darauf, dass das Gebäude unter Denkmalschutz stand. Wer genau eingriff, ist umstritten: Augenzeugen nennen vor allem den Polizisten Otto Bellgardt. Krützfeld deckte sein Handeln.',
     ),
     link: L(
       'Er zeigt: Auch wer für den Staat arbeitete, konnte Nein sagen.',

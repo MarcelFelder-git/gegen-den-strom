@@ -86,11 +86,52 @@ export function TeacherNotes() {
 
           <Block title="Zwei Stufen">
             Vor jedem Spiel wählen die Kinder eine Stufe. <strong>6. bis 8. Klasse</strong>: alle Texte in einfacher Sprache mit
-            kurzen Sätzen, etwas höhere Erfolgsaussichten, Hinweise auf der Karte. Verhaftete kehren nach einigen Wochen zurück, das
-            Spiel läuft immer bis zum Ende des Kapitels. <strong>Ab 9. Klasse und Oberstufe</strong>: ausführlichere Texte, anspruchsvollere
-            Quellenfragen, realistische Gefahren. Manche Verhaftete werden verurteilt oder überleben die Haft nicht. Wird die Gruppe
-            zerschlagen, lesen die Spielenden in einer Chronik, wie es weiterging. Die Ereignisse sind in beiden Stufen dieselben und
-            werden nicht entschärft.
+            kurzen Sätzen, etwas höhere Erfolgsaussichten, Hinweise auf der Karte. Bei Entscheidungen ist markiert, welche Wahl
+            Verfolgten hilft. <strong>Ab 9. Klasse und Oberstufe</strong>: ausführlichere Texte, anspruchsvollere Quellenfragen,
+            realistische Gefahren. Hier ist nichts markiert, und Wegsehen bringt echte Vorteile wie weniger Verdacht. So wird spürbar,
+            warum so viele wegsahen. Die Ereignisse und ihre Grausamkeit sind in beiden Stufen dieselben. Die leichte Stufe mildert
+            aber die Folgen für die eigene Gruppe: Verhaftete kehren dort immer zurück, und das Spiel läuft immer bis zum Ende des
+            Kapitels. In der schweren Stufe werden manche Verhaftete verurteilt oder überleben die Haft nicht. Ist niemand mehr frei
+            oder verliert die Gruppe allen Mut, ist sie zerschlagen. Dann erzählt eine Chronik, wie es weiterging.
+          </Block>
+
+          <Block title="Sensible Inhalte">
+            Gewalt wird benannt, aber nicht ausgemalt. Am stärksten belasten Szenen, in denen Kinder von ihren Eltern getrennt werden
+            oder nachts die Polizei kommt. Das kann Kinder mit eigener Flucht- oder Verfolgungserfahrung besonders treffen. Einige
+            Vorschläge:
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              <li>Vorher ansagen: Es geht um echte Verfolgung. Wer eine Pause braucht, darf sie nehmen, ohne sich zu erklären.</li>
+              <li>Betroffene Kinder nie als Expertinnen oder Experten aufrufen und nie auffordern, eigene Erfahrungen zu erzählen.</li>
+              <li>Eine Begegnung darf man auch nur lesen und still eine Wahl treffen. Niemand muss die eigene Wahl vorstellen.</li>
+              <li>Vor Kapitel 2 (Novemberpogrom, Kindertransporte) die Eltern kurz informieren.</li>
+            </ul>
+            <table className="mt-3 w-full border-collapse font-type text-[13px] leading-snug">
+              <caption className="mb-1 text-left font-bold">Übersicht der Wochen</caption>
+              <thead>
+                <tr className="border-b-2 border-ink text-left">
+                  <th className="py-1 pr-2">Woche</th>
+                  <th className="py-1 pr-2">Thema</th>
+                  <th className="py-1">Belastung</th>
+                </tr>
+              </thead>
+              <tbody>
+                {WEEK_OVERVIEW.map((w) => (
+                  <tr key={w.week} className="border-b border-ink/20 align-top">
+                    <td className="py-1 pr-2 whitespace-nowrap">{w.week}</td>
+                    <td className="py-1 pr-2">{w.theme}</td>
+                    <td className={`py-1 ${w.load === 'hoch' ? 'font-bold text-crimson' : ''}`}>{w.load}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Block>
+
+          <Block title="Namen und Rollen">
+            Die Kinder spielen eine erfundene Person aus Berlin, die selbst nicht verfolgt wird. Sie dürfen ihren eigenen Vornamen
+            nehmen, sich einen ausdenken oder einen Namen auswürfeln. Kinder mit eigener Rassismus- oder Fluchterfahrung sollten
+            ausdrücklich ermutigt werden, einen ausgedachten Namen zu wählen: Sie spielen eine Rolle, nicht sich selbst. Die
+            Perspektive der Nicht-Verfolgten ist bewusst gewählt. Sie zeigt, wer hätte helfen können und warum die meisten es nicht
+            taten. Sie ist keine Aussage darüber, wer im Klassenraum zu welcher Gruppe gehört.
           </Block>
 
           <Block title="Spielziel: Solidarität">
@@ -131,8 +172,11 @@ export function TeacherNotes() {
             Geschichten aus der eigenen Gruppe. Mit „Zurück“ lässt sich alles noch einmal lesen, Entscheidungen bleiben bestehen.
             Danach werden Aufträge auf der Stadtkarte verteilt. Erfolg und Entdeckung werden offen ausgewürfelt, der Wochenbericht
             zeigt jeden Wurf. Beim ersten Mal auf der Stadtkarte erklärt eine kurze Einführung das Spielprinzip, danach führt die
-            Liste „Erste Schritte“ durch den ersten Auftrag. Über „So geht’s“ lässt sich die Einführung jederzeit wieder öffnen. Ein
-            Kapitel dauert je nach Lesetempo ungefähr 40 bis 60 Minuten.
+            Liste „Erste Schritte“ durch den ersten Auftrag. Über „So geht’s“ lässt sich die Einführung jederzeit wieder öffnen.
+            Ein Kapitel dauert je nach Lesetempo etwa 60 bis 120 Minuten. Das Spiel speichert nach jedem Schritt: Die Kinder können
+            jederzeit aufhören und in der nächsten Stunde mit „Spiel fortsetzen“ genau dort weitermachen. Der Nationalsozialismus steht
+            im Berliner Rahmenlehrplan erst in Klasse 9 und 10. Eine 6. Klasse braucht vorher einen kurzen Einstieg zu Demokratie,
+            Parteien und Judenfeindschaft. Die Vorgeschichte im Spiel kann das nicht ganz ersetzen.
           </Block>
 
           <Block title="Spielstand auf dem iPad">
@@ -142,7 +186,8 @@ export function TeacherNotes() {
           </Block>
 
           <Block title="Ton und Datenschutz">
-            Die Geräusche werden im Browser erzeugt und lassen sich oben rechts ausschalten. Im Klassenraum empfehlen sich Kopfhörer.
+            Der Ton ist zu Beginn aus. Die Geräusche werden im Browser erzeugt und lassen sich oben mit „Ton“ einschalten. Im
+            Klassenraum empfehlen sich dafür Kopfhörer.
             Schriften und Fotos werden mitgeliefert, es werden keine externen Dienste geladen. Nur die Links „Mehr erfahren“ und
             „ansehen“ führen auf fremde Seiten.
           </Block>
@@ -157,6 +202,28 @@ export function TeacherNotes() {
     </Modal>
   )
 }
+
+/** Themen und Belastung jeder Woche, damit sich die Lehrkraft vorbereiten kann */
+const WEEK_OVERVIEW: { week: string; theme: string; load: 'gering' | 'mittel' | 'hoch' }[] = [
+  { week: 'K1, W1', theme: 'Hitler wird Reichskanzler, die Gruppe gründet sich', load: 'gering' },
+  { week: 'K1, W2', theme: 'SA und SS werden Hilfspolizei, die Hauswartsfrau Frau Pagel', load: 'mittel' },
+  { week: 'K1, W3', theme: 'Reichstagsbrand, ein Verfolgter klopft nachts an die Tür', load: 'mittel' },
+  { week: 'K1, W4', theme: 'Wahl vom 5. März, ein Kollege geht zur SA, Hausdurchsuchung', load: 'mittel' },
+  { week: 'K1, W5', theme: 'Ermächtigungsgesetz, die Mutter eines Verhafteten bittet um Hilfe', load: 'mittel' },
+  { week: 'K1, W6', theme: 'Boykott jüdischer Geschäfte, offener Judenhass auf der Straße', load: 'hoch' },
+  { week: 'K1, W7', theme: 'Jüdische und politisch unliebsame Beamte werden entlassen', load: 'mittel' },
+  { week: 'K1, W8', theme: 'Gestapo und Denunziation, eine jüdische Familie will fort', load: 'mittel' },
+  { week: 'K1, W9', theme: 'Zerschlagung der Gewerkschaften, Mitgliederlisten', load: 'mittel' },
+  { week: 'K1, W10', theme: 'Bücherverbrennung', load: 'gering' },
+  { week: 'K2, W1', theme: 'Scheinwahl 1936, der Blockwart', load: 'gering' },
+  { week: 'K2, W2', theme: 'Zwangslager Marzahn für Sinti und Roma, ein Junge ohne seine Eltern', load: 'hoch' },
+  { week: 'K2, W3', theme: 'Olympische Spiele und was die Welt nicht sehen soll', load: 'gering' },
+  { week: 'K2, W4', theme: 'Verhaftung Martin Niemöllers, Fürbitten für Gefangene', load: 'mittel' },
+  { week: 'K2, W5', theme: 'Volksabstimmung über den „Anschluss“ Österreichs', load: 'gering' },
+  { week: 'K2, W6', theme: 'Zwangsvornamen für Juden, Verhaftungen im Juni 1938', load: 'mittel' },
+  { week: 'K2, W7', theme: 'Novemberpogrom, ein Nachbar sucht nachts Schutz', load: 'hoch' },
+  { week: 'K2, W8', theme: 'Kindertransporte, Kinder werden von ihren Eltern getrennt', load: 'hoch' },
+]
 
 function Block({ title, children }: { title: string; children: ReactNode }) {
   return (

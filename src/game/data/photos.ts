@@ -20,7 +20,7 @@ export const PHOTOS = {
   ossietzky: {
     src: f('ossietzky.jpg'),
     alt: 'Carl von Ossietzky in Häftlingskleidung',
-    caption: 'Carl von Ossietzky als Häftling im KZ Esterwegen, 1935',
+    caption: 'Carl von Ossietzky als Häftling im KZ Esterwegen, 1935. Das Foto entstand im Lager, er konnte sich nicht aussuchen, ob er fotografiert wird',
     credit: 'Bundesarchiv, Bild 183-93516-0010 / Walter Sohst, Heiner Kurzbein',
     license: 'CC BY-SA 3.0 de',
     url: 'https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_183-93516-0010,_Carl_von_Ossietzky_(cropped).jpg',

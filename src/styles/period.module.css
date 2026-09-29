@@ -124,7 +124,6 @@
 /* Auswahlkarte, wie ein Zettel auf dem Tisch */
 .chip {
   position: relative;
-  font-family: var(--font-type);
   text-align: left;
   background-color: var(--color-paper);
   color: var(--color-ink);
@@ -344,5 +343,15 @@
   }
   100% {
     background-color: transparent;
+  }
+}
+
+/*
+ * Die Schreibmaschinenschrift der Auswahlknöpfe liegt im Komponenten-Layer.
+ * So können Tailwind-Klassen wie font-serif sie überschreiben, etwa bei den Antworten zur Quelle.
+ */
+@layer components {
+  .chip {
+    font-family: var(--font-type);
   }
 }

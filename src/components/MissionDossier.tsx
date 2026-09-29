@@ -90,7 +90,7 @@ export function MissionDossier({ mission, onClose }: MissionDossierProps) {
         <span className={s.clip} style={{ left: '46%' }} aria-hidden />
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 grid h-10 w-10 place-items-center border-2 border-ink bg-paper hover:bg-ink hover:text-paper"
+          className="absolute top-3 right-3 grid h-11 w-11 place-items-center border-2 border-ink bg-paper hover:bg-ink hover:text-paper"
           aria-label="Akte schließen"
         >
           <X size={20} aria-hidden />
@@ -263,7 +263,13 @@ export function MissionDossier({ mission, onClose }: MissionDossierProps) {
               </p>
             )}
 
-            <div className="mt-auto flex flex-wrap gap-3">
+            {/* Klebt unten am Bildschirm, damit man auf dem iPad hochkant nicht suchen muss */}
+            <div className="sticky bottom-0 z-10 -mx-4 mt-auto flex flex-wrap items-center gap-3 border-t-2 border-ink/40 bg-[#d8c59b] px-4 py-3 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.5)] sm:mx-0 sm:px-3 [padding-bottom:max(0.75rem,env(safe-area-inset-bottom))]">
+              {team.length > 0 && (
+                <span className="font-type text-sm font-bold">
+                  Aussicht {chance} % · Gefahr {risk} %
+                </span>
+              )}
               <StampButton variant="ink" onClick={confirm} disabled={selected.length === 0 || !affordable} data-autofocus>
                 {alreadyPlanned ? 'Einteilung ändern' : 'Einteilen'}
               </StampButton>

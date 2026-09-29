@@ -61,10 +61,13 @@ export function SourcePage() {
                 onClick={() => choose(i)}
                 disabled={answered}
                 aria-pressed={isPicked}
-                className={`${s.chip} w-full px-4 py-3 font-serif text-[16px] ${isRight ? '!border-2 !border-ink !opacity-100' : answered ? 'opacity-60' : ''}`}
+                className={`${s.chip} w-full px-4 py-3 font-serif text-[16px] disabled:!opacity-100 ${
+                  isRight ? '!border-2 !border-ink' : answered ? 'border-dashed text-slate' : ''
+                }`}
               >
                 {src.options[i]}
-                {isRight && <span className="ml-2 font-type text-xs font-bold text-ink">✓</span>}
+                {isRight && <span className="ml-2 font-type text-sm font-bold text-ink">✓ richtig</span>}
+                {answered && isPicked && !isRight && <span className="ml-2 font-type text-sm font-bold text-crimson">✗ deine Antwort</span>}
               </button>
             </li>
           )

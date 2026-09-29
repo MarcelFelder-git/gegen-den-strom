@@ -51,8 +51,8 @@ export const WEEKS_1936: WeekData[] = [
       '„Mir geht es doch gut. Ich habe wieder Arbeit, die Straßen sind ruhig. Warum sollte ich mich da querstellen?“',
     ),
     context: L(
-      'Seit 1933 war die NSDAP die einzige erlaubte Partei. Bei den „Wahlen“ gab es nur noch eine Liste. Wer nicht wählen ging oder Nein sagte, geriet in Verdacht. Deshalb zeigen die 99 Prozent nicht, was die Menschen wirklich dachten. Viele, denen es gut ging, machten einfach mit.',
-      'Seit 1933 war die NSDAP die einzige erlaubte Partei. Bei den „Wahlen“ gab es nur noch eine Liste, und wer nicht zur Wahl ging oder mit Nein stimmte, geriet schnell in Verdacht. Das Ergebnis von fast 99 Prozent zeigt deshalb nicht, was die Menschen wirklich dachten. Es zeigt aber auch: Viele, denen es wirtschaftlich besser ging, hatten sich mit dem Regime arrangiert.',
+      'Seit 1933 war die NSDAP die einzige erlaubte Partei. Bei den „Wahlen“ gab es nur noch eine Liste. Ein Feld für Nein gab es 1936 gar nicht, leere Zettel zählten als Ja. Wer nicht wählen ging, geriet in Verdacht. Deshalb zeigen die 99 Prozent nicht, was die Menschen wirklich dachten. Viele, denen es gut ging, machten einfach mit.',
+      'Seit 1933 war die NSDAP die einzige erlaubte Partei. Bei den „Wahlen“ gab es nur noch eine Liste. 1936 hatte der Stimmzettel nicht einmal ein Feld für Nein, leere Zettel wurden als Zustimmung gewertet. Wer nicht zur Wahl ging, geriet schnell in Verdacht. Das Ergebnis von fast 99 Prozent zeigt deshalb nicht, was die Menschen wirklich dachten. Es zeigt aber auch: Viele, denen es wirtschaftlich besser ging, hatten sich mit dem Regime arrangiert.',
     ),
     reflect: L(
       'Ein Nachbar sagt: „Mir geht es doch gut. Warum soll ich Nein sagen?“ Was würdest du ihm antworten?',
@@ -73,11 +73,11 @@ export const WEEKS_1936: WeekData[] = [
       ),
       choices: [
         {
-          label: L('Wählen gehen, ungültig stimmen und zehn Pfennig geben', 'Wählen gehen und ungültig stimmen, dann zehn Pfennig in die Büchse'),
+          label: L('Wählen gehen, den Zettel durchstreichen und zehn Pfennig geben', 'Wählen gehen und den Zettel durchstreichen, dann zehn Pfennig in die Büchse'),
           effects: { moral: 2 },
           result: L(
-            'Du gehst ins Wahllokal. Du machst kein Kreuz und steckst den leeren Zettel in die Urne. Herr Kleinschmidt hakt dich zufrieden ab. Niemand wird erfahren, wie du gestimmt hast.',
-            'Du gehst ins Wahllokal, machst kein Kreuz und steckst den leeren Zettel in die Urne. Herr Kleinschmidt hakt dich zufrieden auf seiner Liste ab. Niemand wird je erfahren, wie du gestimmt hast.',
+            'Auf dem Zettel gibt es nur einen Kreis für die Liste der NSDAP. Ein Feld für Nein gibt es nicht. Ein leerer Zettel würde als Ja gezählt. Also streichst du den Zettel ganz durch. Herr Kleinschmidt hakt dich zufrieden ab.',
+            'Auf dem Stimmzettel steht nur die Liste der NSDAP mit einem einzigen Kreis. Ein Feld für Nein gibt es nicht, und leere Zettel werden als Zustimmung gezählt. Nur wer den Zettel deutlich durchstreicht, stimmt ungültig. Du streichst ihn durch. Herr Kleinschmidt hakt dich zufrieden auf seiner Liste ab.',
           ),
         },
         {
@@ -92,8 +92,8 @@ export const WEEKS_1936: WeekData[] = [
           label: L('Mitgehen und das Kreuz machen, wie alle', 'Mitgehen und das Kreuz machen, das alle machen'),
           effects: { moral: -5, heatLeader: -5 },
           result: L(
-            'Du machst dein Kreuz bei „Ja“, am offenen Tisch. Alle sehen zu. Auf dem Heimweg sagst du kein Wort.',
-            'Du machst dein Kreuz bei „Ja“, am offenen Tisch, wo alle zusehen. Auf dem Heimweg sprichst du kein Wort.',
+            'Du machst dein Kreuz in den einzigen Kreis auf dem Zettel, am offenen Tisch. Alle sehen zu. Auf dem Heimweg sagst du kein Wort.',
+            'Du machst dein Kreuz in den einzigen Kreis auf dem Zettel, am offenen Tisch, wo alle zusehen. Auf dem Heimweg sprichst du kein Wort.',
           ),
         },
       ],
@@ -190,11 +190,11 @@ export const WEEKS_1936: WeekData[] = [
           ),
         },
         {
-          label: L('Ihn zum Lager bringen, damit er bei seinen Eltern ist', 'Ihn zum Lager bringen, damit er bei seinen Eltern ist'),
-          effects: { moral: -2 },
+          label: L('Ihn zum Lager bringen, zu seinen Eltern', 'Ihn zum Lager bringen, zu seinen Eltern'),
+          effects: { moral: -6 },
           result: L(
-            'Am Zaun in Marzahn fällt Hugo seiner Mutter um den Hals. Sie weint und dankt dir. Du fragst dich lange, ob das richtig war.',
-            'Am Zaun in Marzahn fällt Hugo seiner Mutter um den Hals. Sie weint und dankt dir. Du fragst dich lange, ob das richtig war.',
+            'Am Tor schreibt ein Polizist Hugos Namen in eine Liste. Dann schließt sich der Zaun hinter ihm. Seine Mutter hält ihn fest, aber sie sieht dich nicht an. Hugo ist jetzt bei seinen Eltern. Und wie sie ist er jetzt ein Gefangener.',
+            'Am Tor notiert ein Polizist Hugos Namen, dann schließt sich der Zaun hinter ihm. Seine Mutter drückt ihn an sich, aber sie sieht dich nicht an. Hugo ist bei seinen Eltern, und wie sie ist er jetzt ein Gefangener. Von Marzahn aus wurden die meisten Familien später nach Auschwitz deportiert.',
           ),
         },
         {
@@ -533,29 +533,29 @@ export const WEEKS_1936: WeekData[] = [
       'Schritt für Schritt nahmen die Nationalsozialisten jüdischen Menschen ihre Rechte: Arbeit, Besitz, Schulbildung und sogar den eigenen Namen. Ab Oktober 1938 wurde in ihre Pässe ein rotes „J“ gestempelt. Viele versuchten jetzt verzweifelt auszuwandern. Auf der Konferenz von Évian im Juli 1938 hatten sich jedoch fast alle Staaten geweigert, mehr Flüchtlinge aufzunehmen.',
     ),
     reflect: L(
-      'Frau Levy soll plötzlich Sara heißen. Warum ist ein Name so wichtig für einen Menschen?',
+      'Frau Levy soll zusätzlich Sara heißen. Warum ist ein Name so wichtig für einen Menschen?',
       'Die Namensverordnung wirkte klein gegen spätere Verbrechen. Warum ist gerade die schrittweise Ausgrenzung so gefährlich, und warum fällt es vielen schwer, sie zu erkennen?',
     ),
     lexicon: ['antisemitismus', 'kindertransport', 'rassismus'],
     effects: { moral: -3 },
     moodText: L('Jeden Tag werden jüdische Menschen mehr ausgegrenzt.', 'Die Ausgrenzung wird täglich enger.'),
     event: {
-      title: 'Auf dem Standesamt',
-      scene: L('Der Flur eines Amtes in Mitte, in dem Namen eingetragen werden.', 'Der Flur eines Standesamts in Mitte.'),
+      title: 'Ein zweiter Vorname',
+      scene: L('Das Treppenhaus, am Abend.', 'Das Treppenhaus, am Abend.'),
       speaker: 'Frau Levy',
       speakerRole: 'Nachbarin aus dem dritten Stock',
       portrait: { gender: 'w', face: 'oval', headwear: 'glocke', hairTone: 'dunkel', glasses: false, clothing: 'trenchcoat' },
       text: L(
-        'Frau Levy steht im Flur des Amtes und hält ein Formular. Ihre Hände zittern. „Ich soll unterschreiben, dass ich jetzt Sara heiße. Ich heiße Clara. Seit sechzig Jahren.“ Hinter dem Schalter schaut ein Beamter ungeduldig auf die Uhr.',
-        'Frau Levy steht im Flur des Standesamts und hält ein Formular in der Hand. Ihre Hände zittern. „Sie wollen, dass ich unterschreibe, dass ich jetzt Sara heiße. Ich heiße Clara. Seit sechzig Jahren.“ Hinter dem Schalter sieht ein Beamter ungeduldig auf die Uhr.',
+        'Frau Levy sitzt auf der Treppe und hält die Zeitung. Ihre Hände zittern. „Ab Januar soll ich zusätzlich Sara heißen. Und ich muss es selbst beim Standesamt melden. Ich heiße Clara. Seit sechzig Jahren.“ Oben geht eine Tür. Jemand hört zu.',
+        'Frau Levy sitzt auf der Treppe, die Zeitung auf den Knien. Ihre Hände zittern. „Ab Januar soll ich zusätzlich Sara heißen. Und ich muss es selbst beim Standesamt anzeigen, als hätte ich mir das ausgesucht. Ich heiße Clara. Seit sechzig Jahren.“ Oben öffnet sich leise eine Tür. Jemand hört zu.',
       ),
       choices: [
         {
-          label: L('Bei ihr bleiben und ihre Hand halten', 'Bei ihr bleiben und ihre Hand halten, während sie unterschreibt'),
+          label: L('Dich zu ihr setzen und versprechen, sie im Januar zum Amt zu begleiten', 'Dich zu ihr setzen und versprechen, sie im Januar zum Standesamt zu begleiten'),
           effects: { moral: 5, heatLeader: 5, helped: 1 },
           result: L(
-            'Du bleibst neben ihr stehen. Der Beamte sieht dich lange an. Frau Levy unterschreibt mit fester Schrift. Draußen sagt sie: „Für Sie bleibe ich Clara.“',
-            'Du bleibst neben ihr stehen. Der Beamte sieht dich lange an. Frau Levy unterschreibt mit fester Schrift. Draußen sagt sie: „Für Sie bleibe ich Clara.“',
+            'Du setzt dich neben sie auf die Treppe. Die Tür oben schließt sich wieder. Ihr redet lange. Beim Abschied sagt Frau Levy: „Für Sie bleibe ich Clara.“',
+            'Du setzt dich neben sie auf die Stufen, gut sichtbar für den, der oben lauscht. Ihr redet lange. Beim Abschied sagt Frau Levy: „Für Sie bleibe ich Clara.“',
           ),
         },
         {
@@ -618,7 +618,7 @@ export const WEEKS_1936: WeekData[] = [
       'In der Nacht vom 9. auf den 10. November 1938 zerstörten SA, SS und Parteianhänger im ganzen Reich Synagogen, Geschäfte und Wohnungen jüdischer Menschen. Die Gewalt war von der Parteiführung angestoßen, nicht spontan. In Berlin wurden fast alle Synagogen in Brand gesetzt oder verwüstet. Etwa 30.000 jüdische Männer wurden in Konzentrationslager verschleppt, Hunderte Menschen wurden ermordet oder starben an den Folgen. Die meisten Deutschen sahen zu oder weg. Nur wenige halfen.',
     ),
     reflect: L(
-      'Am Morgen nach dem Pogrom sahen alle die Scherben. Was hättest du an diesem Morgen tun können?',
+      'Am Morgen nach dem Pogrom sahen alle die Scherben. Was hätten die Nachbarn an diesem Morgen tun können?',
       'Nach dem Pogrom konnte niemand mehr sagen, er habe nichts gewusst. Warum führte das dennoch kaum zu Widerspruch?',
     ),
     lexicon: ['novemberpogrom', 'kz', 'antisemitismus'],
@@ -670,8 +670,8 @@ export const WEEKS_1936: WeekData[] = [
   {
     calendar: { day: 1, month: 'Dezember', weekday: 'Donnerstag', year: 1938 },
     intertitle: L(
-      '1. Dezember 1938, Bahnhof Friedrichstraße. Ein Zug mit fast zweihundert Kindern fährt nach England. Ohne ihre Eltern.',
-      '1. Dezember 1938, Bahnhof Friedrichstraße. Ein Zug mit fast zweihundert Kindern fährt nach England. Ohne ihre Eltern.',
+      '1. Dezember 1938, Berlin. Ein Zug mit fast zweihundert Kindern fährt nach England. Ohne ihre Eltern.',
+      '1. Dezember 1938, Berlin. Ein Zug mit fast zweihundert Kindern fährt nach England. Ohne ihre Eltern.',
     ),
     dateLabel: 'Woche vom 28. November 1938',
     paperDate: 'Freitag, den 2. Dezember 1938',
@@ -703,8 +703,8 @@ export const WEEKS_1936: WeekData[] = [
     illustration: 'zug',
     caption: L('Ein Zug nach Holland', 'Ein Zug nach Hoek van Holland'),
     note: L(
-      'Heute früh am Bahnhof Friedrichstraße: Hunderte Eltern haben gewinkt. Keiner hat geweint, solange der Zug noch zu sehen war. Danach haben alle geweint.',
-      'Heute früh am Bahnhof Friedrichstraße: Hunderte Eltern, die winkten. Keiner hat geweint, solange der Zug noch zu sehen war. Danach haben alle geweint.',
+      'Heute früh am Bahnhof: Mütter und Väter haben gewinkt. Keiner hat geweint, solange der Zug noch zu sehen war. Danach haben alle geweint.',
+      'Heute früh am Bahnhof: Mütter und Väter, die winkten. Keiner hat geweint, solange der Zug noch zu sehen war. Danach haben alle geweint.',
     ),
     voice: L(
       '„Die haben es doch gut, die kommen nach England. Uns fragt keiner.“',

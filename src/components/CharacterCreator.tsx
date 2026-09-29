@@ -1,5 +1,5 @@
 import { useMemo, useState, type ComponentProps, type ReactNode } from 'react'
-import { ArrowLeft, ArrowRight, Check, PenLine } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Dices, PenLine } from 'lucide-react'
 import s from '../styles/period.module.css'
 import { Avatar } from './Avatar'
 import { StampButton } from './ui/StampButton'
@@ -28,7 +28,7 @@ import type {
 import { useGame } from '../store/GameStore'
 import { useUi } from '../store/UiStore'
 import { CHAPTERS } from '../game/data/chapters'
-import { CODENAMES, GROUP_NAMES, GROUP_RULES, MOTTOS } from '../game/data/group'
+import { CODENAMES, FIRST_NAMES, GROUP_NAMES, GROUP_RULES, MORE_GROUP_NAMES, MORE_MOTTOS, MOTTOS } from '../game/data/group'
 import { COMPANIONS } from '../game/data/companions'
 import { firstName } from '../game/logic'
 import { resolve } from '../game/text'
@@ -243,6 +243,8 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
                         maxLength={20}
                         autoCapitalize="words"
                         placeholder="Dein Vorname"
+                        onShuffle={() => setName(shuffle(FIRST_NAMES[gender], name))}
+                        shuffleLabel="Einen Vornamen auswürfeln"
                         onChange={(e) => setName(e.target.value)}
                         onBlur={() => name && setTouched(true)}
                         aria-invalid={touched && !nameValid}
@@ -252,7 +254,7 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
                       <p id="name-hint" className={`${s.typewriter} mt-2 text-sm ${touched && !nameValid ? 'text-crimson' : 'text-slate'}`}>
                         {touched && !nameValid
                           ? 'Bitte einen Vornamen aus zwei bis zwanzig Buchstaben eintragen.'
-                          : 'Nimm deinen eigenen Vornamen oder denk dir einen aus. Ein Vorname genügt, Nachnamen verraten zu viel.'}
+                          : 'Du spielst eine Person aus Berlin im Jahr 1933. Nimm deinen eigenen Vornamen, denk dir einen aus oder würfle. Ein Vorname genügt, Nachnamen verraten zu viel.'}
                       </p>
                     </Field>
                   </Section>
@@ -369,7 +371,7 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
                           onClick={() => toggleCompanion(c.name)}
                           disabled={blocked}
                           aria-pressed={picked}
-                          className={`${s.chip} relative flex gap-3 p-3 text-left ${full ? 'opacity-60' : ''}`}
+                          className={`${s.chip} relative flex gap-3 p-3 text-left ${full ? 'border-dashed' : ''}`}
                         >
                           <span className="shrink-0">
                             <Avatar config={c.avatar} size={64} title="" />
@@ -422,6 +424,8 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
                       value={groupName}
                       maxLength={30}
                       placeholder="Name eurer Gruppe"
+                      onShuffle={() => setGroupName(shuffle([...GROUP_NAMES, ...MORE_GROUP_NAMES], groupName))}
+                      shuffleLabel="Einen Gruppennamen auswürfeln"
                       onChange={(e) => setGroupName(e.target.value)}
                       aria-invalid={!groupValid}
                       className="max-w-md text-2xl"
@@ -440,6 +444,8 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
                       value={motto}
                       maxLength={60}
                       placeholder="Euer Leitspruch"
+                      onShuffle={() => setMotto(shuffle([...MOTTOS, ...MORE_MOTTOS], motto))}
+                      shuffleLabel="Einen Leitspruch auswürfeln"
                       onChange={(e) => setMotto(e.target.value)}
                       aria-invalid={!mottoValid}
                       className="max-w-xl text-xl"
@@ -463,6 +469,8 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
                       maxLength={20}
                       autoCapitalize="words"
                       placeholder="Dein Deckname"
+                      onShuffle={() => setCodename(shuffle(CODENAMES, codename))}
+                      shuffleLabel="Einen Decknamen auswürfeln"
                       onChange={(e) => setCodename(e.target.value)}
                       aria-invalid={!codenameValid}
                       className="max-w-xs text-xl"
@@ -527,19 +535,37 @@ const STEP_LABELS = { 1: 'Du', 2: 'Deine Gefährten', 3: 'Eure Gruppe' } as cons
 
 /**
  * Ein Eingabefeld, das auch auf dem Tablet sofort als beschreibbar erkennbar ist:
- * heller Kasten, Stift-Symbol, Tippen setzt den Cursor.
+ * heller Kasten, Stift-Symbol, Tippen setzt den Cursor. Der Würfel hilft, wenn einem nichts einfällt.
  */
-function TextField({ className = '', ...props }: ComponentProps<'input'>) {
+function TextField({
+  className = '',
+  onShuffle,
+  shuffleLabel,
+  ...props
+}: ComponentProps<'input'> & { onShuffle?: () => void; shuffleLabel?: string }) {
   return (
-    <label className={`group flex w-full cursor-text items-center gap-2 border-2 border-dashed border-ink/50 bg-paper px-3 focus-within:border-solid focus-within:border-crimson ${className}`}>
-      <input
-        autoComplete="off"
-        {...props}
-        className={`${s.typewriter} min-w-0 flex-1 bg-transparent py-2.5 font-bold outline-none placeholder:font-normal placeholder:text-slate/60`}
-      />
-      <PenLine size={18} className="shrink-0 text-slate group-focus-within:text-crimson" aria-hidden />
-    </label>
+    <div className={`flex w-full items-stretch gap-2 ${className}`}>
+      <label className="group flex min-w-0 flex-1 cursor-text items-center gap-2 border-2 border-dashed border-ink/50 bg-paper px-3 focus-within:border-solid focus-within:border-crimson">
+        <input
+          autoComplete="off"
+          {...props}
+          className={`${s.typewriter} min-w-0 flex-1 bg-transparent py-2.5 font-bold outline-none placeholder:font-normal placeholder:text-slate/60`}
+        />
+        <PenLine size={18} className="shrink-0 text-slate group-focus-within:text-crimson" aria-hidden />
+      </label>
+      {onShuffle && (
+        <button type="button" onClick={onShuffle} title={shuffleLabel} aria-label={shuffleLabel} className={`${s.chip} grid w-12 shrink-0 place-items-center`}>
+          <Dices size={22} aria-hidden />
+        </button>
+      )}
+    </div>
   )
+}
+
+/** Zieht einen Vorschlag, der sich vom aktuellen unterscheidet */
+function shuffle(options: string[], current: string): string {
+  const pool = options.filter((o) => o !== current.trim())
+  return pool[Math.floor(Math.random() * pool.length)] ?? current
 }
 
 /** Vorschläge unter einem Eingabefeld, mit dem Hinweis, dass man auch Eigenes schreiben darf */

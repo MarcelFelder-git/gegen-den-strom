@@ -239,7 +239,7 @@ function beginWeek(s: GameData, index: number): GameData {
   const weekCards = cardsForWeek(index)
     .map((c) => c.id)
     .filter((id) => !next.cards.includes(id))
-  const missions = generateMissions(index, next.flags, rng)
+  const missions = generateMissions(index, next.flags, rng, { kasse: next.kasse, inventory: next.inventory })
   return {
     ...next,
     goalId: chooseGoal(index, missions, next.kasse, next.inventory).id,
@@ -291,6 +291,16 @@ export function checkChance(choice: EventChoice, leader: Character | undefined, 
   if (!choice.check || !leader) return null
   const bonus = difficultyOf(level).successBonus
   return clamp(60 + bonus + (leader.stats[choice.check.stat] - choice.check.min) * 15, 15, 95)
+}
+
+/** Wer wegsieht, bleibt sicher: keine Moralstrafe, dafür weniger Fahndungsdruck, sofern die Wahl nicht selbst riskant ist */
+export function lookAway(e: Effects): Effects {
+  const risky = (e.heatLeader ?? 0) > 0 || (e.heatAll ?? 0) > 0 || (e.self?.heat ?? 0) > 0
+  return {
+    ...e,
+    moral: Math.max(0, e.moral ?? 0) || undefined,
+    heatLeader: risky ? e.heatLeader : (e.heatLeader ?? 0) - 5,
+  }
 }
 
 /**
@@ -460,7 +470,10 @@ export const useGame = create<GameState>()(
         const lead = actingLeader(s.members)
         const chance = checkChance(choice, lead, s.level)
         const success = chance === null ? null : rng() * 100 < chance
-        const effects = success === false ? (choice.failEffects ?? {}) : choice.effects
+        const baseEffects = success === false ? (choice.failEffects ?? {}) : choice.effects
+        // Ab Klasse 9 ist Wegsehen verlockend: keine Strafe, sondern Sicherheit. So wird spürbar, warum so viele wegsahen.
+        const someoneNeedsHelp = event.choices.some((c) => (c.effects.helped ?? 0) > 0)
+        const effects = s.level === 'schwer' && someoneNeedsHelp && !(choice.effects.helped ?? 0) ? lookAway(baseEffects) : baseEffects
         const rawText = success === false ? (choice.failResult ?? choice.result) : choice.result
         const text = t(rawText, s.level)
         const names = eventNames(s.members, self)
@@ -730,7 +743,7 @@ export const useGame = create<GameState>()(
         state = withRecruits
 
         const leader = state.members.find((m) => m.isLeader)
-        const acting = leader && isGone(leader) && !diff.gameOver ? actingLeader(state.members) : undefined
+        const acting = leader && isGone(leader) ? actingLeader(state.members) : undefined
 
         const letter = pickLetter(state)
         if (letter) {
@@ -792,9 +805,10 @@ export const useGame = create<GameState>()(
         // Doppeltes Tippen darf keine Woche überspringen
         if (s.phase !== 'report') return
         const diff = difficultyOf(s.level)
-        const leader = s.members.find((m) => m.isLeader)
         if (diff.gameOver) {
-          if (!leader || isGone(leader)) return set({ phase: 'end', endReason: 'verhaftet' })
+          // Die Gruppe ist zerschlagen, wenn niemand mehr frei ist. Die Haft der Anführerfigur allein beendet
+          // das Spiel nicht, sonst lohnte es sich, die eigene Figur zu schonen und die anderen vorzuschicken.
+          if (s.members.every(isGone)) return set({ phase: 'end', endReason: 'verhaftet' })
           if (s.moral <= 0) return set({ phase: 'end', endReason: 'moral' })
         }
         if (s.weekIndex === chapterOf(s.weekIndex).last || s.weekIndex + 1 >= TOTAL_WEEKS)
@@ -837,7 +851,7 @@ function arrest(m: Character, week: number, [min, max]: [number, number]): Chara
     arrests: (m.arrests ?? 0) + 1,
     prison: {
       weeks: min + Math.floor(rng() * (max - min + 1)),
-      place: prisonPlace(week, rng),
+      place: prisonPlace(week, rng, m.avatar.gender),
       helpedThisWeek: false,
       lawyer: false,
       packages: 0,

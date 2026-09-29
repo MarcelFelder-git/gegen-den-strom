@@ -260,8 +260,8 @@ export const LEXICON: LexiconEntry[] = [
     id: 'scheinwahl',
     term: 'Scheinwahl',
     text: L(
-      'Eine Wahl, bei der man nicht wirklich wählen kann. Ab 1933 gab es nur noch eine Partei auf dem Zettel. Wer Nein sagte oder nicht hinging, machte sich verdächtig.',
-      'Eine Wahl, bei der es keine echte Auswahl gibt. Ab 1933 stand nur noch eine Liste zur Wahl. Wer mit Nein stimmte oder nicht hinging, machte sich verdächtig.',
+      'Eine Wahl, bei der man nicht wirklich wählen kann. Ab 1933 gab es nur noch eine Partei auf dem Zettel. 1936 gab es nicht einmal ein Feld für Nein. Wer nicht hinging, machte sich verdächtig.',
+      'Eine Wahl, bei der es keine echte Auswahl gibt. Ab 1933 stand nur noch eine Liste zur Wahl. 1936 fehlte sogar ein Feld für Nein, leere Zettel zählten als Zustimmung. Wer nicht hinging, machte sich verdächtig.',
     ),
   },
   {

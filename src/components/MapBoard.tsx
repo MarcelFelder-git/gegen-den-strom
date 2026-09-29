@@ -184,7 +184,7 @@ function Legend() {
         <span className="h-4 w-4 rounded-full border-2 border-ink bg-paper outline outline-2 outline-crimson" aria-hidden /> Auftrag
       </li>
       <li className="flex items-center gap-2">
-        <span className="h-4 w-4 rounded-full border-2 border-ink bg-crimson" aria-hidden /> Eingeteilt
+        <span className="h-4 w-4 rounded-full border-2 border-ink bg-group" aria-hidden /> Eingeteilt
       </li>
       <li className="flex items-center gap-2">
         <span className="h-4 w-4 rounded-full border-2 border-dashed border-fog bg-[#3a3d44]" aria-hidden /> Mittel fehlen
@@ -240,15 +240,15 @@ function MissionRow({
         onBlur={() => onHover(null)}
         className={`flex w-full items-center gap-3 border px-3 py-2.5 text-left transition-colors ${
           assigned
-            ? 'border-ember bg-crimson/25'
+            ? 'border-group-light bg-group/40'
             : highlighted
               ? 'border-paper bg-paper/10'
               : 'border-paper/20 hover:border-paper hover:bg-paper/10'
-        } ${plannable ? '' : 'opacity-70'}`}
+        } ${plannable ? '' : 'border-dashed'}`}
       >
         <span
           className={`grid h-10 w-10 shrink-0 place-items-center rounded-full border-2 ${
-            assigned ? 'border-ember bg-crimson text-paper' : plannable ? 'border-paper bg-paper text-ink' : 'border-dashed border-fog text-fog'
+            assigned ? 'border-group-light bg-group text-paper' : plannable ? 'border-paper bg-paper text-ink' : 'border-dashed border-fog text-fog'
           }`}
         >
           <Icon size={19} aria-hidden />
@@ -266,7 +266,7 @@ function MissionRow({
           <span className={`border px-1.5 font-type text-[13px] font-bold tracking-wide uppercase ${TIER_CLASS[tier]}`}>
             Gefahr {tier}
           </span>
-          <span className={`font-type text-[13px] ${assigned ? 'font-bold text-ember' : plannable ? 'text-fog' : 'text-ember'}`}>
+          <span className={`font-type text-[13px] ${assigned ? 'font-bold text-group-light' : plannable ? 'text-fog' : 'text-ember'}`}>
             {assigned ? `${m.assigned.length} eingeteilt` : plannable ? 'frei' : 'Mittel fehlen'}
           </span>
         </span>
@@ -565,7 +565,7 @@ const TIPS = [
   'Wer oft unterwegs ist, wird von der Polizei gesucht. Lass diese Person eine Woche ausruhen.',
   'Druckt erst Flugblätter, bevor ihr sie verteilt. Dafür braucht ihr Papier und Farbe.',
   'Kein Geld mehr? Dann sammelt heimlich Spenden.',
-  'Ist jemand verhaftet? Bei der Gruppe rechts könnt ihr Hilfe von außen schicken.',
+  'Ist jemand verhaftet? Bei eurer Gruppe könnt ihr Hilfe von außen schicken.',
 ]
 
 function Tip({ weekIndex }: { weekIndex: number }) {

@@ -10,6 +10,31 @@ export const GROUP_NAMES = ['Tante Frieda', 'Kegelverein Gut Holz', 'Die offene 
 
 export const MOTTOS = ['Wir sehen nicht weg.', 'Solidarität ist unser Widerstand.', 'Keiner bleibt allein.']
 
+/** Weitere harmlose Tarnnamen für den Würfel, wenn den Kindern nichts einfällt */
+export const MORE_GROUP_NAMES = [
+  'Gesangverein Eintracht',
+  'Kaffeekränzchen',
+  'Onkel Fritz',
+  'Laubenkolonie Sonnenschein',
+  'Briefmarkenfreunde',
+  'Die Nachbarn',
+  'Ruderclub Spree',
+]
+
+export const MORE_MOTTOS = [
+  'Wir lassen niemanden allein.',
+  'Hinsehen statt wegsehen.',
+  'Mut ist ansteckend.',
+  'Wer schweigt, stimmt zu.',
+  'Zusammen sind wir stärker.',
+]
+
+/** Vornamen, die um 1933 in Berlin häufig waren */
+export const FIRST_NAMES: Record<'m' | 'w', string[]> = {
+  m: ['Karl', 'Otto', 'Emil', 'Walter', 'Fritz', 'Kurt', 'Paul', 'Willi', 'Max', 'Heinz', 'Ernst', 'Hans'],
+  w: ['Frieda', 'Marta', 'Hedwig', 'Erna', 'Käthe', 'Ilse', 'Gertrud', 'Else', 'Lotte', 'Liesel', 'Margarete', 'Hilde'],
+}
+
 export const CODENAMES = ['Amsel', 'Fuchs', 'Laterne', 'Kiefer', 'Möwe', 'Spatz', 'Uhrmacher', 'Lerche', 'Dachs', 'Kompass', 'Feder', 'Anker']
 
 export const GROUP_RULES = [

@@ -63,9 +63,20 @@ export const TRUST_MAX = 5
 /** So viel Gefahr nimmt jede Stufe Vertrauen im Bezirk weg */
 export const TRUST_RISK_RELIEF = 2
 
-/** Summe aus Hauptwert und halbem Nebenwert aller Teilnehmer */
+/** Wie stark weitere Personen zählen: Die beste zählt voll, jede weitere weniger */
+const TEAM_WEIGHTS = [1, 0.6, 0.35]
+/** Zusätzliche Gefahr für jede weitere Person im Team */
+export const EXTRA_MEMBER_RISK = 8
+
+/**
+ * Hauptwert und halber Nebenwert, die stärkste Person zählt voll, weitere weniger.
+ * Mehr Leute helfen also, machen einen Auftrag aber nicht sicher.
+ */
 export function teamPower(t: MissionTemplate, members: Character[]): number {
-  return members.reduce((sum, m) => sum + m.stats[t.primary] + m.stats[t.secondary] * 0.5, 0)
+  return members
+    .map((m) => m.stats[t.primary] + m.stats[t.secondary] * 0.5)
+    .sort((a, b) => b - a)
+    .reduce((sum, v, i) => sum + v * (TEAM_WEIGHTS[i] ?? 0.25), 0)
 }
 
 export function successChance(t: MissionTemplate, members: Character[], bonus = 0): number {
@@ -87,7 +98,7 @@ export function detectionRisk(
   const raw =
     t.baseRisk +
     surveillanceAt(district, week) * 0.6 +
-    (members.length - 1) * 5 -
+    (members.length - 1) * EXTRA_MEMBER_RISK -
     bestStealth * 3 +
     avgHeat * 0.2 -
     trust * TRUST_RISK_RELIEF
@@ -215,13 +226,31 @@ export function applyEffects<S extends ResourceState>(s: S, e: Effects, selfId?:
   }
 }
 
-/** Aufträge, die nur in einem bestimmten Bezirk vorkommen, und ab welcher Woche */
-const DISTRICT_SPECIALS: { type: MissionType; from: number }[] = [
-  { type: 'nachrichten', from: 1 },
+/** Aufträge, die Verfolgten helfen, und ab welcher Woche es sie gibt */
+const SOLIDARITY: { type: MissionType; from: number; flag?: string }[] = [
+  // Nach dem Reichstagsbrand
+  { type: 'unterschlupf', from: 0, flag: 'unterschlupf' },
   { type: 'rotehilfe', from: 2 },
   { type: 'warnung', from: 3 },
+  // Ab dem Boykott vom 1. April 1933: jüdischen Nachbarn beistehen
+  { type: 'besorgung', from: 5 },
+  // Ab 1936
+  { type: 'pakete', from: 11 },
+]
+
+/** Bezirksaufträge ohne direkte Hilfe für Verfolgte */
+const DISTRICT_SPECIALS: { type: MissionType; from: number }[] = [
+  { type: 'nachrichten', from: 1 },
   { type: 'sportverein', from: 3 },
 ]
+
+export interface MissionSupply {
+  kasse: number
+  inventory: Inventory
+}
+
+/** Ohne Angaben: der Vorrat zu Spielbeginn */
+const START_SUPPLY: MissionSupply = { kasse: 40, inventory: { papier: 2, farbe: 1, flugblaetter: 0, ausweise: 0 } }
 
 /** Der nächste Schritt zur eigenen Druckerei, danach die eigene Zeitung */
 export function projectStep(flags: string[]): MissionType {
@@ -231,23 +260,43 @@ export function projectStep(flags: string[]): MissionType {
   return 'zeitung'
 }
 
-export function generateMissions(week: number, flags: string[], rng: Rng): Mission[] {
+/**
+ * Höchstens sieben Aufträge pro Woche, damit die Karte überschaubar bleibt und jede Wahl zählt:
+ * das Vorhaben, bis zu zwei Hilfen für Verfolgte, ein Bezirksauftrag, Spenden und zwei Aufträge
+ * rund um Flugblätter, passend zum Vorrat der Gruppe.
+ */
+export function generateMissions(week: number, flags: string[], rng: Rng, supply: MissionSupply = START_SUPPLY): Mission[] {
+  const { kasse, inventory: inv } = supply
   // Vorhaben und Bezirksaufträge zuerst, weil sie nur wenige mögliche Orte haben
   const types: MissionType[] = []
+  if (week === 12) types.push('reporter')
   if (week >= 1) types.push(projectStep(flags))
-  // Jede Woche zwei der freigeschalteten Bezirksaufträge, damit die Karte übersichtlich bleibt
   const specials = DISTRICT_SPECIALS.filter((d) => week >= d.from).map((d) => d.type)
-  for (let i = 0; i < 2 && specials.length; i++) types.push(specials.splice(Math.floor(rng() * specials.length), 1)[0])
-  // Hilfe für Verfolgte vor den übrigen Aufträgen, damit sie immer einen Ort finden
-  if (flags.includes('unterschlupf')) types.push('unterschlupf')
-  // Ab dem Boykott vom 1. April 1933: jüdischen Nachbarn beistehen
-  if (week >= 5) types.push('besorgung')
-  types.push('spenden', 'papier', 'druck', 'verteilen', 'parolen')
-  if (week >= 2) types.push('ausweise')
-  // Ab 1936
-  if (week >= 11) types.push('pakete')
-  if (week === 12) types.unshift('reporter')
-  if (week >= 15 || flags.includes('levy')) types.unshift('ausreise')
+  if (specials.length) types.push(specials[Math.floor(rng() * specials.length)])
+
+  // Hilfe für Verfolgte: die Ausreise, sobald es sie gibt, sonst zwei zufällige, bezahlbare zuerst
+  const help = SOLIDARITY.filter((h) => week >= h.from && (!h.flag || flags.includes(h.flag))).map((h) => h.type)
+  const chosen: MissionType[] = []
+  if (week >= 15 || flags.includes('levy')) chosen.push('ausreise')
+  const pool = help
+    .map((type) => ({ type, order: rng() + (canAfford(MISSIONS[type], kasse, inv) ? 0 : 1) }))
+    .sort((a, b) => a.order - b.order)
+    .map((h) => h.type)
+  for (const type of pool) if (chosen.length < 2) chosen.push(type)
+  types.push(...chosen)
+
+  // Grundaufträge: Spenden immer, dazu was zum Vorrat passt
+  types.push('spenden')
+  const chain: MissionType[] = []
+  if (inv.flugblaetter >= 2) chain.push('verteilen')
+  if (inv.papier >= 2 && inv.farbe >= 1) chain.push('druck')
+  if (inv.farbe >= 1) chain.push('parolen')
+  chain.push('papier', 'druck', 'parolen')
+  if (week >= 2 && rng() < 0.35) chain.splice(1, 0, 'ausweise')
+  const basics = [...new Set(chain)]
+  // Ohne Vorhaben und Hilfen in den ersten Wochen dürfen es ein paar Grundaufträge mehr sein
+  const room = Math.max(2, 5 - types.length)
+  types.push(...basics.slice(0, room))
 
   const used = new Set<string>()
   const missions: Mission[] = []
