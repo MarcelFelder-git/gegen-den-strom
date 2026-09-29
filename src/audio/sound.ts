@@ -1,5 +1,5 @@
 /*
- * Alle Geräusche werden im Browser erzeugt, es gibt keine Tondateien.
+ * Die kurzen Geräusche werden im Browser erzeugt. Musik kommt als Aufnahme aus public/musik.
  * Browser erlauben Ton erst nach einer Nutzeraktion; bis dahin bleibt alles still.
  */
 
@@ -205,129 +205,112 @@ export function setMuted(value: boolean) {
 }
 
 /* ---------- Musik ----------
- * Eine Spieluhr, im Browser erzeugt. Auf Titel und Ende „Die Gedanken sind frei“ (Volkslied um 1800, gemeinfrei),
- * in den Wochen leise, warme Akkorde mit langen Pausen. In der Nacht, der Wochenschau und der Vorgeschichte schweigt sie.
+ * Echte Aufnahmen aus public/musik. Fehlt eine Datei, bleibt es still.
+ * Jedes Stück läuft in einer nahtlosen Schleife, beim Wechsel blenden die Stücke ineinander über.
+ * Gespeichert wird nur das Stück, das gerade läuft, als Mono-Puffer: Das schont den Speicher älterer iPads.
  */
 
-export type Track = 'thema' | 'woche' | null
+export type Track = 'thema' | 'spiel' | null
+
+const MUSIC_FILES: Record<Exclude<Track, null>, string> = {
+  thema: 'musik/thema.mp3',
+  spiel: 'musik/spiel.mp3',
+}
+/**
+ * Lautstärke der Musik, dezent unter den Geräuschen. Gemessen: thema.mp3 liegt bei -16 dB (RMS),
+ * spiel.mp3 bei -28 dB. So klingen beide etwa gleich leise, um -33 dB. Bei neuen Dateien neu abstimmen.
+ */
+const MUSIC_VOLUME: Record<Exclude<Track, null>, number> = { thema: 0.14, spiel: 0.55 }
+/** Ein- und Ausblenden in Sekunden */
+const FADE = 3
 
 let track: Track = null
-let bus: GainNode | null = null
-let timer: number | undefined
+let playing: { track: Exclude<Track, null>; src: AudioBufferSourceNode; gain: GainNode } | null = null
+/** Ein Stück als Mono-Puffer, dazu der Bereich ohne Stille am Anfang und Ende */
+interface Loop {
+  buffer: AudioBuffer
+  start: number
+  end: number
+}
+let cache: { track: Exclude<Track, null>; loop: Promise<Loop | null> } | null = null
+let generation = 0
 
-const hz = (midi: number) => 440 * 2 ** ((midi - 69) / 12)
-
-/** Ein Ton der Spieluhr: klarer Anschlag, langes Ausklingen */
-function pluck(out: AudioNode, when: number, midi: number, gain: number, ring = 2.2) {
-  const f = hz(midi)
-  tone({ freq: f, dur: ring, gain, when, out })
-  tone({ freq: f * 2, dur: ring * 0.45, gain: gain * 0.22, when, out })
-  tone({ freq: f * 3, dur: ring * 0.2, gain: gain * 0.06, when, out })
+function loadTrack(c: AudioContext, t: Exclude<Track, null>): Promise<Loop | null> {
+  if (cache?.track === t) return cache.loop
+  const loop = fetch(import.meta.env.BASE_URL + MUSIC_FILES[t])
+    .then((r) => (r.ok ? r.arrayBuffer() : null))
+    .then((data) => (data ? c.decodeAudioData(data) : null))
+    .then((b) => (b ? trimmed(toMono(c, b)) : null))
+    .catch(() => null)
+  cache = { track: t, loop }
+  return loop
 }
 
-/** Ein weicher, tiefer Ton als Grundlage */
-function bass(out: AudioNode, when: number, midi: number, dur: number, gain = 0.05) {
-  tone({ freq: hz(midi), dur, gain, type: 'triangle', when, out })
+/** Stille am Anfang und Ende überspringen, sonst entsteht beim Wiederholen eine Pause */
+function trimmed(buffer: AudioBuffer): Loop {
+  const d = buffer.getChannelData(0)
+  const quiet = 0.003 // etwa -50 dB
+  let a = 0
+  while (a < d.length && Math.abs(d[a]) < quiet) a++
+  let b = d.length - 1
+  while (b > a && Math.abs(d[b]) < quiet) b--
+  if (b - a < buffer.sampleRate) return { buffer, start: 0, end: buffer.duration }
+  return { buffer, start: a / buffer.sampleRate, end: (b + 1) / buffer.sampleRate }
 }
 
-// „Die Gedanken sind frei“ in C-Dur, 3/4-Takt, [MIDI-Ton, Dauer in Schlägen]
-// Nach dem Satz im LilyPond-Wiki (lilypond.miraheze.org/wiki/Die_Gedanken_sind_frei)
-const G4 = 67, A4 = 69, B4 = 71, C5 = 72, D5 = 74, E5 = 76, F4 = 65, D4 = 62, E4 = 64, C4 = 60
-const MELODY: [number, number][] = [
-  [G4, 0.5], [G4, 0.5],
-  [C5, 1], [C5, 1], [E5, 0.5], [C5, 0.5], [G4, 2], [G4, 1], [F4, 1], [D4, 1], [G4, 1], [E4, 1], [C4, 1],
-  [G4, 1], [C5, 1], [C5, 1], [E5, 0.5], [C5, 0.5], [G4, 2], [G4, 1], [F4, 1], [D4, 1], [G4, 1], [E4, 1], [C4, 1],
-  [C5, 1], [B4, 1], [D5, 1], [B4, 1], [C5, 1], [E5, 1], [C5, 1], [B4, 1], [D5, 1], [B4, 1], [C5, 1], [E5, 1],
-  [C5, 1], [A4, 1], [A4, 1], [C5, 0.5], [A4, 0.5], [G4, 2],
-  [C5, 0.5], [E5, 0.5], [E5, 0.5], [D5, 0.5], [C5, 1], [B4, 1], [C5, 2],
-]
-// Grundtöne je Takt: C, C, G, C, C, C, G, C, G, C, G, C, F, C, G, C
-const BASS_BARS = [48, 48, 43, 48, 48, 48, 43, 48, 43, 48, 43, 48, 41, 48, 43, 48]
-
-/** Ohne laufenden Tonkanal nichts vormerken, sonst stauen sich die Töne und kommen alle auf einmal */
-function running(): boolean {
-  const a = audio()
-  return !!a && a.ctx.state === 'running' && !document.hidden
+function toMono(c: AudioContext, b: AudioBuffer): AudioBuffer {
+  if (b.numberOfChannels === 1) return b
+  const mono = c.createBuffer(1, b.length, b.sampleRate)
+  const out = mono.getChannelData(0)
+  const left = b.getChannelData(0)
+  const right = b.getChannelData(1)
+  for (let i = 0; i < out.length; i++) out[i] = (left[i] + right[i]) / 2
+  return mono
 }
 
-/** Spielt das Thema einmal und liefert seine Dauer in Sekunden */
-function playTheme(out: GainNode, slow = 1): number {
-  const beat = 0.62 * slow
-  const start = 0.3
-  let t = 0
-  for (const [midi, dur] of MELODY) {
-    pluck(out, start + t * beat, midi, 0.07)
-    t += dur
+function fadeOut(old: typeof playing) {
+  if (!old || !ctx) return
+  try {
+    old.gain.gain.cancelScheduledValues(ctx.currentTime)
+    old.gain.gain.setValueAtTime(old.gain.gain.value, ctx.currentTime)
+    old.gain.gain.linearRampToValueAtTime(0, ctx.currentTime + FADE)
+    old.src.stop(ctx.currentTime + FADE + 0.1)
+  } catch {
+    /* bereits gestoppt */
   }
-  // Der Auftakt dauert einen Schlag, danach 16 Takte zu je drei Schlägen
-  BASS_BARS.forEach((m, i) => bass(out, start + (1 + i * 3) * beat, m, 3 * beat))
-  return t * beat
-}
-
-// Leise Akkorde für die Wochen: C, a-Moll, F, G. Aus jedem Akkord erklingen nur zwei oder drei Töne.
-const CHORDS = [
-  { root: 48, notes: [64, 67, 72, 76] },
-  { root: 45, notes: [64, 69, 72, 76] },
-  { root: 41, notes: [65, 69, 72, 77] },
-  { root: 43, notes: [62, 67, 71, 74] },
-]
-
-/** Spielt die vier Akkorde einmal und liefert ihre Dauer in Sekunden */
-function playWeek(out: GainNode): number {
-  const len = 3.8
-  CHORDS.forEach((c, i) => {
-    const start = 0.3 + i * len
-    bass(out, start, c.root, len * 1.1, 0.035)
-    const count = 2 + Math.floor(Math.random() * 2)
-    for (let k = 0; k < count; k++) {
-      const note = c.notes[Math.floor(Math.random() * c.notes.length)]
-      pluck(out, start + 0.2 + k * (0.9 + Math.random() * 0.5), note, 0.045, 2.6)
-    }
-  })
-  return CHORDS.length * len
-}
-
-function schedule() {
-  if (!track || muted) return
-  if (!running() || !bus) {
-    timer = window.setTimeout(schedule, 1000)
-    return
-  }
-  let wait: number
-  if (track === 'thema') {
-    wait = playTheme(bus) + 7
-  } else {
-    // Ab und zu klingt das Thema langsam an, sonst nur Akkorde, dazwischen Stille
-    wait = Math.random() < 0.25 ? playTheme(bus, 1.25) + 10 : playWeek(bus) + 6 + Math.random() * 10
-  }
-  timer = window.setTimeout(schedule, wait * 1000)
 }
 
 function startMusic() {
-  stopMusic()
   const a = audio()
-  if (!a || !track) return
-  bus = a.ctx.createGain()
-  bus.gain.value = 0.55
-  bus.connect(a.out)
-  schedule()
+  const t = track
+  if (!a || !t || playing?.track === t) return
+  const mine = ++generation
+  void loadTrack(a.ctx, t).then((loop) => {
+    // Inzwischen ein anderes Stück gewünscht oder Ton aus: nichts tun
+    if (!loop || mine !== generation || muted || track !== t) return
+    fadeOut(playing)
+    const src = a.ctx.createBufferSource()
+    src.buffer = loop.buffer
+    src.loop = true
+    src.loopStart = loop.start
+    src.loopEnd = loop.end
+    const gain = a.ctx.createGain()
+    const now = a.ctx.currentTime
+    gain.gain.setValueAtTime(0, now)
+    gain.gain.linearRampToValueAtTime(MUSIC_VOLUME[t], now + FADE)
+    src.connect(gain).connect(a.out)
+    src.start(now, loop.start)
+    playing = { track: t, src, gain }
+  })
 }
 
 function stopMusic() {
-  if (timer) clearTimeout(timer)
-  timer = undefined
-  const old = bus
-  bus = null
-  if (!old || !ctx) return
-  try {
-    old.gain.setTargetAtTime(0, ctx.currentTime, 0.25)
-    window.setTimeout(() => old.disconnect(), 1500)
-  } catch {
-    /* bereits getrennt */
-  }
+  generation++
+  fadeOut(playing)
+  playing = null
 }
 
-/** Welche Musik gerade laufen soll. Dieselbe Musik wird nicht neu begonnen. */
+/** Welche Musik gerade laufen soll. Dasselbe Stück läuft einfach weiter, ohne Neustart. */
 export function setMusic(next: Track) {
   if (next === track) return
   track = next

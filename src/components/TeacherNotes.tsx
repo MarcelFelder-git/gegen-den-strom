@@ -190,10 +190,10 @@ export function TeacherNotes() {
           </Block>
 
           <Block title="Ton und Datenschutz">
-            Der Ton ist zu Beginn aus und lässt sich oben mit „Ton“ einschalten. Dann spielt eine leise Spieluhr: auf dem Titel und
-            am Ende das Volkslied „Die Gedanken sind frei“, in den Wochen ruhige Akkorde. Vorgeschichte, Wochenschau und Nacht
-            bleiben ohne Musik. Dazu kommen wenige kurze Geräusche an wichtigen Stellen, etwa ein Stempel, ein Klopfen an der Tür
-            oder ein warmer Ton, wenn ein Auftrag gelingt. Alles wird im Browser erzeugt. Im Klassenraum empfehlen sich Kopfhörer.
+            Der Ton ist zu Beginn aus und lässt sich oben mit „Ton“ einschalten. Dann läuft leise Musik: vom Titel bis zur eigenen
+            Figur und am Ende das Volkslied „Die Gedanken sind frei“ am Klavier, im Spiel eine ruhige Hintergrundmusik. Dazu kommen
+            wenige kurze Geräusche an wichtigen Stellen, etwa ein Stempel, ein Klopfen an der Tür oder ein warmer Ton, wenn ein
+            Auftrag gelingt. Im Klassenraum empfehlen sich Kopfhörer.
             Schriften und Fotos werden mitgeliefert, es werden keine externen Dienste geladen. Nur die Links „Mehr erfahren“ und
             „ansehen“ führen auf fremde Seiten.
           </Block>

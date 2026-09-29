@@ -119,17 +119,9 @@ export default function App() {
   }
 
   const inGame = before === null
-  // Musik nur an ruhigen Stellen: Titel, Figur, Wochenplanung, Bericht und Ende.
-  // Vorgeschichte, Wochenschau und Nacht bleiben ohne Musik.
-  const cutscene = (phase === 'newspaper' && introSeen !== weekIndex) || (phase === 'report' && nightSeen !== weekIndex)
-  const track: Track =
-    before === 'intro' || before === 'prologue'
-      ? null
-      : before === 'title' || before === 'level' || phase === 'title' || phase === 'creation' || phase === 'end'
-        ? 'thema'
-        : cutscene
-          ? null
-          : 'woche'
+  // Das Lied läuft vom Titel über die Vorgeschichte bis zur eigenen Figur und wieder am Ende.
+  // Im Spiel liegt durchgehend leise Hintergrundmusik darunter, ohne Pausen.
+  const track: Track = !inGame || phase === 'title' || phase === 'creation' || phase === 'end' ? 'thema' : 'spiel'
   useEffect(() => setMusic(track), [track])
 
   return (
