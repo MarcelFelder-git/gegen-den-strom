@@ -28,7 +28,7 @@ import type {
 import { useGame } from '../store/GameStore'
 import { useUi } from '../store/UiStore'
 import { CHAPTERS } from '../game/data/chapters'
-import { CODENAMES, FIRST_NAMES, GROUP_NAMES, GROUP_RULES, MORE_GROUP_NAMES, MORE_MOTTOS, MOTTOS } from '../game/data/group'
+import { CODENAMES, FIRST_NAMES, GROUP_NAMES, GROUP_RULES, MORE_GROUP_NAMES, MOTTOS } from '../game/data/group'
 import { COMPANIONS } from '../game/data/companions'
 import { companionName } from '../game/names'
 import { resolve } from '../game/text'
@@ -95,7 +95,6 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const groupValid = groupName.trim().length >= 2 && groupName.trim().length <= 30
   const codenameValid = NAME_PATTERN.test(codename.trim())
-  const mottoValid = motto.trim().length >= 2
 
   const gender = avatar.gender
   const stats = useMemo(() => leaderStats(profession, ideology), [profession, ideology])
@@ -128,7 +127,7 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
   const missingByStep: Record<1 | 2 | 3, string[]> = {
     1: [!nameValid && 'deinen Vornamen'].filter(Boolean) as string[],
     2: [activeTeam.length !== 3 && 'drei Gefährten'].filter(Boolean) as string[],
-    3: [!groupValid && 'einen Namen für die Gruppe', !mottoValid && 'einen Leitspruch', !codenameValid && 'einen Decknamen'].filter(
+    3: [!groupValid && 'einen Namen für die Gruppe', !codenameValid && 'einen Decknamen'].filter(
       Boolean,
     ) as string[],
   }
@@ -451,19 +450,15 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
                     />
                     <p className={`${s.typewriter} mt-2 text-sm text-slate`}>Denkt euch einen eigenen Namen aus. Wenn euch nichts einfällt, würfelt einen.</p>
                   </Field>
-                  <Field label="Euer Leitspruch" htmlFor="group-motto">
-                    <TextField
-                      id="group-motto"
-                      value={motto}
-                      maxLength={60}
-                      placeholder="Euer Leitspruch"
-                      onShuffle={() => setMotto(shuffle([...MOTTOS, ...MORE_MOTTOS], motto))}
-                      shuffleLabel="Einen Leitspruch auswürfeln"
-                      onChange={(e) => setMotto(e.target.value)}
-                      aria-invalid={!mottoValid}
-                      className="max-w-xl text-xl"
-                    />
-                    <p className={`${s.typewriter} mt-2 text-sm text-slate`}>Schreibt einen eigenen Leitspruch. Wenn euch nichts einfällt, würfelt einen.</p>
+                  <Field label="Euer Leitspruch">
+                    {/* Nur Auswahl, kein freies Feld: Alle Sprüche auf einen Blick, ein Tipp genügt */}
+                    <ChipGroup label="Euer Leitspruch" className="grid max-w-3xl gap-3 sm:grid-cols-2">
+                      {MOTTOS.map((m) => (
+                        <Chip key={m} checked={motto === m} onClick={() => setMotto(m)} className="px-4 py-3 text-left font-serif text-xl italic">
+                          „{m.replace(/\.$/, '')}“
+                        </Chip>
+                      ))}
+                    </ChipGroup>
                   </Field>
                   <Field label="Dein Deckname" htmlFor="codename">
                     <p className="mb-3 max-w-2xl font-serif text-base text-sepia">

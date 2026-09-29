@@ -157,8 +157,8 @@ export const CARDS: HeroCard[] = [
       'Schon im April 1933 schrieb er, die Kirche müsse den Opfern beistehen und notfalls „dem Rad selbst in die Speichen fallen“. Dabei dachte er vor allem an die getauften Juden in der Kirche, und der Text enthält auch alte kirchliche Vorurteile gegen das Judentum. Sein Denken wandelte sich in den folgenden Jahren.',
     ),
     link: L(
-      'Wie Johannes in deinem Spiel musste er sich entscheiden: schweigen oder sprechen.',
-      'Wie Johannes in deinem Spiel musste er sich entscheiden, ob er schweigt oder spricht.',
+      'Er musste sich entscheiden: schweigen oder sprechen. Vor dieser Frage stehen auch die Menschen in deinem Spiel.',
+      'Er musste sich entscheiden, ob er schweigt oder widerspricht. Vor derselben Frage stehen auch die Menschen in deinem Spiel.',
     ),
     fate: L(
       'Später half er Menschen, die Hitler stürzen wollten. 1943 wurde er verhaftet. Am 9. April 1945, kurz vor Kriegsende, wurde er im Lager Flossenbürg ermordet.',

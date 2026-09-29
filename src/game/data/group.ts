@@ -8,7 +8,15 @@
  */
 export const GROUP_NAMES = ['Tante Frieda', 'Kegelverein Gut Holz', 'Die offene Tür']
 
-export const MOTTOS = ['Wir sehen nicht weg.', 'Solidarität ist unser Widerstand.', 'Keiner bleibt allein.']
+/** Leitsprüche zur Auswahl. Eigene Sprüche gibt es nicht mehr: Im Unterricht entstand sonst oft Unsinn. */
+export const MOTTOS = [
+  'Wir sehen nicht weg.',
+  'Solidarität ist unser Widerstand.',
+  'Keiner bleibt allein.',
+  'Hinsehen statt wegsehen.',
+  'Mut ist ansteckend.',
+  'Wer schweigt, stimmt zu.',
+]
 
 /** Weitere harmlose Tarnnamen für den Würfel, wenn den Kindern nichts einfällt */
 export const MORE_GROUP_NAMES = [
@@ -19,14 +27,6 @@ export const MORE_GROUP_NAMES = [
   'Briefmarkenfreunde',
   'Die Nachbarn',
   'Ruderclub Spree',
-]
-
-export const MORE_MOTTOS = [
-  'Wir lassen niemanden allein.',
-  'Hinsehen statt wegsehen.',
-  'Mut ist ansteckend.',
-  'Wer schweigt, stimmt zu.',
-  'Zusammen sind wir stärker.',
 ]
 
 /** Vornamen, die um 1933 in Berlin häufig waren */
