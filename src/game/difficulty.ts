@@ -31,6 +31,8 @@ export interface Difficulty {
   noReturn: { 1: [number, number]; 2: [number, number] }
   /** Kann das Spiel vorzeitig enden? */
   gameOver: boolean
+  /** Wie oft pro Kapitel Unterstützer einspringen, wenn niemand aus der Gruppe mehr frei ist */
+  rescuesPerChapter: number
   /** Ab so vielen geholfenen Menschen gibt es die zweite und dritte Stufe der Bewertung, je Kapitel */
   helpedGoals: { 1: [number, number]; 2: [number, number] }
 }
@@ -57,6 +59,7 @@ export const DIFFICULTIES: Record<Level, Difficulty> = {
     prisonWeeks: [1, 2],
     noReturn: { 1: [0, 0], 2: [0, 0] },
     gameOver: false,
+    rescuesPerChapter: 99,
     helpedGoals: { 1: [10, 24], 2: [8, 20] },
   },
   schwer: {
@@ -81,6 +84,7 @@ export const DIFFICULTIES: Record<Level, Difficulty> = {
     // Etwa jede fünfte Person kommt nach der Haft nicht zurück: ins Lager verurteilt oder tot
     noReturn: { 1: [0.16, 0.04], 2: [0.14, 0.06] },
     gameOver: true,
+    rescuesPerChapter: 0,
     helpedGoals: { 1: [10, 22], 2: [8, 18] },
   },
 }

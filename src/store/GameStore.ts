@@ -317,9 +317,18 @@ function withCrisis(s: GameData): GameData {
   return { ...s, moral: CRISIS_MORAL, supporters: Math.floor(s.supporters * 0.6), crisis: true }
 }
 
-/** Neue Gefährten, wenn niemand mehr frei ist (nur leichte Stufe) */
+/** In welcher Woche eine eingesprungene Person dazukam, aus ihrer Kennung „r12-…“ */
+const recruitWeek = (id: string): number | null => {
+  const m = /^r(\d+)-/.exec(id)
+  return m ? Number(m[1]) : null
+}
+
+/** Neue Gefährten, wenn niemand mehr frei ist. Leicht immer, schwer nur so oft wie erlaubt. */
 function recruitIfEmpty(s: GameData): { state: GameData; recruited: string[] } {
-  if (difficultyOf(s.level).gameOver || s.members.some((m) => !isGone(m))) return { state: s, recruited: [] }
+  if (s.members.some((m) => !isGone(m))) return { state: s, recruited: [] }
+  const first = chapterOf(s.weekIndex).first
+  const rescues = new Set(s.members.map((m) => recruitWeek(m.id)).filter((w): w is number => w !== null && w >= first)).size
+  if (rescues >= difficultyOf(s.level).rescuesPerChapter) return { state: s, recruited: [] }
   const taken = s.members.map((m) => m.name)
   const leaderName = s.members.find((m) => m.isLeader)?.name ?? ''
   const fresh = createCompanions(leaderName, rng, s.level, taken, 2, `r${s.weekIndex}-`)

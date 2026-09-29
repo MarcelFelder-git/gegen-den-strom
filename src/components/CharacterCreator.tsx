@@ -108,6 +108,8 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
     // Nur Besonderheiten behalten, die es für das neue Geschlecht gibt
     const details = (avatar.details ?? []).filter((d) => DETAIL_BY_GENDER[g].includes(d))
     setAvatar({ ...DEFAULT_AVATAR[g], face: avatar.face, glasses: avatar.glasses, hairTone: avatar.hairTone, details })
+    // Ein ausgewürfelter Vorname passt nicht mehr: neu würfeln. Einen selbst getippten Namen nie ändern.
+    if (FIRST_NAMES[gender].includes(name.trim())) setName(shuffle(FIRST_NAMES[g], ''))
   }
 
   /** Eine Besonderheit an- oder abwählen */
