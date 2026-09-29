@@ -56,7 +56,9 @@ export function MissionDossier({ mission, onClose }: MissionDossierProps) {
   const chance = successChance(t, team, diff.successBonus)
   const districtTrust = trust[mission.district]
   const risk = detectionRisk(t, mission.district, team, weekIndex, districtTrust, diff.riskFactor)
-  const wanted = team.filter(isWanted)
+  // Wer nach diesem Auftrag Fahndungsdruck 100 erreicht, wird zu Hause abgeholt, auch ohne entdeckt zu werden
+  const tooKnown = team.filter((m) => m.heat + t.heat >= 100)
+  const wanted = team.filter((m) => isWanted(m) && !tooKnown.includes(m))
 
   const toggle = (id: string) => {
     setError(null)
@@ -243,6 +245,16 @@ export function MissionDossier({ mission, onClose }: MissionDossierProps) {
               </p>
             )}
 
+            {tooKnown.length > 0 && (
+              <p className="flex gap-2 border-2 border-crimson bg-crimson p-3 font-type text-sm text-paper" role="alert">
+                <TriangleAlert size={18} className="mt-0.5 shrink-0" aria-hidden />
+                <span>
+                  {joinNames(tooKnown.map(firstName))} {tooKnown.length === 1 ? 'ist' : 'sind'} der Polizei zu bekannt. Nach diesem Auftrag
+                  steigt der Fahndungsdruck auf 100: Dann {tooKnown.length === 1 ? 'wird die Person' : 'werden sie'} abgeholt, auch wenn
+                  niemand etwas sieht. Besser eine Woche ausruhen.
+                </span>
+              </p>
+            )}
             {wanted.length > 0 && (
               <p className="flex gap-2 border-2 border-crimson bg-paper p-3 font-type text-sm text-crimson" role="alert">
                 <TriangleAlert size={18} className="mt-0.5 shrink-0" aria-hidden />

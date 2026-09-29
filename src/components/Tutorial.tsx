@@ -37,7 +37,7 @@ export function Tutorial({ weekIndex, onClose }: { weekIndex: number; onClose: (
   }
 
   return (
-    <Modal label={`So geht’s, Seite ${page + 1} von ${TUTORIAL.length}`} onClose={onClose} width="max-w-2xl">
+    <Modal label={`So geht’s, Seite ${page + 1} von ${TUTORIAL.length}`} onClose={onClose} width="max-w-2xl" closeOnBackdrop={false}>
       <div className={`${s.panel} relative px-5 py-6 sm:px-8`}>
         <button
           onClick={onClose}

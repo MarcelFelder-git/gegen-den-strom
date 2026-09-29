@@ -1,10 +1,10 @@
 import { Cinema, type Shot } from './Cinema'
-import { MissionScene, MorningScene, NightfallScene, WEEK_WEATHER, type SceneOutcome, type Weather } from './scenes'
+import { ArrestScene, MissionScene, MorningScene, NightfallScene, WEEK_WEATHER, type SceneOutcome, type Weather } from './scenes'
 import { getPlace } from '../../game/data/districts'
-import { fillMissionText } from '../../game/logic'
+import { firstName, fillMissionText, joinNames } from '../../game/logic'
 import type { Character, WeekReport } from '../../game/types'
 import { sound } from '../../audio/sound'
-import { useMissions } from '../../store/content'
+import { useLevel, useMissions } from '../../store/content'
 
 const NIGHT_CAPTION: Record<Weather, string> = {
   schnee: 'Es schneit über Berlin. Die Schritte auf dem Pflaster klingen gedämpft. Gut für alle, die nicht gehört werden wollen.',
@@ -20,9 +20,38 @@ function hash(text: string): number {
   return h
 }
 
+/**
+ * Wer abgeholt wird, bekommt eine eigene Szene, damit niemand die Verhaftung übersieht.
+ * Leicht: Die Person kommt bald zurück. Schwer: Ob sie zurückkommt, ist ungewiss.
+ */
+function arrestShot(id: string, people: Character[], atHome: boolean, level: 'leicht' | 'schwer'): Shot {
+  const names = joinNames(people.map(firstName))
+  const one = people.length === 1
+  const w = one && people[0].avatar.gender === 'w'
+  const ihn = one ? (w ? 'sie' : 'ihn') : 'sie'
+  const er = one ? (w ? 'Sie' : 'Er') : 'Sie'
+  const place = people[0]?.prison?.place ?? 'ins Polizeipräsidium am Alexanderplatz'
+  const where = place.replace(/^im /, 'ins ').replace(/^in einem /, 'in einen ').replace(/^in der /, 'in die ')
+  const start = atHome
+    ? `Früh am Morgen klopft es bei ${names}. ${one ? `${er} war` : 'Sie waren'} der Polizei schon zu bekannt. Ein Wagen bringt ${ihn} ${where}.`
+    : `Die Polizei nimmt ${names} fest. Ein Wagen bringt ${ihn} ${where}.`
+  const end =
+    level === 'leicht'
+      ? ` ${er} ${one ? 'kommt' : 'kommen'} bald zurück. Bis dahin könnt ihr von außen helfen.`
+      : ` Ob ${one ? (w ? 'sie' : 'er') : 'sie'} zurück${one ? 'kommt' : 'kommen'}, ist ungewiss. Ihr könnt von außen helfen.`
+  return {
+    id,
+    scene: <ArrestScene team={people.map((m) => m.avatar.gender)} atHome={atHome} />,
+    caption: start + end,
+    stamp: { text: 'Verhaftet', tone: 'blood' },
+    sfx: () => sound.cellDoor(),
+  }
+}
+
 /** Die Nacht der Einsätze: jede Aktion als kurze Szene, am Ende der Stempel */
 export function NightSequence({ report, members, onDone }: { report: WeekReport; members: Character[]; onDone: () => void }) {
   const missions = useMissions()
+  const level = useLevel()
   const byId = (id: string) => members.find((m) => m.id === id)
   const weather = WEEK_WEATHER[report.weekIndex] ?? 'klar'
   const results = report.results
@@ -48,10 +77,10 @@ export function NightSequence({ report, members, onDone }: { report: WeekReport;
       auto: 2400,
       ambience: weather === 'regen' ? 'regen' : undefined,
     },
-    ...results.map((r): Shot => {
+    ...results.flatMap((r): Shot[] => {
       const team = r.team.map(byId).filter((m): m is Character => !!m)
       const outcome: SceneOutcome = r.detected ? 'entdeckt' : r.outcome
-      return {
+      const mission: Shot = {
         id: r.uid,
         scene: (
           <MissionScene
@@ -71,9 +100,15 @@ export function NightSequence({ report, members, onDone }: { report: WeekReport;
         auto: 2800,
         roll: { chance: r.chance, roll: r.roll, risk: r.risk, detectRoll: r.detectRoll },
         ambience: weather === 'regen' ? 'regen' : undefined,
-        sfx: r.arrested.length > 0 ? () => sound.cellDoor() : outcome === 'entdeckt' ? () => sound.whistle(1.4) : undefined,
+        sfx: outcome === 'entdeckt' ? () => sound.whistle(1.4) : undefined,
       }
+      const caught = r.arrested.map(byId).filter((m): m is Character => !!m)
+      return caught.length ? [mission, arrestShot(`${r.uid}-haft`, caught, false, level)] : [mission]
     }),
+    // Wer zu bekannt war, wird am Morgen zu Hause abgeholt, auch ohne entdeckt worden zu sein
+    ...(report.heatArrests.length
+      ? [arrestShot('abgeholt', report.heatArrests.map(byId).filter((m): m is Character => !!m), true, level)]
+      : []),
     {
       id: 'morgen',
       scene: <MorningScene weather={weather} troubled={detected || arrested} />,

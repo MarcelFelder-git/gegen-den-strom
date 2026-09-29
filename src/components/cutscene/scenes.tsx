@@ -769,6 +769,64 @@ export function MorningScene({ weather = 'klar', troubled = false }: { weather?:
   )
 }
 
+/* ---------- Verhaftung ---------- */
+
+/** Der Wagen der Polizei, ein geschlossener Kastenwagen mit Scheinwerfern */
+function PoliceVan({ x, y }: { x: number; y: number }) {
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      <g className={c.glow}>
+        <path d="M-4 -26 L-170 -2 L-170 26 L-4 -12 Z" fill={LAMP} opacity="0.3" />
+      </g>
+      <rect x="0" y="-78" width="118" height="62" fill="#3a3a42" stroke={DIM} strokeWidth="1.5" />
+      <rect x="-26" y="-56" width="30" height="40" fill="#3a3a42" stroke={DIM} strokeWidth="1.5" />
+      <rect x="-20" y="-50" width="18" height="14" fill={LAMP} opacity="0.3" />
+      <rect x="8" y="-60" width="70" height="4" fill={DIM} opacity="0.5" />
+      <rect x="92" y="-72" width="20" height="46" fill="#24242a" stroke={DIM} strokeWidth="1" className={c.vanDoor} />
+      <circle cx="-14" cy="-24" r="4" fill={LAMP} />
+      <circle cx="10" cy="-12" r="12" fill={SIL} />
+      <circle cx="92" cy="-12" r="12" fill={SIL} />
+    </g>
+  )
+}
+
+/**
+ * Jemand aus der Gruppe wird abgeführt: auf der Straße nach einem entdeckten Auftrag
+ * oder früh am Morgen an der eigenen Haustür, wenn der Fahndungsdruck zu hoch war.
+ */
+export function ArrestScene({ team = ['m'], atHome = false }: { team?: Gender[]; atHome?: boolean }) {
+  return (
+    <Frame sky={atHome ? '#24242a' : '#1a1a20'}>
+      {atHome ? (
+        <g>
+          <rect x="120" y="60" width="260" height="228" fill={HOUSE} />
+          <rect x="150" y="90" width="34" height="44" fill={HOUSE2} />
+          <rect x="310" y="90" width="34" height="44" fill={LAMP} opacity="0.5" className={c.lightOn} style={delay(0.4)} />
+          <rect x="228" y="190" width="44" height="98" fill="#0a0a0c" />
+          <rect x="228" y="190" width="44" height="98" fill={LAMP} opacity="0" className={c.doorLight} />
+        </g>
+      ) : (
+        <>
+          <Skyline />
+          <circle cx="250" cy="150" r="130" fill="url(#cs-lamp)" />
+          <Lamp x={330} y={288} h={150} />
+        </>
+      )}
+      <Ground y={288} fill="#0d0d10" />
+      <PoliceVan x={480} y={288} />
+      {/* Die Festgenommenen werden zwischen zwei Männern in Mänteln zum Wagen geführt */}
+      <g className={c.ledAway}>
+        <Team team={team} x={atHome ? 262 : 250} y={288} spacing={30} fill="#6a6860" />
+        <g className={c.officersIn}>
+          <Figure x={(atHome ? 262 : 250) + 34} y={288} s={1.08} hat="fedora" fill="#0a0a0c" />
+          <Figure x={(atHome ? 262 : 250) - team.length * 30 - 6} y={288} s={1.08} hat="fedora" fill="#0a0a0c" />
+        </g>
+      </g>
+      <rect width="640" height="300" fill={BLOOD} opacity="0.16" className={c.alarm} />
+    </Frame>
+  )
+}
+
 /* ---------- Einsätze in der Nacht ---------- */
 
 export type SceneOutcome = 'gelungen' | 'gescheitert' | 'entdeckt'
@@ -776,7 +834,7 @@ export type SceneOutcome = 'gelungen' | 'gescheitert' | 'entdeckt'
 type Gender = 'm' | 'w'
 
 /** Die eingeteilten Gefährten als Silhouetten, Frauen mit Frisur statt Hut */
-function Team({ team, x, y, spacing = 34, s = 1, walking = false, bag = false }: {
+function Team({ team, x, y, spacing = 34, s = 1, walking = false, bag = false, fill }: {
   team: Gender[]
   x: number
   y: number
@@ -784,6 +842,7 @@ function Team({ team, x, y, spacing = 34, s = 1, walking = false, bag = false }:
   s?: number
   walking?: boolean
   bag?: boolean
+  fill?: string
 }) {
   return (
     <g>
@@ -796,6 +855,7 @@ function Team({ team, x, y, spacing = 34, s = 1, walking = false, bag = false }:
           hat={g === 'w' ? 'hair' : i % 2 ? 'cap' : 'fedora'}
           walking={walking}
           bag={bag && i === 0}
+          fill={fill}
         />
       ))}
     </g>

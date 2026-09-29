@@ -51,14 +51,14 @@ const CLOTHING_LABELS: Record<Clothing, string> = {
   kleid: 'Kleid mit Kragen',
 }
 const DETAIL_LABELS: Record<AvatarDetail, string> = {
-  keine: 'Nichts weiter',
   sommersprossen: 'Sommersprossen',
   schal: 'Schal',
   schnurrbart: 'Schnurrbart',
+  ohrringe: 'Ohrringe',
 }
 const DETAIL_BY_GENDER: Record<Gender, AvatarDetail[]> = {
-  m: ['keine', 'sommersprossen', 'schal', 'schnurrbart'],
-  w: ['keine', 'sommersprossen', 'schal'],
+  m: ['sommersprossen', 'schal', 'schnurrbart'],
+  w: ['sommersprossen', 'schal', 'ohrringe'],
 }
 const HEADWEAR_BY_GENDER: Record<Gender, Headwear[]> = {
   m: ['schiebermuetze', 'fedora', 'kurz'],
@@ -105,8 +105,15 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
 
   const setGender = (g: Gender) => {
     if (g === gender) return
-    const detail = avatar.detail === 'schnurrbart' ? 'keine' : avatar.detail
-    setAvatar({ ...DEFAULT_AVATAR[g], face: avatar.face, glasses: avatar.glasses, hairTone: avatar.hairTone, detail })
+    // Nur Besonderheiten behalten, die es für das neue Geschlecht gibt
+    const details = (avatar.details ?? []).filter((d) => DETAIL_BY_GENDER[g].includes(d))
+    setAvatar({ ...DEFAULT_AVATAR[g], face: avatar.face, glasses: avatar.glasses, hairTone: avatar.hairTone, details })
+  }
+
+  /** Eine Besonderheit an- oder abwählen */
+  const toggleDetail = (d: AvatarDetail) => {
+    const cur = avatar.details ?? []
+    patch({ details: cur.includes(d) ? cur.filter((x) => x !== d) : [...cur, d] })
   }
 
   // Wer genauso heißt wie du, kann nicht in die Gruppe: Sonst wüsste niemand, wer gemeint ist
@@ -298,19 +305,24 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
                         </ChipGroup>
                       </Field>
                     </div>
-                    <Field label="Besonderheit">
-                      <ChipGroup label="Besonderheit">
-                        {DETAIL_BY_GENDER[gender].map((d) => (
-                          <PreviewChip
-                            key={d}
-                            checked={(avatar.detail ?? 'keine') === d}
-                            onClick={() => patch({ detail: d })}
-                            config={{ ...avatar, detail: d }}
-                          >
-                            {DETAIL_LABELS[d]}
-                          </PreviewChip>
-                        ))}
-                      </ChipGroup>
+                    <Field label="Besonderheiten">
+                      <p className={`${s.typewriter} -mt-1 mb-2 text-sm text-slate`}>Tippe an, was dazukommen soll. Noch einmal tippen nimmt es wieder weg.</p>
+                      <div role="group" aria-label="Besonderheiten" className="flex flex-wrap gap-3">
+                        {DETAIL_BY_GENDER[gender].map((d) => {
+                          const on = !!avatar.details?.includes(d)
+                          return (
+                            <PreviewChip
+                              key={d}
+                              toggle
+                              checked={on}
+                              onClick={() => toggleDetail(d)}
+                              config={{ ...avatar, details: on ? avatar.details : [...(avatar.details ?? []), d] }}
+                            >
+                              {DETAIL_LABELS[d]}
+                            </PreviewChip>
+                          )
+                        })}
+                      </div>
                     </Field>
                     <Field label="Kleidung">
                       <ChipGroup label="Kleidung">
@@ -371,9 +383,10 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
                           onClick={() => toggleCompanion(c.name)}
                           disabled={blocked}
                           aria-pressed={picked}
-                          className={`${s.chip} relative flex gap-3 p-3 text-left ${full ? 'border-dashed' : ''}`}
+                          aria-disabled={full || undefined}
+                          className={`${s.chip} relative flex gap-3 p-3 text-left ${full ? 'cursor-default border-dashed !bg-paper-dark text-slate shadow-none' : ''}`}
                         >
-                          <span className="shrink-0">
+                          <span className={`shrink-0 ${full ? 'grayscale opacity-60' : ''}`}>
                             <Avatar config={c.avatar} size={64} title="" />
                           </span>
                           <span className="min-w-0">
@@ -430,13 +443,7 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
                       aria-invalid={!groupValid}
                       className="max-w-md text-2xl"
                     />
-                    <Suggestions hint="Denkt euch einen eigenen Namen aus oder tippt einen Vorschlag an:">
-                      {GROUP_NAMES.map((g) => (
-                        <button key={g} onClick={() => setGroupName(g)} className={`${s.chip} px-3.5 py-2.5 text-sm`} aria-pressed={groupName === g}>
-                          {g}
-                        </button>
-                      ))}
-                    </Suggestions>
+                    <p className={`${s.typewriter} mt-2 text-sm text-slate`}>Denkt euch einen eigenen Namen aus. Wenn euch nichts einfällt, würfelt einen.</p>
                   </Field>
                   <Field label="Euer Leitspruch" htmlFor="group-motto">
                     <TextField
@@ -450,13 +457,7 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
                       aria-invalid={!mottoValid}
                       className="max-w-xl text-xl"
                     />
-                    <Suggestions hint="Schreibt einen eigenen Leitspruch oder tippt einen Vorschlag an:">
-                      {MOTTOS.map((m) => (
-                        <button key={m} onClick={() => setMotto(m)} className={`${s.chip} px-3.5 py-2.5 font-serif text-base`} aria-pressed={motto === m}>
-                          „{m}“
-                        </button>
-                      ))}
-                    </Suggestions>
+                    <p className={`${s.typewriter} mt-2 text-sm text-slate`}>Schreibt einen eigenen Leitspruch. Wenn euch nichts einfällt, würfelt einen.</p>
                   </Field>
                   <Field label="Dein Deckname" htmlFor="codename">
                     <p className="mb-3 max-w-2xl font-serif text-base text-sepia">
@@ -475,13 +476,7 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
                       aria-invalid={!codenameValid}
                       className="max-w-xs text-xl"
                     />
-                    <Suggestions hint="Denk dir einen eigenen aus oder tippe einen Vorschlag an:">
-                      {CODENAMES.slice(0, 8).map((c) => (
-                        <button key={c} onClick={() => setCodename(c)} className={`${s.chip} px-3.5 py-2.5 text-sm`} aria-pressed={codename === c}>
-                          {c}
-                        </button>
-                      ))}
-                    </Suggestions>
+                    <p className={`${s.typewriter} mt-2 text-sm text-slate`}>Denk dir einen eigenen aus. Wenn dir nichts einfällt, würfle einen.</p>
                   </Field>
                 </Section>
 
@@ -568,16 +563,6 @@ function shuffle(options: string[], current: string): string {
   return pool[Math.floor(Math.random() * pool.length)] ?? current
 }
 
-/** Vorschläge unter einem Eingabefeld, mit dem Hinweis, dass man auch Eigenes schreiben darf */
-function Suggestions({ hint, children }: { hint: string; children: ReactNode }) {
-  return (
-    <>
-      <p className={`${s.typewriter} mt-3 text-sm text-slate`}>{hint}</p>
-      <div className="mt-2 flex flex-wrap gap-2">{children}</div>
-    </>
-  )
-}
-
 /** Worin eine Person am stärksten ist */
 function bestStat(stats: Record<StatKey, number>): StatKey {
   return STAT_ORDER.reduce((best, k) => (stats[k] > stats[best] ? k : best), STAT_ORDER[0])
@@ -642,17 +627,37 @@ function PreviewChip({
   checked,
   onClick,
   config,
+  toggle = false,
   children,
 }: {
   checked: boolean
   onClick: () => void
   config: AvatarConfig
+  /** An- und abwählbar statt einer Auswahl aus mehreren */
+  toggle?: boolean
   children: ReactNode
 }) {
-  return (
-    <Chip checked={checked} onClick={onClick} className="flex w-[124px] flex-col items-center gap-1.5 p-2">
+  const inner = (
+    <>
       <Avatar config={config} size={72} title="" />
       <span className="text-center text-[13px] leading-tight break-words hyphens-auto">{children}</span>
+    </>
+  )
+  if (toggle) {
+    return (
+      <button aria-pressed={checked} onClick={onClick} className={`${s.chip} relative flex w-[124px] flex-col items-center gap-1.5 p-2`}>
+        {inner}
+        {checked && (
+          <span className="absolute top-1.5 right-1.5 grid h-5 w-5 place-items-center bg-crimson text-paper" aria-hidden>
+            <Check size={13} />
+          </span>
+        )}
+      </button>
+    )
+  }
+  return (
+    <Chip checked={checked} onClick={onClick} className="flex w-[124px] flex-col items-center gap-1.5 p-2">
+      {inner}
     </Chip>
   )
 }

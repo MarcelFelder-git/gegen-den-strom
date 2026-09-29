@@ -6,8 +6,8 @@ export type FaceShape = 'oval' | 'rund' | 'kantig' | 'schmal'
 export type Headwear = 'schiebermuetze' | 'fedora' | 'kurz' | 'zoepfe' | 'welle' | 'glocke'
 export type Clothing = 'arbeiterjacke' | 'trenchcoat' | 'weste' | 'kleid'
 export type HairTone = 'dunkel' | 'hell' | 'rot' | 'grau'
-/** Eine Besonderheit im Gesicht oder an der Kleidung */
-export type AvatarDetail = 'keine' | 'sommersprossen' | 'schal' | 'schnurrbart'
+/** Besonderheiten im Gesicht oder an der Kleidung, mehrere zugleich möglich */
+export type AvatarDetail = 'sommersprossen' | 'schal' | 'schnurrbart' | 'ohrringe'
 
 export interface AvatarConfig {
   gender: Gender
@@ -16,7 +16,9 @@ export interface AvatarConfig {
   hairTone: HairTone
   glasses: boolean
   clothing: Clothing
-  detail?: AvatarDetail
+  details?: AvatarDetail[]
+  /** Älterer Spielstand: nur eine Besonderheit */
+  detail?: AvatarDetail | 'keine'
 }
 
 export type ProfessionKey = 'arbeiter' | 'journalist' | 'lehrer' | 'haendler'

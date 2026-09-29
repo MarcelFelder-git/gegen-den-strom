@@ -78,7 +78,8 @@ export const DIFFICULTIES: Record<Level, Difficulty> = {
     arrestMoralLoss: 15,
     // Zwei Wochen, mit Anwalt eine. Der Ernst liegt darin, dass manche nicht zurückkommen.
     prisonWeeks: [2, 2],
-    noReturn: { 1: [0.3, 0.06], 2: [0.4, 0.12] },
+    // Etwa jede fünfte Person kommt nach der Haft nicht zurück: ins Lager verurteilt oder tot
+    noReturn: { 1: [0.16, 0.04], 2: [0.14, 0.06] },
     gameOver: true,
     helpedGoals: { 1: [10, 22], 2: [8, 18] },
   },

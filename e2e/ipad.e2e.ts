@@ -155,6 +155,10 @@ test('Einführung erklärt beim ersten Mal das Spielprinzip und lässt sich wied
   await play(page, problems, { level: 1, start: /^Neues Spiel beginnen/, until: () => false, stopAtDialog: /^So geht’s/, maxSteps: 300 })
   const dialog = page.getByRole('dialog', { name: /^So geht’s/ })
   await expect(dialog).toContainText('Worum es geht')
+  // Ein Tipp neben das Fenster schließt die Einführung nicht aus Versehen
+  const vp = page.viewportSize()!
+  await page.touchscreen.tap(8, vp.height - 8)
+  await expect(dialog).toBeVisible()
   for (let i = 0; i < 6; i++) await dialog.getByRole('button', { name: /^Weiter/ }).tap()
   await dialog.getByRole('button', { name: /Los geht/ }).tap()
   await expect(dialog).toHaveCount(0)

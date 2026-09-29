@@ -1,5 +1,5 @@
 import { useId } from 'react'
-import type { AvatarConfig, FaceShape } from '../game/types'
+import type { AvatarConfig, AvatarDetail, FaceShape } from '../game/types'
 
 const INK = '#1c1c1e'
 const PAPER = '#f4f1ea'
@@ -53,7 +53,8 @@ export function Avatar({ config, size = 96, className, title, crossed }: AvatarP
         : config.hairTone === 'rot'
           ? `url(#${id('hairRed')})`
           : `url(#${id('hairHatch')})`
-  const detail = config.detail ?? 'keine'
+  // Mehrere Besonderheiten zugleich; ältere Spielstände hatten nur eine
+  const has = (d: AvatarDetail) => !!config.details?.includes(d) || config.detail === d
 
   return (
     <svg
@@ -112,7 +113,7 @@ export function Avatar({ config, size = 96, className, title, crossed }: AvatarP
         <Clothing config={config} dots={`url(#${id('dots')})`} />
 
         {/* Schal um den Hals */}
-        {detail === 'schal' && (
+        {has('schal') && (
           <g stroke={INK} strokeWidth="1.3" strokeLinejoin="round">
             <path d="M54 88 L60 88 L61.5 106 L55 106 Z" fill={`url(#${id('stripes')})`} />
             <path d="M37 82 Q50 89 63 82 L64 90 Q50 98 36 90 Z" fill={`url(#${id('stripes')})`} />
@@ -151,7 +152,7 @@ export function Avatar({ config, size = 96, className, title, crossed }: AvatarP
         )}
         <path d={`M${L + 3.5} 62 Q${L + 5} 71 ${L + 11} 75.5`} fill="none" stroke={INK} strokeWidth="0.8" opacity="0.7" />
 
-        {detail === 'sommersprossen' && (
+        {has('sommersprossen') && (
           <g fill={INK} opacity="0.55">
             {[
               [39, 60.5],
@@ -167,7 +168,7 @@ export function Avatar({ config, size = 96, className, title, crossed }: AvatarP
             ))}
           </g>
         )}
-        {detail === 'schnurrbart' && (
+        {has('schnurrbart') && (
           <path
             d="M43.5 67.8 Q46.5 65.2 50 66.8 Q53.5 65.2 56.5 67.8 Q53.5 69.4 50 68.3 Q46.5 69.4 43.5 67.8 Z"
             fill={hairFill}
@@ -185,6 +186,14 @@ export function Avatar({ config, size = 96, className, title, crossed }: AvatarP
             <path d="M47.7 55 Q50 53.2 52.3 55" />
             <path d={`M37.3 54.5 L${L + 1} 56`} />
             <path d={`M62.7 54.5 L${R - 1} 56`} />
+          </g>
+        )}
+
+        {/* Ohrringe als kleine Goldperlen an den Ohrläppchen, über den Haaren */}
+        {has('ohrringe') && (
+          <g fill="#d8b04a" stroke={INK} strokeWidth="0.7">
+            <circle cx={L + 0.5} cy="64.2" r="1.6" />
+            <circle cx={R - 0.5} cy="64.2" r="1.6" />
           </g>
         )}
 

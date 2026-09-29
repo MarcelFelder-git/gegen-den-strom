@@ -173,3 +173,21 @@ describe('Historische Daten', () => {
     }
   })
 })
+
+describe('Verhaftung nur, wer gesehen wird', () => {
+  it('ein unentdeckter Auftrag führt nie zur Festnahme, auch nicht bei Misserfolg oder hohem Fahndungsdruck', () => {
+    const schwer = { successBonus: 0, riskFactor: 1.1, arrestChance: 1, arrestChanceUnknown: 1 }
+    let unseen = 0
+    for (let seed = 1; seed < 400; seed++) {
+      // Hoch gesucht und schwach: Aufträge scheitern oft
+      const team = [person('a', 'A', 'm', 95, 1), person('b', 'B', 'w', 80, 1)]
+      const mission = generateMissions(5, [], seededRng(seed)).find((m) => m.type === 'spenden')!
+      const r = resolveMission(mission, team, 5, seededRng(seed), { tuning: schwer as never })
+      if (!r.detected) {
+        unseen++
+        expect(r.arrested).toEqual([])
+      }
+    }
+    expect(unseen).toBeGreaterThan(50)
+  })
+})

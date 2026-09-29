@@ -8,12 +8,14 @@ interface ModalProps {
   width?: string
   /** Oben verankern statt mittig, damit sich der Inhalt beim Blättern nicht verschiebt */
   top?: boolean
+  /** Schließt ein Tipp neben das Fenster? Für wichtige Fenster aus, damit es nicht aus Versehen verschwindet */
+  closeOnBackdrop?: boolean
 }
 
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])'
 
 /** Zugänglicher Dialog: Escape schließt, der Fokus bleibt im Dialog */
-export function Modal({ label, onClose, children, width = 'max-w-3xl', top = false }: ModalProps) {
+export function Modal({ label, onClose, children, width = 'max-w-3xl', top = false, closeOnBackdrop = true }: ModalProps) {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -52,7 +54,7 @@ export function Modal({ label, onClose, children, width = 'max-w-3xl', top = fal
     <div
       className={`fixed inset-0 z-50 flex items-start justify-center overflow-y-auto px-4 ${top ? 'bg-black/90 pt-0 pb-6' : 'bg-black/75 py-6 sm:py-10'}`}
       onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose?.()
+        if (closeOnBackdrop && e.target === e.currentTarget) onClose?.()
       }}
     >
       <div ref={ref} role="dialog" aria-modal="true" aria-label={label} className={`relative w-full ${top ? '' : 'my-auto'} ${width}`}>
