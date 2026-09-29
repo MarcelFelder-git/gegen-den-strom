@@ -4,6 +4,7 @@ import { canAfford, isWanted, successChance } from '../game/logic'
 import type { IdeologyKey, ProfessionKey } from '../game/types'
 import type { Level } from '../game/text'
 import { currentEvent, useGame } from './GameStore'
+import { goalById, weekGoal } from '../game/data/goals'
 
 const draft = (profession: ProfessionKey, ideology: IdeologyKey) => ({
   name: 'Frieda',
@@ -57,6 +58,63 @@ describe('Spielablauf', () => {
   })
 })
 
+describe('Gefährten und Geholfene', () => {
+  it('die selbst gewählten Gefährten kommen mit', () => {
+    useGame.getState().startGame({ ...draft('lehrer', 'christlich'), companions: ['August Brenner', 'Grete Hoffmann', 'Anni Neumann'] })
+    const names = useGame.getState().members.filter((m) => !m.isLeader).map((m) => m.name)
+    expect(names).toEqual(['August Brenner', 'Grete Hoffmann', 'Anni Neumann'])
+  })
+
+  it('hinter jeder geholfenen Person steht ein Gesicht', () => {
+    for (let i = 0; i < 20; i++) {
+      const end = autoplay('arbeiter', 'kommunistisch', 'leicht')
+      const named = end.helpedPeople.reduce((sum, p) => sum + p.count, 0)
+      expect(named).toBe(end.helped)
+      expect(new Set(end.helpedPeople.map((p) => p.name)).size).toBe(end.helpedPeople.length)
+    }
+  })
+
+  it('ab und zu kommt Post von früher Geholfenen', () => {
+    let letters = 0
+    for (let i = 0; i < 20; i++) {
+      autoplay('lehrer', 'christlich', 'leicht')
+      letters += useGame.getState().history.filter((h) => h.letter).length
+    }
+    expect(letters / 20).toBeGreaterThanOrEqual(1)
+    expect(letters / 20).toBeLessThanOrEqual(4)
+  })
+})
+
+describe('Ziel der Woche', () => {
+  it('ist in jeder Woche beider Kapitel und beider Stufen erreichbar', () => {
+    const problems: string[] = []
+    let weeks = 0
+    const stop = useGame.subscribe((st, prev) => {
+      if (st.phase !== 'newspaper' || prev.phase === 'newspaper') return
+      weeks++
+      const goal = goalById(st.goalId, st.weekIndex)
+      const affordable = st.missions.filter((m) => canAfford(MISSIONS[m.type], st.kasse, st.inventory))
+      const ok =
+        goal.id === 'helfen' ? affordable.some((m) => MISSIONS[m.type].solidarity) : affordable.some((m) => m.type === 'spenden')
+      if (!ok) problems.push(`Woche ${st.weekIndex}: ${goal.id}`)
+    })
+    for (const level of ['leicht', 'schwer'] as const) {
+      for (let i = 0; i < 30; i++) {
+        autoplay('arbeiter', 'kommunistisch', level)
+        autoplay('lehrer', 'christlich', level, 10)
+      }
+    }
+    stop()
+    expect(weeks).toBeGreaterThan(500)
+    expect(problems).toEqual([])
+  })
+
+  it('in der ersten Woche gibt es noch keinen Auftrag zum Helfen, also auch kein solches Ziel', () => {
+    expect(weekGoal(0).id).not.toBe('helfen')
+    expect(weekGoal(1).id).not.toBe('helfen')
+  })
+})
+
 describe('Einführung', () => {
   it('erscheint in jedem neuen Spiel einmal', () => {
     useGame.getState().startGame(draft('lehrer', 'christlich'))
@@ -94,8 +152,8 @@ describe('Doppeltes Tippen auf dem Tablet', () => {
  * Spielt viele Partien mit einer einfachen, vernünftigen Strategie.
  * Dient als Prüfung der Spielbalance: gut spielbar, aber nicht trivial.
  */
-function autoplay(profession: ProfessionKey, ideology: IdeologyKey, level: Level) {
-  useGame.getState().startGame({ ...draft(profession, ideology), level })
+function autoplay(profession: ProfessionKey, ideology: IdeologyKey, level: Level, startWeek = 0) {
+  useGame.getState().startGame({ ...draft(profession, ideology), level }, startWeek)
   for (let guard = 0; guard < 160; guard++) {
     const s = useGame.getState()
     if (s.phase === 'end') break

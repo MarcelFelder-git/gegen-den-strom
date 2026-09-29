@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, CircleAlert, CircleHelp, Flag, HandHeart, Lightbulb } from 'lucide-react'
+import { Check, ChevronDown, CircleAlert, CircleHelp, Flag, HandHeart, Lightbulb } from 'lucide-react'
 import s from '../styles/period.module.css'
 import { Avatar } from './Avatar'
 import { CityMap } from './CityMap'
@@ -9,7 +9,7 @@ import { Tutorial } from './Tutorial'
 import { MISSION_ICONS } from './icons'
 import { DISTRICTS, getDistrict, getPlace, situationAt, surveillanceAt, surveillanceLevel } from '../game/data/districts'
 import { MISSIONS } from '../game/data/missions'
-import { weekGoal } from '../game/data/goals'
+import { goalById } from '../game/data/goals'
 import { quoted } from '../game/data/group'
 import {
   TRUST_MAX,
@@ -44,6 +44,7 @@ export function MapBoard() {
   const [hovered, setHovered] = useState<string | null>(null)
   const [district, setDistrict] = useState<DistrictKey | null>(null)
   const [confirmIdle, setConfirmIdle] = useState(false)
+  const [showDistricts, setShowDistricts] = useState(false)
   const t = useT()
 
   const open = missions.find((m) => m.uid === openUid)
@@ -98,14 +99,28 @@ export function MapBoard() {
         </div>
       </div>
 
-      <Legend />
-
-      <DistrictBar weekIndex={weekIndex} trust={trust} selected={district} onSelect={setDistrict} missions={missions} />
+      {/* Zeichenerklärung und Bezirke nur bei Bedarf, damit die Karte nicht überladen wirkt */}
+      <button
+        onClick={() => setShowDistricts((v) => !v)}
+        aria-expanded={showDistricts}
+        className={`${s.typewriter} flex min-h-11 w-full items-center justify-between gap-2 border border-paper/25 px-3 text-left text-sm text-fog hover:border-paper/60 hover:text-paper`}
+      >
+        <span>
+          <span className="font-bold text-paper">Bezirke und Zeichen erklärt</span>: Überwachung, Vertrauen, was die Punkte auf der Karte bedeuten
+        </span>
+        <ChevronDown size={18} className={`shrink-0 transition-transform ${showDistricts ? 'rotate-180' : ''}`} aria-hidden />
+      </button>
+      {showDistricts && (
+        <div className={`${s.riseIn} space-y-4`}>
+          <Legend />
+          <DistrictBar weekIndex={weekIndex} trust={trust} selected={district} onSelect={setDistrict} missions={missions} />
+        </div>
+      )}
 
       {selected && (
         <div className={`${s.panel} ${s.riseIn} grid gap-3 p-4 sm:grid-cols-[1fr_auto]`}>
           <div>
-            <p className={`${s.typewriter} text-[10px] tracking-[0.2em] text-fog uppercase`}>Lage in {selected.name}</p>
+            <p className={`${s.typewriter} text-xs tracking-[0.12em] text-fog uppercase`}>Lage in {selected.name}</p>
             <p className="mt-1 font-serif text-[17px] leading-relaxed">{t(situationAt(selected.key, weekIndex))}</p>
             <p className="mt-2 font-serif text-[15px] leading-relaxed text-paper/80">{t(selected.text)}</p>
           </div>
@@ -123,7 +138,7 @@ export function MapBoard() {
 
       <div className="grid gap-5 lg:grid-cols-[1fr_minmax(300px,380px)]">
         <div className="min-w-0">
-          <h3 className={`${s.typewriter} mb-2 text-sm font-bold tracking-[0.2em] text-fog uppercase`}>
+          <h3 className={`${s.typewriter} mb-2 text-sm font-bold tracking-[0.12em] text-fog uppercase`}>
             Aufträge {selected ? `in ${selected.name}` : 'dieser Woche'} ({visible.length})
           </h3>
           <ul className="grid grid-cols-1 gap-2 xl:grid-cols-2">
@@ -149,12 +164,12 @@ export function MapBoard() {
           trust={trust}
           flags={flags}
           onOpen={openMission}
-          confirmIdle={confirmIdle}
-          onFinish={finish}
           firstWeek={history.length === 0}
           opened={opened}
         />
       </div>
+
+      <FinishBar missions={missions} members={members} confirmIdle={confirmIdle} onFinish={finish} onCancel={() => setConfirmIdle(false)} />
 
       {open && <MissionDossier mission={open} onClose={() => setOpenUid(null)} />}
       {showHelp && <Tutorial weekIndex={weekIndex} onClose={closeHelp} />}
@@ -248,10 +263,10 @@ function MissionRow({
           </span>
         </span>
         <span className="flex shrink-0 flex-col items-end gap-1">
-          <span className={`border px-1.5 font-type text-[11px] font-bold tracking-wide uppercase ${TIER_CLASS[tier]}`}>
+          <span className={`border px-1.5 font-type text-[13px] font-bold tracking-wide uppercase ${TIER_CLASS[tier]}`}>
             Gefahr {tier}
           </span>
-          <span className={`font-type text-[11px] ${assigned ? 'font-bold text-ember' : plannable ? 'text-fog' : 'text-ember'}`}>
+          <span className={`font-type text-[13px] ${assigned ? 'font-bold text-ember' : plannable ? 'text-fog' : 'text-ember'}`}>
             {assigned ? `${m.assigned.length} eingeteilt` : plannable ? 'frei' : 'Mittel fehlen'}
           </span>
         </span>
@@ -267,8 +282,6 @@ function WeekPlan({
   trust,
   flags,
   onOpen,
-  confirmIdle,
-  onFinish,
   firstWeek,
   opened,
 }: {
@@ -278,8 +291,6 @@ function WeekPlan({
   trust: Trust
   flags: string[]
   onOpen: (uid: string) => void
-  confirmIdle: boolean
-  onFinish: () => void
   firstWeek: boolean
   opened: boolean
 }) {
@@ -292,7 +303,7 @@ function WeekPlan({
 
   return (
     <aside className={`${s.panel} flex flex-col gap-4 p-4`} aria-labelledby="plan-titel">
-      <h3 id="plan-titel" className={`${s.typewriter} text-sm font-bold tracking-[0.2em] uppercase`}>
+      <h3 id="plan-titel" className={`${s.typewriter} text-sm font-bold tracking-[0.12em] uppercase`}>
         Wochenplan
       </h3>
 
@@ -329,7 +340,7 @@ function WeekPlan({
                     </span>
                     <span className="truncate font-type text-xs text-fog">{joinNames(team.map(firstName))}</span>
                   </span>
-                  <span className="mt-2 grid grid-cols-2 gap-3 font-type text-[11px]">
+                  <span className="mt-2 grid grid-cols-2 gap-3 font-type text-[13px]">
                     <MiniBar label="Aussicht" value={chance} tone="hope" />
                     <MiniBar label="Gefahr" value={risk} tone="danger" />
                   </span>
@@ -346,18 +357,57 @@ function WeekPlan({
         </p>
       )}
       {diff.level === 'leicht' && <Tip weekIndex={weekIndex} />}
+    </aside>
+  )
+}
 
-      <div className="mt-auto space-y-2 border-t border-paper/20 pt-3">
-        {confirmIdle && (
-          <p className="flex items-center gap-2 font-type text-sm text-ember" role="status">
-            <CircleAlert size={16} aria-hidden /> Diese Woche wirklich nichts unternehmen?
+/**
+ * Immer am unteren Bildschirmrand: wie viel geplant ist und „Woche beenden“.
+ * So muss auf dem iPad niemand bis ganz nach unten scrollen.
+ */
+function FinishBar({
+  missions,
+  members,
+  confirmIdle,
+  onFinish,
+  onCancel,
+}: {
+  missions: Mission[]
+  members: Character[]
+  confirmIdle: boolean
+  onFinish: () => void
+  onCancel: () => void
+}) {
+  const planned = missions.filter((m) => m.assigned.length > 0)
+  const busy = new Set(planned.flatMap((m) => m.assigned))
+  const idle = members.filter((m) => m.status === 'bereit' && !busy.has(m.id)).length
+  return (
+    <div className="sticky bottom-0 z-20 -mx-3 border-t-2 border-paper/30 bg-navy/95 px-3 py-3 shadow-[0_-12px_30px_rgba(0,0,0,0.55)] backdrop-blur-sm sm:mx-0 sm:px-4 [padding-bottom:max(0.75rem,env(safe-area-inset-bottom))]">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {confirmIdle ? (
+          <p className="flex items-center gap-2 font-type text-sm font-bold text-ember" role="status">
+            <CircleAlert size={18} aria-hidden /> Diese Woche wirklich nichts unternehmen?
+          </p>
+        ) : (
+          <p className="font-type text-sm" role="status">
+            <span className="font-bold text-paper">
+              {planned.length === 0 ? 'Noch kein Auftrag geplant' : `${planned.length} ${planned.length === 1 ? 'Auftrag' : 'Aufträge'} geplant`}
+            </span>
+            {idle > 0 && <span className="text-fog">, {idle === 1 ? '1 Person ruht' : `${idle} Personen ruhen`}</span>}
           </p>
         )}
-        <StampButton variant={confirmIdle ? 'blood' : 'paper'} onClick={onFinish} className="w-full">
-          {confirmIdle ? 'Ja, stillhalten' : 'Woche beenden'}
-        </StampButton>
+        <div className="flex items-center gap-3">
+          {confirmIdle && (
+            <button onClick={onCancel} className="tap-area font-type text-sm text-fog underline decoration-dotted underline-offset-4 hover:text-paper">
+              Doch planen
+            </button>
+          )}
+          <StampButton variant={confirmIdle ? 'blood' : 'paper'} onClick={onFinish}>
+            {confirmIdle ? 'Ja, stillhalten' : 'Woche beenden'}
+          </StampButton>
+        </div>
       </div>
-    </aside>
+    </div>
   )
 }
 
@@ -392,7 +442,7 @@ function WeekSteps() {
         <li
           key={st.phase}
           aria-current={i === current ? 'step' : undefined}
-          className={`border-t-4 pt-1.5 font-type text-[11px] tracking-[0.1em] uppercase sm:text-xs ${
+          className={`border-t-4 pt-1.5 font-type text-xs tracking-[0.08em] uppercase sm:text-sm ${
             i === current ? 'border-ember font-bold text-paper' : i < current ? 'border-fog/60 text-fog' : 'border-paper/15 text-fog'
           }`}
         >
@@ -443,12 +493,12 @@ function DistrictBar({
           >
             <span className="flex items-baseline justify-between gap-2">
               <span className="font-serif text-base font-bold">{d.name}</span>
-              <span className="font-type text-[11px] text-fog">{count} {count === 1 ? 'Auftrag' : 'Aufträge'}</span>
+              <span className="font-type text-[13px] text-fog">{count} {count === 1 ? 'Auftrag' : 'Aufträge'}</span>
             </span>
-            <span className="mt-1.5 flex items-center justify-between gap-2 font-type text-[11px] text-fog">
+            <span className="mt-1.5 flex items-center justify-between gap-2 font-type text-[13px] text-fog">
               Überwachung <Pips value={level} tone="ember" />
             </span>
-            <span className="mt-1 flex items-center justify-between gap-2 font-type text-[11px] text-fog">
+            <span className="mt-1 flex items-center justify-between gap-2 font-type text-[13px] text-fog">
               Vertrauen <Pips value={trust[d.key]} tone="paper" />
             </span>
           </button>
@@ -468,7 +518,7 @@ function FirstSteps({ opened, planned }: { opened: boolean; planned: boolean }) 
   const current = steps.findIndex((st) => !st.done)
   return (
     <div className="border-2 border-archive-light/60 bg-archive/40 p-3">
-      <p className="font-type text-[10px] font-bold tracking-[0.2em] text-archive-light uppercase">Erste Schritte</p>
+      <p className="font-type text-xs font-bold tracking-[0.12em] text-archive-light uppercase">Erste Schritte</p>
       <ol className="mt-2 space-y-1.5">
         {steps.map((st, i) => (
           <li
@@ -481,7 +531,7 @@ function FirstSteps({ opened, planned }: { opened: boolean; planned: boolean }) 
               }`}
               aria-hidden
             >
-              {st.done ? <Check size={13} /> : <span className="text-[11px]">{i + 1}</span>}
+              {st.done ? <Check size={13} /> : <span className="text-[13px]">{i + 1}</span>}
             </span>
             <span>
               {st.text}
@@ -497,10 +547,11 @@ function FirstSteps({ opened, planned }: { opened: boolean; planned: boolean }) 
 /** Das Ziel der Woche: klein, erreichbar, mit Belohnung im Wochenbericht */
 function GoalCard({ weekIndex }: { weekIndex: number }) {
   const t = useT()
-  const goal = weekGoal(weekIndex)
+  const goalId = useGame((g) => g.goalId)
+  const goal = goalById(goalId, weekIndex)
   return (
     <div className="border-2 border-group-light/60 bg-group/30 p-3">
-      <p className="flex items-center gap-1.5 font-type text-[10px] font-bold tracking-[0.2em] text-group-light uppercase">
+      <p className="flex items-center gap-1.5 font-type text-xs font-bold tracking-[0.12em] text-group-light uppercase">
         <Flag size={12} aria-hidden /> Ziel der Woche
       </p>
       <p className="mt-1 font-serif text-[15px] leading-snug font-bold">{t(goal.text)}</p>
@@ -538,7 +589,7 @@ function ProjectCard({ flags, weekIndex }: { flags: string[]; weekIndex: number 
   const finished = done === PROJECT_STEPS.length
   return (
     <div className="border border-dashed border-paper/40 p-3">
-      <p className="font-type text-[10px] tracking-[0.2em] text-fog uppercase">Vorhaben</p>
+      <p className="font-type text-xs tracking-[0.12em] text-fog uppercase">Vorhaben</p>
       <p className="font-serif text-[15px] font-bold">{finished ? 'Die eigene Druckerei läuft' : 'Eine eigene Druckerei'}</p>
       <ol className="mt-2 grid grid-cols-3 gap-1.5">
         {PROJECT_STEPS.map((st, i) => {
@@ -546,7 +597,7 @@ function ProjectCard({ flags, weekIndex }: { flags: string[]; weekIndex: number 
           return (
             <li
               key={st.flag}
-              className={`flex items-center gap-1 border px-1.5 py-1 font-type text-[11px] leading-tight ${
+              className={`flex items-center gap-1 border px-1.5 py-1 font-type text-[13px] leading-tight ${
                 ok ? 'border-paper bg-paper text-ink' : i === done ? 'border-ember text-paper' : 'border-paper/20 text-fog'
               }`}
             >
@@ -556,7 +607,7 @@ function ProjectCard({ flags, weekIndex }: { flags: string[]; weekIndex: number 
           )
         })}
       </ol>
-      <p className="mt-2 font-type text-[11px] leading-snug text-fog">
+      <p className="mt-2 font-type text-[13px] leading-snug text-fog">
         {finished
           ? 'Drucken bringt jetzt 5 statt 3 Bündel. Neu: die eigene Zeitung.'
           : weekIndex === 0

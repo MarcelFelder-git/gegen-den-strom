@@ -2,15 +2,13 @@
  * Alles, was die Widerstandsgruppe ausmacht: Name, Leitspruch, Decknamen und Regeln.
  * Decknamen und die Regel, keine Namen aufzuschreiben, waren im Widerstand üblich.
  */
-export const GROUP_NAMES = ['Morgenrot', 'Die Unbeugsamen', 'Nordlicht', 'Freiheitsfunke', 'Die Wachsamen']
+/**
+ * Widerstandsgruppen gaben sich oft harmlose Namen, damit niemand Verdacht schöpfte.
+ * Eine Berliner Gruppe, die ab 1938 Verfolgte versteckte, nannte sich „Onkel Emil“.
+ */
+export const GROUP_NAMES = ['Tante Frieda', 'Kegelverein Gut Holz', 'Die offene Tür']
 
-export const MOTTOS = [
-  'Solidarität ist unser Widerstand.',
-  'Wir schweigen nicht.',
-  'Freiheit ist stärker als Angst.',
-  'Keiner wird vergessen.',
-  'Die Wahrheit lässt sich nicht verbrennen.',
-]
+export const MOTTOS = ['Wir sehen nicht weg.', 'Solidarität ist unser Widerstand.', 'Keiner bleibt allein.']
 
 export const CODENAMES = ['Amsel', 'Fuchs', 'Laterne', 'Kiefer', 'Möwe', 'Spatz', 'Uhrmacher', 'Lerche', 'Dachs', 'Kompass', 'Feder', 'Anker']
 

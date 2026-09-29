@@ -3,6 +3,7 @@ import c from './cinema.module.css'
 import s from '../../styles/period.module.css'
 import { StampButton } from '../ui/StampButton'
 import { sound } from '../../audio/sound'
+import { RollPanel, type RollData } from './RollGauge'
 
 export interface Shot {
   id: string
@@ -16,6 +17,8 @@ export interface Shot {
   ambience?: 'regen' | 'feuer'
   /** Geräusch zu Beginn der Szene, etwa das Abreißen des Kalenderblatts */
   sfx?: () => void
+  /** Der Wurf eines Auftrags, sichtbar als laufender Zeiger */
+  roll?: RollData
 }
 
 export function usePrefersReducedMotion(): boolean {
@@ -41,6 +44,11 @@ export function Cinema({ shots, label, onDone, doneLabel = 'Weiter' }: { shots: 
   const shot = shots[Math.min(index, shots.length - 1)]
   const full = typed >= shot.caption.length
   const last = index >= shots.length - 1
+  // Bei Aufträgen läuft erst der Wurf, dann schlägt der Stempel auf
+  const [rolledId, setRolledId] = useState<string | null>(null)
+  const [skipRoll, setSkipRoll] = useState<string | null>(null)
+  const rolled = !shot.roll || reduced || rolledId === shot.id
+  const ready = full && rolled
 
   // Zwischentitel Buchstabe für Buchstabe. Abhängig von der Kennung, nicht vom Array,
   // damit ein neues Rendern der Eltern das Tippen nicht zurücksetzt.
@@ -61,15 +69,21 @@ export function Cinema({ shots, label, onDone, doneLabel = 'Weiter' }: { shots: 
   // Glocke am Zeilenende, Stempel, Geräusche der Szene
   const hasStamp = !!shot.stamp
   useEffect(() => {
-    if (!full) return
+    if (!ready) return
     sound.bell()
     if (hasStamp) {
       const t = setTimeout(() => sound.stamp(), 120)
       return () => clearTimeout(t)
     }
-  }, [full, shotId, hasStamp])
+  }, [ready, shotId, hasStamp])
+  // Bei einem Wurf kommt das Geräusch erst mit dem Ergebnis, sonst verrät es den Ausgang
+  const hasRoll = !!shot.roll
   useEffect(() => {
-    shot.sfx?.()
+    if (ready && hasRoll) shot.sfx?.()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, hasRoll, shotId])
+  useEffect(() => {
+    if (!shot.roll) shot.sfx?.()
     if (!shot.ambience) return
     const kind = shot.ambience
     sound.startLoop(kind)
@@ -83,16 +97,17 @@ export function Cinema({ shots, label, onDone, doneLabel = 'Weiter' }: { shots: 
 
   const next = useCallback(() => {
     if (!full) return setTyped(shot.caption.length)
+    if (!rolled) return setSkipRoll(shotId)
     if (last) onDone()
     else setIndex((i) => Math.min(i + 1, shots.length - 1))
-  }, [full, last, onDone, shot.caption.length, shots.length])
+  }, [full, rolled, shotId, last, onDone, shot.caption.length, shots.length])
 
   // Automatisch weiter, wenn die Szene das vorsieht
   useEffect(() => {
-    if (!full || !shot.auto || last || manual) return
+    if (!ready || !shot.auto || last || manual) return
     const t = setTimeout(next, shot.auto)
     return () => clearTimeout(t)
-  }, [full, shot.auto, last, next, manual])
+  }, [ready, shot.auto, last, next, manual])
 
   useEffect(() => {
     nextRef.current?.focus({ preventScroll: true })
@@ -111,7 +126,10 @@ export function Cinema({ shots, label, onDone, doneLabel = 'Weiter' }: { shots: 
       <div className={c.screen} key={shot.id}>
         {shot.scene}
         <span className={c.scratch} aria-hidden />
-        {shot.stamp && full && (
+        {shot.roll && (
+          <RollPanel key={shot.id} data={shot.roll} instant={reduced || skipRoll === shot.id} onDone={() => setRolledId(shot.id)} />
+        )}
+        {shot.stamp && ready && (
           <span
             className={`${s.rubber} ${s.stampIn} absolute right-[6%] bottom-[10%] z-10 bg-black/40 px-4 py-1 text-2xl sm:text-4xl ${
               shot.stamp.tone === 'blood' ? 'text-ember' : 'text-paper'
@@ -152,8 +170,8 @@ export function Cinema({ shots, label, onDone, doneLabel = 'Weiter' }: { shots: 
               Überspringen
             </button>
           )}
-          <StampButton ref={nextRef} variant="ink" onClick={next} className={full ? c.continuePulse : ''}>
-            {last && full ? doneLabel : 'Weiter'}
+          <StampButton ref={nextRef} variant="ink" onClick={next} className={ready ? c.continuePulse : ''}>
+            {last && ready ? doneLabel : 'Weiter'}
           </StampButton>
         </div>
       </div>

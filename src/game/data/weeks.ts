@@ -1,6 +1,6 @@
 import { WEEKS_1936 } from './weeks1936'
 import { L, type Txt } from '../text'
-import type { AvatarConfig, Effects, IdeologyKey, ProfessionKey, StatKey } from '../types'
+import type { AvatarConfig, Effects, Gender, IdeologyKey, ProfessionKey, StatKey } from '../types'
 
 export type IllustrationKind =
   | 'tor'
@@ -35,6 +35,8 @@ export interface ConditionalEffect {
 
 export interface EventChoice {
   label: Txt
+  /** Wem diese Wahl hilft, falls es nicht die sprechende Person ist */
+  helps?: { name: string; gender: Gender; who: Txt }
   /** Probe auf einen Wert der Person, die die Gruppe führt */
   check?: { stat: StatKey; min: number }
   /** Wahl ist nur möglich, wenn so viel Geld in der Kasse liegt */
@@ -1037,6 +1039,7 @@ const WEEKS_1933: WeekData[] = [
       ),
       choices: [
         {
+          helps: { name: 'Die Menschen auf den Listen', gender: 'm', who: L('Dreihundert Namen, die ihr verbrannt habt', 'Dreihundert Gewerkschafter, deren Namen ihr verbrannt habt') },
           label: L('Die Listen heute Nacht im Ofen verbrennen', 'Die Listen noch heute Nacht im Ofen verbrennen'),
           effects: { moral: 6, heatLeader: 8, helped: 3 },
           result: L(

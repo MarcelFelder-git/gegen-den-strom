@@ -69,6 +69,7 @@ export function NightSequence({ report, members, onDone }: { report: WeekReport;
             ? { text: 'Gelungen', tone: 'ink' }
             : { text: 'Gescheitert', tone: 'blood' },
         auto: 2800,
+        roll: { chance: r.chance, roll: r.roll, risk: r.risk, detectRoll: r.detectRoll },
         ambience: weather === 'regen' ? 'regen' : undefined,
         sfx: r.arrested.length > 0 ? () => sound.cellDoor() : outcome === 'entdeckt' ? () => sound.whistle(1.4) : undefined,
       }

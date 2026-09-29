@@ -733,6 +733,7 @@ export const WEEKS_1936: WeekData[] = [
       ),
       choices: [
         {
+          helps: { name: 'Lea Salomon', gender: 'w', who: L('Mit dem Kindertransport nach England', 'Mit einem Kindertransport nach England gerettet') },
           label: 'Lea zum Bahnhof bringen',
           effects: { moral: 10, heatLeader: 5, helped: 1 },
           result: L(
@@ -741,6 +742,7 @@ export const WEEKS_1936: WeekData[] = [
           ),
         },
         {
+          helps: { name: 'Lea Salomon', gender: 'w', who: L('Mit dem Kindertransport nach England', 'Mit einem Kindertransport nach England gerettet') },
           label: L('Frau Salomon Mut machen, selbst mitzugehen', 'Frau Salomon Mut machen, selbst zu gehen'),
           check: { stat: 'empathie', min: 4 },
           effects: { moral: 8, helped: 1 },

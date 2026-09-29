@@ -96,8 +96,9 @@ export function TeacherNotes() {
           <Block title="Spielziel: Solidarität">
             Niemand besiegt im Spiel den Faschismus, denn das wäre eine historische Falschaussage. Gemessen wird, wie vielen Menschen
             die Gruppe beigestanden hat: Verfolgte verstecken, Familien von Gefangenen versorgen, jüdischen Nachbarn beistehen,
-            Menschen warnen. Am Ende jedes Kapitels steht eine Bewertung in drei Stufen, von „Ihr habt nicht weggesehen“ bis „Ein Netz
-            der Solidarität“.
+            Menschen warnen. Hinter der Zahl stehen Gesichter und Namen: Ein Tipp auf „Geholfen“ zeigt, wem die Gruppe beigestanden hat,
+            und ab und zu kommt Post von diesen Menschen. Nicht jeder Brief ist tröstlich. Am Ende jedes Kapitels steht eine Bewertung
+            in drei Stufen, von „Ihr habt nicht weggesehen“ bis „Ein Netz der Solidarität“.
           </Block>
 
           <Block title="Pädagogischer Ansatz">

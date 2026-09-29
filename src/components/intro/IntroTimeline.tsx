@@ -80,7 +80,7 @@ export function IntroTimeline({ level, chapter, onDone, onBack }: IntroTimelineP
                     active ? 'border-ember bg-ember' : done ? 'border-paper bg-paper' : 'border-paper/40 bg-transparent'
                   }`}
                 />
-                <span className={`${s.typewriter} mt-1.5 text-[11px] tabular-nums ${active ? 'text-paper' : 'text-fog'}`}>{e.year}</span>
+                <span className={`${s.typewriter} mt-1.5 text-[13px] tabular-nums ${active ? 'text-paper' : 'text-fog'}`}>{e.year}</span>
               </li>
             )
           })}
@@ -106,7 +106,7 @@ export function IntroTimeline({ level, chapter, onDone, onBack }: IntroTimelineP
               </div>
             )}
             <div className={c.fadeIn}>
-              <p className={`${s.typewriter} text-sm tracking-[0.25em] text-ember uppercase`}>{entry.date}</p>
+              <p className={`${s.typewriter} text-sm tracking-[0.15em] text-ember uppercase`}>{entry.date}</p>
               <h2 className="mt-2 font-serif text-3xl leading-tight font-bold text-paper sm:text-4xl">{entry.title}</h2>
               <p className="mt-4 font-serif text-lg leading-relaxed text-paper/90 sm:text-xl">{entry.text}</p>
             </div>

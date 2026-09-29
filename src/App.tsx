@@ -12,6 +12,7 @@ import { TitleScreen } from './components/TitleScreen'
 import { WeekReport } from './components/WeekReport'
 import { Chronicle } from './components/Chronicle'
 import { PhotoCredits } from './components/PhotoCredits'
+import { HelpedWall } from './components/HelpedWall'
 import { IntroTimeline } from './components/intro/IntroTimeline'
 import { LevelSelect } from './components/intro/LevelSelect'
 import { WeekFlow } from './components/week/WeekFlow'
@@ -125,6 +126,7 @@ export default function App() {
       {overlay === 'vorbilder' && <CardAlbum />}
       {overlay === 'chronik' && <Chronicle />}
       {overlay === 'bildnachweis' && <PhotoCredits />}
+      {overlay === 'geholfen' && <HelpedWall />}
       {inGame && ((phase === 'map' && !tutorialPending) || (phase === 'report' && nightSeen === weekIndex)) && <CardReveal />}
       {phase === 'end' && <PrintSheet />}
     </>

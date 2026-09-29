@@ -6,7 +6,7 @@ import { Modal } from './ui/Modal'
 import { StampButton } from './ui/StampButton'
 import { MISSION_ICONS } from './icons'
 import { getPlace } from '../game/data/districts'
-import { weekGoal } from '../game/data/goals'
+import { goalById } from '../game/data/goals'
 import { chapterOf } from '../game/data/chapters'
 import { firstName, joinNames } from '../game/logic'
 import type { Character, MissionResult } from '../game/types'
@@ -16,6 +16,7 @@ import { useMissions, useT, useWeeks } from '../store/content'
 import { difficultyOf } from '../game/difficulty'
 import { useEffect } from 'react'
 import { sound } from '../audio/sound'
+import { LetterCard } from './HelpedWall'
 
 export function WeekReport() {
   const report = useGame((g) => g.report)
@@ -42,7 +43,7 @@ export function WeekReport() {
   const last = report.weekIndex === chapterOf(report.weekIndex).last
   const nextLabel = gameOver && (leaderGone || moral <= 0) ? 'Weiter' : last ? 'Das Kapitel abschließen' : 'Nächste Woche'
   const week = weeks[report.weekIndex]
-  const goal = weekGoal(report.weekIndex)
+  const goal = goalById(report.goalId, report.weekIndex)
   const helpedDelta = report.helpedAfter - report.helpedBefore
   const acting = report.actingLeader ? byId(report.actingLeader) : undefined
 
@@ -50,11 +51,13 @@ export function WeekReport() {
     <Modal label="Wochenbericht" width="max-w-3xl">
       <article className={`${s.paper} ${s.riseIn} px-5 py-7 sm:px-10`}>
         <header className="border-b-2 border-ink pb-4 text-center">
-          <p className={`${s.typewriter} text-xs tracking-[0.3em] text-slate uppercase`}>Nur für die Gruppe. Nach dem Lesen verbrennen.</p>
+          <p className={`${s.typewriter} text-xs tracking-[0.15em] text-slate uppercase`}>Nur für die Gruppe. Nach dem Lesen verbrennen.</p>
           <h2 className="mt-2 font-serif text-4xl font-bold">Wochenbericht</h2>
           <p className="font-serif text-lg italic">der Widerstandsgruppe {quoted(groupName)}</p>
           <p className={`${s.typewriter} mt-1 text-base`}>{week.dateLabel}</p>
         </header>
+
+        {report.letter && <LetterCard letter={report.letter} when={weeks[report.letter.week]?.dateLabel.replace('Woche vom ', '') ?? ''} />}
 
         <div className="divide-y divide-dashed divide-ink/40">
           {report.results.length === 0 && (
@@ -188,7 +191,7 @@ export function WeekReport() {
         </section>
 
         <section className="mt-6 border-2 border-ink bg-paper-dark p-4" aria-labelledby="nachdenken-woche">
-          <h3 id="nachdenken-woche" className="flex items-center gap-2 font-type text-xs font-bold tracking-[0.2em] uppercase">
+          <h3 id="nachdenken-woche" className="flex items-center gap-2 font-type text-xs font-bold tracking-[0.12em] uppercase">
             <Lightbulb size={16} aria-hidden /> Zum Nachdenken
           </h3>
           <p className="mt-2 font-serif text-lg leading-relaxed">{week.reflect}</p>

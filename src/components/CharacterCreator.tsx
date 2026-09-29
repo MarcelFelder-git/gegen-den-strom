@@ -1,12 +1,11 @@
-import { useMemo, useState, type ReactNode } from 'react'
-import { ArrowLeft } from 'lucide-react'
+import { useMemo, useState, type ComponentProps, type ReactNode } from 'react'
+import { ArrowLeft, ArrowRight, Check, PenLine } from 'lucide-react'
 import s from '../styles/period.module.css'
 import { Avatar } from './Avatar'
 import { StampButton } from './ui/StampButton'
 import { StatPips } from './ui/StatPips'
 import {
   IDEOLOGIES,
-  NAME_SUGGESTIONS,
   PROFESSIONS,
   STAT_LABELS,
   STAT_ORDER,
@@ -16,6 +15,7 @@ import {
 } from '../game/data/professions'
 import type {
   AvatarConfig,
+  AvatarDetail,
   Clothing,
   FaceShape,
   Gender,
@@ -23,11 +23,14 @@ import type {
   Headwear,
   IdeologyKey,
   ProfessionKey,
+  StatKey,
 } from '../game/types'
 import { useGame } from '../store/GameStore'
 import { useUi } from '../store/UiStore'
 import { CHAPTERS } from '../game/data/chapters'
 import { CODENAMES, GROUP_NAMES, GROUP_RULES, MOTTOS } from '../game/data/group'
+import { COMPANIONS } from '../game/data/companions'
+import { firstName } from '../game/logic'
 import { resolve } from '../game/text'
 import { DIFFICULTIES } from '../game/difficulty'
 
@@ -40,12 +43,22 @@ const HEADWEAR_LABELS: Record<Headwear, string> = {
   welle: 'Wasserwelle',
   glocke: 'Glockenhut',
 }
-const HAIR_TONE_LABELS: Record<HairTone, string> = { dunkel: 'Dunkel', hell: 'Blond', grau: 'Ergraut' }
+const HAIR_TONE_LABELS: Record<HairTone, string> = { dunkel: 'Dunkel', hell: 'Blond', rot: 'Rot', grau: 'Ergraut' }
 const CLOTHING_LABELS: Record<Clothing, string> = {
   arbeiterjacke: 'Arbeiterjacke',
   trenchcoat: 'Trenchcoat',
   weste: 'Weste und Krawatte',
   kleid: 'Kleid mit Kragen',
+}
+const DETAIL_LABELS: Record<AvatarDetail, string> = {
+  keine: 'Nichts weiter',
+  sommersprossen: 'Sommersprossen',
+  schal: 'Schal',
+  schnurrbart: 'Schnurrbart',
+}
+const DETAIL_BY_GENDER: Record<Gender, AvatarDetail[]> = {
+  m: ['keine', 'sommersprossen', 'schal', 'schnurrbart'],
+  w: ['keine', 'sommersprossen', 'schal'],
 }
 const HEADWEAR_BY_GENDER: Record<Gender, Headwear[]> = {
   m: ['schiebermuetze', 'fedora', 'kurz'],
@@ -70,14 +83,19 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
   const ideologies = resolve(IDEOLOGIES, level)
   const later = startChapter === 2
   const [avatar, setAvatar] = useState<AvatarConfig>(DEFAULT_AVATAR.m)
-  const [name, setName] = useState('Karl')
+  const [name, setName] = useState('')
   const [profession, setProfession] = useState<ProfessionKey>('arbeiter')
   const [ideology, setIdeology] = useState<IdeologyKey>('sozialdemokratisch')
   const [touched, setTouched] = useState(false)
   const [groupName, setGroupName] = useState(GROUP_NAMES[0])
   const [motto, setMotto] = useState(MOTTOS[0])
   const [codename, setCodename] = useState(CODENAMES[0])
+  const [team, setTeam] = useState<string[]>([])
+  // Drei Schritte statt einer langen Seite: du, deine Gefährten, eure Gruppe
+  const [step, setStep] = useState<1 | 2 | 3>(1)
   const groupValid = groupName.trim().length >= 2 && groupName.trim().length <= 30
+  const codenameValid = NAME_PATTERN.test(codename.trim())
+  const mottoValid = motto.trim().length >= 2
 
   const gender = avatar.gender
   const stats = useMemo(() => leaderStats(profession, ideology), [profession, ideology])
@@ -87,35 +105,84 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
 
   const setGender = (g: Gender) => {
     if (g === gender) return
-    setAvatar({ ...DEFAULT_AVATAR[g], face: avatar.face, glasses: avatar.glasses, hairTone: avatar.hairTone })
-    const allDefaults = [...NAME_SUGGESTIONS.m, ...NAME_SUGGESTIONS.w]
-    if (!name.trim() || allDefaults.includes(name.trim())) setName(NAME_SUGGESTIONS[g][0])
+    const detail = avatar.detail === 'schnurrbart' ? 'keine' : avatar.detail
+    setAvatar({ ...DEFAULT_AVATAR[g], face: avatar.face, glasses: avatar.glasses, hairTone: avatar.hairTone, detail })
   }
+
+  // Wer genauso heißt wie du, kann nicht in die Gruppe: Sonst wüsste niemand, wer gemeint ist
+  const sameName = (companion: string) => !!name.trim() && firstName({ name: companion }) === firstName({ name: name.trim() })
+  const toggleCompanion = (companion: string) =>
+    setTeam((cur) => (cur.includes(companion) ? cur.filter((x) => x !== companion) : cur.length >= 3 ? cur : [...cur, companion]))
+  const activeTeam = team.filter((c) => !sameName(c))
 
   const patch = (p: Partial<AvatarConfig>) => setAvatar((a) => ({ ...a, ...p }))
 
-  const submit = () => {
+  const missingByStep: Record<1 | 2 | 3, string[]> = {
+    1: [!nameValid && 'deinen Vornamen'].filter(Boolean) as string[],
+    2: [activeTeam.length !== 3 && 'drei Gefährten'].filter(Boolean) as string[],
+    3: [!groupValid && 'einen Namen für die Gruppe', !mottoValid && 'einen Leitspruch', !codenameValid && 'einen Decknamen'].filter(
+      Boolean,
+    ) as string[],
+  }
+  const missing = missingByStep[step]
+  const [tried, setTried] = useState(0)
+
+  const goStep = (to: 1 | 2 | 3) => {
+    setStep(to)
+    setTried(0)
+    window.scrollTo({ top: 0 })
+  }
+  const forward = () => {
     setTouched(true)
-    if (!nameValid || !groupValid) return
-    startGame({ level, name: name.trim(), avatar, profession, ideology, groupName: groupName.trim(), motto, codename }, later ? CHAPTERS[2].first : 0)
+    setTried(step)
+    if (missing.length > 0) return
+    if (step < 3) return goStep((step + 1) as 2 | 3)
+    submit()
+  }
+  const back = () => (step === 1 ? onBack() : goStep((step - 1) as 1 | 2))
+
+  const submit = () => {
+    if (Object.values(missingByStep).some((m) => m.length > 0)) return
+    startGame(
+      { level, name: name.trim(), avatar, profession, ideology, groupName: groupName.trim(), motto: motto.trim(), codename: codename.trim(), companions: activeTeam },
+      later ? CHAPTERS[2].first : 0,
+    )
   }
 
   return (
     <main className="min-h-dvh px-4 py-6 sm:py-10">
       <div className="mx-auto max-w-6xl">
-        <button onClick={onBack} className={`${s.typewriter} tap-area mb-4 inline-flex items-center gap-2 text-sm text-fog hover:text-paper`}>
-          <ArrowLeft size={16} aria-hidden /> Zurück zur Vorgeschichte
+        <button onClick={back} className={`${s.typewriter} tap-area mb-4 inline-flex items-center gap-2 text-sm text-fog hover:text-paper`}>
+          <ArrowLeft size={16} aria-hidden /> {step === 1 ? 'Zurück zur Vorgeschichte' : `Zurück zu Schritt ${step - 1}`}
         </button>
 
         <div className={`${s.paper} relative px-5 py-7 sm:px-10 sm:py-10`}>
           <header className="border-b-2 border-ink pb-5">
-            <p className={`${s.typewriter} text-sm tracking-[0.25em] text-slate uppercase`}>{later ? 'Berlin, im März 1936' : 'Berlin, im Januar 1933'}</p>
-            <h1 className="mt-2 font-serif text-4xl font-bold sm:text-5xl">Wer bist du?</h1>
+            <p className={`${s.typewriter} text-sm tracking-[0.15em] text-slate uppercase`}>{later ? 'Berlin, im März 1936' : 'Berlin, im Januar 1933'}</p>
+            <h1 className="mt-2 font-serif text-4xl font-bold sm:text-5xl">{STEP_TITLES[step]}</h1>
             <p className="mt-2 max-w-2xl font-serif text-lg italic text-sepia">
-              {level === 'leicht'
-                ? 'Du bist ein ganz normaler Mensch in Berlin. Dir geht es gut. Niemand verfolgt dich. Aber du willst nicht wegsehen.'
-                : 'Du gehörst nicht zu denen, die das Regime verfolgt. Du könntest dich heraushalten. Schreib auf, wer du bist, und dann wirf das Blatt ins Feuer.'}
+              {step === 1
+                ? level === 'leicht'
+                  ? 'Du bist ein ganz normaler Mensch in Berlin. Dir geht es gut. Niemand verfolgt dich. Aber du willst nicht wegsehen.'
+                  : 'Du gehörst nicht zu denen, die das Regime verfolgt. Du könntest dich heraushalten. Schreib auf, wer du bist, und dann wirf das Blatt ins Feuer.'
+                : step === 2
+                  ? 'Drei Menschen gehen mit dir in den Widerstand. Du entscheidest, wem du vertraust.'
+                  : 'Eine Gruppe braucht einen Namen, einen Leitspruch und Regeln, an die sich alle halten.'}
             </p>
+            <ol className="mt-4 flex flex-wrap gap-2" aria-label={`Schritt ${step} von 3`}>
+              {([1, 2, 3] as const).map((n) => (
+                <li
+                  key={n}
+                  aria-current={n === step ? 'step' : undefined}
+                  className={`${s.typewriter} flex items-center gap-2 border-2 px-3 py-1.5 text-sm font-bold ${
+                    n === step ? 'border-ink bg-ink text-paper' : n < step ? 'border-ink/60 text-ink' : 'border-ink/25 text-slate'
+                  }`}
+                >
+                  <span className="grid h-5 w-5 place-items-center rounded-full border border-current text-xs">{n < step ? <Check size={12} aria-hidden /> : n}</span>
+                  {STEP_LABELS[n]}
+                </li>
+              ))}
+            </ol>
             <p className={`${s.typewriter} mt-3 inline-block border border-ink px-2 py-1 text-xs font-bold tracking-[0.1em] uppercase`}>
               Stufe: {DIFFICULTIES[level].label}
             </p>
@@ -128,8 +195,8 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
           </header>
 
           <div className="mt-8 grid gap-10 lg:grid-cols-[300px_1fr]">
-            {/* Lichtbild und Übersicht */}
-            <aside className="lg:sticky lg:top-6 lg:self-start">
+            {/* Lichtbild und Übersicht. Auf schmalen Bildschirmen nur in Schritt 1, damit später die Auswahl oben steht */}
+            <aside className={`lg:sticky lg:top-6 lg:self-start ${step > 1 ? 'max-lg:hidden' : ''}`}>
               <figure className="mx-auto w-fit -rotate-1 border border-ink/40 bg-paper-dark p-3 shadow-[4px_6px_0_rgba(28,28,30,0.25)]">
                 <Avatar config={avatar} size={220} title={`Porträt von ${name || 'dir'}`} />
                 <figcaption className={`${s.typewriter} mt-2 text-center text-lg font-bold`}>{name.trim() || '...'}</figcaption>
@@ -157,186 +224,295 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
             </aside>
 
             <div className="space-y-10">
-              <Section numeral="I" title="Person">
-                <Field label="Geschlecht">
-                  <ChipGroup label="Geschlecht">
-                    {(['m', 'w'] as Gender[]).map((g) => (
-                      <Chip key={g} checked={gender === g} onClick={() => setGender(g)} className="px-5 py-3">
-                        {g === 'm' ? 'Männlich' : 'Weiblich'}
-                      </Chip>
-                    ))}
-                  </ChipGroup>
-                </Field>
-                <Field label="Name" htmlFor="leader-name">
-                  <input
-                    id="leader-name"
-                    value={name}
-                    maxLength={20}
-                    onChange={(e) => setName(e.target.value)}
-                    onBlur={() => setTouched(true)}
-                    aria-invalid={touched && !nameValid}
-                    aria-describedby="name-hint"
-                    className={`${s.typewriter} w-full max-w-sm border-0 border-b-2 border-ink bg-transparent px-1 py-2 text-2xl font-bold outline-none focus:border-crimson`}
-                  />
-                  <p id="name-hint" className={`${s.typewriter} mt-2 text-sm ${touched && !nameValid ? 'text-crimson' : 'text-slate'}`}>
-                    {touched && !nameValid
-                      ? 'Bitte einen Vornamen aus zwei bis zwanzig Buchstaben eintragen.'
-                      : 'Ein Vorname genügt. Nachnamen verraten zu viel.'}
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {NAME_SUGGESTIONS[gender].map((n) => (
-                      <button
-                        key={n}
-                        onClick={() => setName(n)}
-                        className={`${s.chip} px-3.5 py-2.5 text-sm`}
-                        aria-pressed={name === n}
-                      >
-                        {n}
-                      </button>
-                    ))}
-                  </div>
-                </Field>
-              </Section>
+              {step === 1 && (
+                <>
+                  <Section numeral="I" title="Person">
+                    <Field label="Geschlecht">
+                      <ChipGroup label="Geschlecht">
+                        {(['m', 'w'] as Gender[]).map((g) => (
+                          <Chip key={g} checked={gender === g} onClick={() => setGender(g)} className="px-5 py-3">
+                            {g === 'm' ? 'Männlich' : 'Weiblich'}
+                          </Chip>
+                        ))}
+                      </ChipGroup>
+                    </Field>
+                    <Field label="Vorname" htmlFor="leader-name">
+                      <TextField
+                        id="leader-name"
+                        value={name}
+                        maxLength={20}
+                        autoCapitalize="words"
+                        placeholder="Dein Vorname"
+                        onChange={(e) => setName(e.target.value)}
+                        onBlur={() => name && setTouched(true)}
+                        aria-invalid={touched && !nameValid}
+                        aria-describedby="name-hint"
+                        className="max-w-sm text-2xl"
+                      />
+                      <p id="name-hint" className={`${s.typewriter} mt-2 text-sm ${touched && !nameValid ? 'text-crimson' : 'text-slate'}`}>
+                        {touched && !nameValid
+                          ? 'Bitte einen Vornamen aus zwei bis zwanzig Buchstaben eintragen.'
+                          : 'Nimm deinen eigenen Vornamen oder denk dir einen aus. Ein Vorname genügt, Nachnamen verraten zu viel.'}
+                      </p>
+                    </Field>
+                  </Section>
 
-              <Section numeral="II" title="Aussehen">
-                <Field label="Gesichtsform">
-                  <ChipGroup label="Gesichtsform">
-                    {(Object.keys(FACE_LABELS) as FaceShape[]).map((f) => (
-                      <PreviewChip key={f} checked={avatar.face === f} onClick={() => patch({ face: f })} config={{ ...avatar, face: f }}>
-                        {FACE_LABELS[f]}
-                      </PreviewChip>
-                    ))}
-                  </ChipGroup>
-                </Field>
-                <Field label="Haar und Kopfbedeckung">
-                  <ChipGroup label="Haar und Kopfbedeckung">
-                    {HEADWEAR_BY_GENDER[gender].map((h) => (
-                      <PreviewChip key={h} checked={avatar.headwear === h} onClick={() => patch({ headwear: h })} config={{ ...avatar, headwear: h }}>
-                        {HEADWEAR_LABELS[h]}
-                      </PreviewChip>
-                    ))}
-                  </ChipGroup>
-                </Field>
-                <div className="grid gap-8 sm:grid-cols-2">
-                  <Field label="Haarfarbe">
-                    <ChipGroup label="Haarfarbe">
-                      {(Object.keys(HAIR_TONE_LABELS) as HairTone[]).map((t) => (
-                        <Chip key={t} checked={avatar.hairTone === t} onClick={() => patch({ hairTone: t })} className="px-4 py-2.5">
-                          {HAIR_TONE_LABELS[t]}
+                  <Section numeral="II" title="Aussehen">
+                    <Field label="Gesichtsform">
+                      <ChipGroup label="Gesichtsform">
+                        {(Object.keys(FACE_LABELS) as FaceShape[]).map((f) => (
+                          <PreviewChip key={f} checked={avatar.face === f} onClick={() => patch({ face: f })} config={{ ...avatar, face: f }}>
+                            {FACE_LABELS[f]}
+                          </PreviewChip>
+                        ))}
+                      </ChipGroup>
+                    </Field>
+                    <Field label="Haar und Kopfbedeckung">
+                      <ChipGroup label="Haar und Kopfbedeckung">
+                        {HEADWEAR_BY_GENDER[gender].map((h) => (
+                          <PreviewChip key={h} checked={avatar.headwear === h} onClick={() => patch({ headwear: h })} config={{ ...avatar, headwear: h }}>
+                            {HEADWEAR_LABELS[h]}
+                          </PreviewChip>
+                        ))}
+                      </ChipGroup>
+                    </Field>
+                    <div className="grid gap-8 sm:grid-cols-2">
+                      <Field label="Haarfarbe">
+                        <ChipGroup label="Haarfarbe">
+                          {(Object.keys(HAIR_TONE_LABELS) as HairTone[]).map((t) => (
+                            <Chip key={t} checked={avatar.hairTone === t} onClick={() => patch({ hairTone: t })} className="px-4 py-2.5">
+                              {HAIR_TONE_LABELS[t]}
+                            </Chip>
+                          ))}
+                        </ChipGroup>
+                      </Field>
+                      <Field label="Brille">
+                        <ChipGroup label="Brille">
+                          {[false, true].map((g) => (
+                            <Chip key={String(g)} checked={avatar.glasses === g} onClick={() => patch({ glasses: g })} className="px-4 py-2.5">
+                              {g ? 'Nickelbrille' : 'Ohne Brille'}
+                            </Chip>
+                          ))}
+                        </ChipGroup>
+                      </Field>
+                    </div>
+                    <Field label="Besonderheit">
+                      <ChipGroup label="Besonderheit">
+                        {DETAIL_BY_GENDER[gender].map((d) => (
+                          <PreviewChip
+                            key={d}
+                            checked={(avatar.detail ?? 'keine') === d}
+                            onClick={() => patch({ detail: d })}
+                            config={{ ...avatar, detail: d }}
+                          >
+                            {DETAIL_LABELS[d]}
+                          </PreviewChip>
+                        ))}
+                      </ChipGroup>
+                    </Field>
+                    <Field label="Kleidung">
+                      <ChipGroup label="Kleidung">
+                        {CLOTHING_BY_GENDER[gender].map((c) => (
+                          <PreviewChip key={c} checked={avatar.clothing === c} onClick={() => patch({ clothing: c })} config={{ ...avatar, clothing: c }}>
+                            {CLOTHING_LABELS[c]}
+                          </PreviewChip>
+                        ))}
+                      </ChipGroup>
+                    </Field>
+                  </Section>
+
+                  <Section numeral="III" title="Beruf">
+                    <ChipGroup label="Beruf" className="grid gap-3 sm:grid-cols-2">
+                      {professions.map((p) => (
+                        <Chip key={p.key} checked={profession === p.key} onClick={() => setProfession(p.key)} className="p-4">
+                          <span className="block font-serif text-xl font-bold">{p.label[gender]}</span>
+                          <span className="mt-1 block font-serif text-base leading-snug">{p.text}</span>
+                          <span className="mt-2 block text-sm font-bold text-crimson">Vorteil: {p.bonusLabel}</span>
                         </Chip>
                       ))}
                     </ChipGroup>
-                  </Field>
-                  <Field label="Brille">
-                    <ChipGroup label="Brille">
-                      {[false, true].map((g) => (
-                        <Chip key={String(g)} checked={avatar.glasses === g} onClick={() => patch({ glasses: g })} className="px-4 py-2.5">
-                          {g ? 'Nickelbrille' : 'Ohne Brille'}
+                  </Section>
+
+                  <Section numeral="IV" title="Gesinnung">
+                    <ChipGroup label="Gesinnung" className="grid gap-3 sm:grid-cols-2">
+                      {ideologies.map((i) => (
+                        <Chip key={i.key} checked={ideology === i.key} onClick={() => setIdeology(i.key)} className="p-4">
+                          <span className="block font-serif text-xl font-bold">{i.label}</span>
+                          <span className="mt-1 block font-serif text-base leading-snug">{i.text}</span>
+                          <span className="mt-2 block text-sm font-bold text-crimson">{i.bonusLabel}</span>
                         </Chip>
                       ))}
                     </ChipGroup>
-                  </Field>
-                </div>
-                <Field label="Kleidung">
-                  <ChipGroup label="Kleidung">
-                    {CLOTHING_BY_GENDER[gender].map((c) => (
-                      <PreviewChip key={c} checked={avatar.clothing === c} onClick={() => patch({ clothing: c })} config={{ ...avatar, clothing: c }}>
-                        {CLOTHING_LABELS[c]}
-                      </PreviewChip>
-                    ))}
-                  </ChipGroup>
-                </Field>
-              </Section>
+                  </Section>
 
-              <Section numeral="III" title="Beruf">
-                <ChipGroup label="Beruf" className="grid gap-3 sm:grid-cols-2">
-                  {professions.map((p) => (
-                    <Chip key={p.key} checked={profession === p.key} onClick={() => setProfession(p.key)} className="p-4">
-                      <span className="block font-serif text-xl font-bold">{p.label[gender]}</span>
-                      <span className="mt-1 block font-serif text-base leading-snug">{p.text}</span>
-                      <span className="mt-2 block text-sm font-bold text-crimson">Vorteil: {p.bonusLabel}</span>
-                    </Chip>
-                  ))}
-                </ChipGroup>
-              </Section>
+                </>
+              )}
 
-              <Section numeral="IV" title="Gesinnung">
-                <ChipGroup label="Gesinnung" className="grid gap-3 sm:grid-cols-2">
-                  {ideologies.map((i) => (
-                    <Chip key={i.key} checked={ideology === i.key} onClick={() => setIdeology(i.key)} className="p-4">
-                      <span className="block font-serif text-xl font-bold">{i.label}</span>
-                      <span className="mt-1 block font-serif text-base leading-snug">{i.text}</span>
-                      <span className="mt-2 block text-sm font-bold text-crimson">{i.bonusLabel}</span>
-                    </Chip>
-                  ))}
-                </ChipGroup>
-              </Section>
-
-              <Section numeral="V" title="Eure Widerstandsgruppe">
-                <p className="max-w-2xl font-serif text-lg leading-relaxed">
-                  {later
-                    ? 'Seit drei Jahren trefft ihr euch heimlich. Ihr seid eine Widerstandsgruppe: Menschen, die nicht mitmachen, sondern für andere einstehen.'
-                    : 'Du bist nicht allein. Mit drei Gefährten gründest du eine Widerstandsgruppe. Euch selbst droht erst einmal nichts. Gerade deshalb könnt ihr denen helfen, die verfolgt werden. Gebt euch einen Namen, den nur ihr kennt.'}
-                </p>
-                <div className="max-w-2xl border-l-4 border-crimson bg-paper-dark px-4 py-3">
-                  <p className={`${s.typewriter} text-xs font-bold tracking-[0.15em] uppercase`}>Eure Regeln</p>
-                  <ol className="mt-1 list-decimal space-y-0.5 pl-5 font-serif text-[16px] leading-snug">
-                    {GROUP_RULES.map((rule, i) => (
-                      <li key={rule} className={i === 0 ? 'font-bold' : ''}>
-                        {rule}
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-                <Field label="Name der Gruppe" htmlFor="group-name">
-                  <input
-                    id="group-name"
-                    value={groupName}
-                    maxLength={30}
-                    onChange={(e) => setGroupName(e.target.value)}
-                    aria-invalid={!groupValid}
-                    className={`${s.typewriter} w-full max-w-md border-0 border-b-2 border-ink bg-transparent px-1 py-2 text-2xl font-bold outline-none focus:border-crimson`}
-                  />
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {GROUP_NAMES.map((g) => (
-                      <button key={g} onClick={() => setGroupName(g)} className={`${s.chip} px-3.5 py-2.5 text-sm`} aria-pressed={groupName === g}>
-                        {g}
-                      </button>
-                    ))}
-                  </div>
-                </Field>
-                <Field label="Euer Leitspruch">
-                  <ChipGroup label="Euer Leitspruch" className="grid gap-2 sm:grid-cols-2">
-                    {MOTTOS.map((m) => (
-                      <Chip key={m} checked={motto === m} onClick={() => setMotto(m)} className="px-4 py-3 font-serif text-lg">
-                        „{m}“
-                      </Chip>
-                    ))}
-                  </ChipGroup>
-                </Field>
-                <Field label="Dein Deckname">
-                  <p className="mb-2 font-serif text-base text-sepia">
-                    Im Widerstand benutzte man falsche Namen. Wer verhaftet wurde, konnte so die echten Namen der anderen nicht verraten.
+              {step === 2 && (
+                <Section numeral="V" title="Deine Gefährten">
+                  <p className="max-w-2xl font-serif text-lg leading-relaxed">
+                    {later
+                      ? 'Seit drei Jahren trefft ihr euch heimlich. Wer ist mit dir im Widerstand? Wähle drei Menschen.'
+                      : 'Allein kannst du wenig tun. Wem vertraust du genug, um mit ihm oder ihr Widerstand zu leisten? Wähle drei Menschen. Jeder kann etwas anderes gut.'}
                   </p>
-                  <ChipGroup label="Dein Deckname">
-                    {CODENAMES.slice(0, 8).map((c) => (
-                      <Chip key={c} checked={codename === c} onClick={() => setCodename(c)} className="px-4 py-2.5">
-                        {c}
-                      </Chip>
-                    ))}
-                  </ChipGroup>
-                </Field>
+                  <p className={`${s.typewriter} text-sm font-bold ${touched && activeTeam.length !== 3 ? 'text-crimson' : 'text-slate'}`} role="status">
+                    {activeTeam.length} von 3 gewählt{activeTeam.length === 3 && '. Zum Tauschen tippe eine gewählte Person noch einmal an.'}
+                  </p>
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3" role="group" aria-label="Gefährten wählen">
+                    {COMPANIONS.map((c) => {
+                      const picked = team.includes(c.name)
+                      const blocked = sameName(c.name)
+                      const full = !picked && team.length >= 3
+                      return (
+                        <button
+                          key={c.name}
+                          onClick={() => toggleCompanion(c.name)}
+                          disabled={blocked}
+                          aria-pressed={picked}
+                          className={`${s.chip} relative flex gap-3 p-3 text-left ${full ? 'opacity-60' : ''}`}
+                        >
+                          <span className="shrink-0">
+                            <Avatar config={c.avatar} size={64} title="" />
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block font-serif text-lg leading-tight font-bold">{c.name}</span>
+                            <span className="block font-type text-xs text-slate">{c.beruf}</span>
+                            <span className="mt-1 block font-serif text-[15px] leading-snug">{resolve(c.bio, level)}</span>
+                            <span className="mt-1 block font-type text-xs font-bold text-crimson">
+                              {blocked ? 'Heißt wie du' : `Stark in: ${STAT_LABELS[bestStat(c.stats)]}`}
+                            </span>
+                          </span>
+                          {picked && (
+                            <span className="absolute top-2 right-2 grid h-6 w-6 place-items-center bg-crimson text-paper" aria-hidden>
+                              <Check size={15} />
+                            </span>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
               </Section>
+
+              )}
+
+              {step === 3 && (
+                <Section numeral="VI" title="Eure Widerstandsgruppe">
+                  <p className="max-w-2xl font-serif text-lg leading-relaxed">
+                    {later
+                      ? 'Ihr seid eine Widerstandsgruppe: Menschen, die nicht mitmachen, sondern für andere einstehen.'
+                      : 'Euch selbst droht erst einmal nichts. Gerade deshalb könnt ihr denen helfen, die verfolgt werden. Gebt euch einen Namen, den nur ihr kennt.'}
+                  </p>
+                  <div className="max-w-2xl border-l-4 border-crimson bg-paper-dark px-4 py-3">
+                    <p className={`${s.typewriter} text-xs font-bold tracking-[0.15em] uppercase`}>Eure Regeln</p>
+                    <ol className="mt-1 list-decimal space-y-0.5 pl-5 font-serif text-[16px] leading-snug">
+                      {GROUP_RULES.map((rule, i) => (
+                        <li key={rule} className={i === 0 ? 'font-bold' : ''}>
+                          {rule}
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                  <Field label="Name der Gruppe" htmlFor="group-name">
+                    <p className="mb-3 max-w-2xl font-serif text-base text-sepia">
+                      Echte Gruppen gaben sich oft harmlose Namen, damit niemand Verdacht schöpfte. Eine Berliner Gruppe, die ab 1938
+                      Verfolgte versteckte, nannte sich „Onkel Emil“.
+                    </p>
+                    <TextField
+                      id="group-name"
+                      value={groupName}
+                      maxLength={30}
+                      placeholder="Name eurer Gruppe"
+                      onChange={(e) => setGroupName(e.target.value)}
+                      aria-invalid={!groupValid}
+                      className="max-w-md text-2xl"
+                    />
+                    <Suggestions hint="Denkt euch einen eigenen Namen aus oder tippt einen Vorschlag an:">
+                      {GROUP_NAMES.map((g) => (
+                        <button key={g} onClick={() => setGroupName(g)} className={`${s.chip} px-3.5 py-2.5 text-sm`} aria-pressed={groupName === g}>
+                          {g}
+                        </button>
+                      ))}
+                    </Suggestions>
+                  </Field>
+                  <Field label="Euer Leitspruch" htmlFor="group-motto">
+                    <TextField
+                      id="group-motto"
+                      value={motto}
+                      maxLength={60}
+                      placeholder="Euer Leitspruch"
+                      onChange={(e) => setMotto(e.target.value)}
+                      aria-invalid={!mottoValid}
+                      className="max-w-xl text-xl"
+                    />
+                    <Suggestions hint="Schreibt einen eigenen Leitspruch oder tippt einen Vorschlag an:">
+                      {MOTTOS.map((m) => (
+                        <button key={m} onClick={() => setMotto(m)} className={`${s.chip} px-3.5 py-2.5 font-serif text-base`} aria-pressed={motto === m}>
+                          „{m}“
+                        </button>
+                      ))}
+                    </Suggestions>
+                  </Field>
+                  <Field label="Dein Deckname" htmlFor="codename">
+                    <p className="mb-3 max-w-2xl font-serif text-base text-sepia">
+                      Im Widerstand benutzte man falsche Namen. Wer verhaftet wurde, konnte so die echten Namen der anderen nicht verraten.
+                      Am besten ein Wort, das nichts über dich verrät.
+                    </p>
+                    <TextField
+                      id="codename"
+                      value={codename}
+                      maxLength={20}
+                      autoCapitalize="words"
+                      placeholder="Dein Deckname"
+                      onChange={(e) => setCodename(e.target.value)}
+                      aria-invalid={!codenameValid}
+                      className="max-w-xs text-xl"
+                    />
+                    <Suggestions hint="Denk dir einen eigenen aus oder tippe einen Vorschlag an:">
+                      {CODENAMES.slice(0, 8).map((c) => (
+                        <button key={c} onClick={() => setCodename(c)} className={`${s.chip} px-3.5 py-2.5 text-sm`} aria-pressed={codename === c}>
+                          {c}
+                        </button>
+                      ))}
+                    </Suggestions>
+                  </Field>
+                </Section>
+
+              )}
 
               <div className="flex flex-col items-start gap-3 border-t-2 border-ink pt-6 sm:flex-row sm:items-center sm:justify-between">
-                <p className="max-w-md font-serif text-base italic text-sepia">
-                  {later
-                    ? 'Seit drei Jahren arbeitet deine kleine Gruppe im Verborgenen. Drei Gefährten sind geblieben.'
-                    : 'Drei Gefährten warten schon in deiner Küche. Ab heute bist du für sie verantwortlich.'}
-                </p>
-                <StampButton variant="ink" onClick={submit} className="w-full text-base sm:w-auto">
-                  {later ? 'Weiter im Widerstand' : 'Die Gruppe gründen'}
-                </StampButton>
+                {step === 3 ? (
+                  <p className="max-w-md font-serif text-base italic text-sepia">
+                    {later
+                      ? 'Seit drei Jahren arbeitet deine kleine Gruppe im Verborgenen. Drei Gefährten sind geblieben.'
+                      : 'Drei Gefährten warten schon in deiner Küche. Ab heute bist du für sie verantwortlich.'}
+                  </p>
+                ) : (
+                  <StampButton variant="quiet" onClick={back}>
+                    <ArrowLeft size={16} aria-hidden /> Zurück
+                  </StampButton>
+                )}
+                <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:items-end">
+                  <StampButton variant="ink" onClick={forward} className="w-full text-base sm:w-auto">
+                    {step === 1 ? (
+                      <>
+                        Weiter zu deinen Gefährten <ArrowRight size={16} aria-hidden />
+                      </>
+                    ) : step === 2 ? (
+                      <>
+                        Weiter zu eurer Gruppe <ArrowRight size={16} aria-hidden />
+                      </>
+                    ) : later ? (
+                      'Weiter im Widerstand'
+                    ) : (
+                      'Die Gruppe gründen'
+                    )}
+                  </StampButton>
+                  {tried === step && missing.length > 0 && (
+                    <p className={`${s.typewriter} text-sm font-bold text-crimson`} role="alert">
+                      Es fehlt noch: {missing.join(', ')}.
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -344,6 +520,41 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
       </div>
     </main>
   )
+}
+
+const STEP_TITLES = { 1: 'Wer bist du?', 2: 'Wer ist mit dir?', 3: 'Eure Gruppe' } as const
+const STEP_LABELS = { 1: 'Du', 2: 'Deine Gefährten', 3: 'Eure Gruppe' } as const
+
+/**
+ * Ein Eingabefeld, das auch auf dem Tablet sofort als beschreibbar erkennbar ist:
+ * heller Kasten, Stift-Symbol, Tippen setzt den Cursor.
+ */
+function TextField({ className = '', ...props }: ComponentProps<'input'>) {
+  return (
+    <label className={`group flex w-full cursor-text items-center gap-2 border-2 border-dashed border-ink/50 bg-paper px-3 focus-within:border-solid focus-within:border-crimson ${className}`}>
+      <input
+        autoComplete="off"
+        {...props}
+        className={`${s.typewriter} min-w-0 flex-1 bg-transparent py-2.5 font-bold outline-none placeholder:font-normal placeholder:text-slate/60`}
+      />
+      <PenLine size={18} className="shrink-0 text-slate group-focus-within:text-crimson" aria-hidden />
+    </label>
+  )
+}
+
+/** Vorschläge unter einem Eingabefeld, mit dem Hinweis, dass man auch Eigenes schreiben darf */
+function Suggestions({ hint, children }: { hint: string; children: ReactNode }) {
+  return (
+    <>
+      <p className={`${s.typewriter} mt-3 text-sm text-slate`}>{hint}</p>
+      <div className="mt-2 flex flex-wrap gap-2">{children}</div>
+    </>
+  )
+}
+
+/** Worin eine Person am stärksten ist */
+function bestStat(stats: Record<StatKey, number>): StatKey {
+  return STAT_ORDER.reduce((best, k) => (stats[k] > stats[best] ? k : best), STAT_ORDER[0])
 }
 
 function Section({ numeral, title, children }: { numeral: string; title: string; children: ReactNode }) {

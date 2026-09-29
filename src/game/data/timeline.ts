@@ -141,7 +141,7 @@ export const TIMELINE_INTRO: { title: Txt; text: Txt } = {
 export const TIMELINE_OUTRO: { title: Txt; text: Txt } = {
   title: L('Und ihr?', 'Und ihr?'),
   text: L(
-    'Ihr seid ganz normale Menschen in Berlin. Ihr seid nicht jüdisch. Euch verfolgen die Nazis nicht wegen eurer Herkunft. Ihr könntet einfach wegsehen und sagen: „Uns geht es doch gut.“ Viele tun das. Ihr nicht. Ihr gründet eine Widerstandsgruppe und helft denen, die verfolgt werden.',
-    'Ihr spielt ganz gewöhnliche Berlinerinnen und Berliner. Ihr gehört nicht zu denen, die das Regime aus rassistischen Gründen verfolgt. Ihr könntet euch arrangieren, wie Millionen andere, und sagen: „Uns geht es doch gut.“ Ihr entscheidet euch anders. Ihr gründet eine Widerstandsgruppe und steht denen bei, die verfolgt werden. Denn Solidarität ist Widerstand.',
+    'Ihr seid ganz normale Menschen in Berlin. Die Nazis verfolgen Menschen dafür, wer sie sind. Sie verfolgen Jüdinnen und Juden, Sinti und Roma, Menschen mit Behinderung und Homosexuelle. Ihr gehört nicht dazu. Wer den Nazis widerspricht, kommt ins Gefängnis. Ihr könntet also einfach schweigen und sagen: „Uns geht es doch gut.“ Viele tun das. Ihr nicht. Ihr gründet eine Widerstandsgruppe und helft denen, die verfolgt werden.',
+    'Ihr spielt ganz gewöhnliche Berlinerinnen und Berliner. Das Regime verfolgt Menschen dafür, wer sie sind oder woran sie glauben: Jüdinnen und Juden, Sinti und Roma, Menschen mit Behinderung, Homosexuelle, Zeugen Jehovas. Zu ihnen gehört ihr nicht. Wer widerspricht, riskiert Gefängnis und Lager. Ihr könntet also schweigen, euch arrangieren wie Millionen andere und sagen: „Uns geht es doch gut.“ Ihr entscheidet euch anders. Ihr gründet eine Widerstandsgruppe und steht denen bei, die verfolgt werden. Denn Solidarität ist Widerstand.',
   ),
 }

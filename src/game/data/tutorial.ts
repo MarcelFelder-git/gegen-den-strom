@@ -20,8 +20,8 @@ export const TUTORIAL: TutorialPage[] = [
         'Ihr führt eine kleine Widerstandsgruppe in Berlin. Selbst werdet ihr nicht verfolgt, ihr könntet euch also heraushalten. Stattdessen entscheidet ihr, nicht wegzusehen.',
       ),
       L(
-        'Ihr könnt die Nazis nicht besiegen. Das hat damals keine Gruppe geschafft. Aber ihr könnt Menschen helfen. Jede Hilfe zählt bei „Geholfen“ oben am Bildschirm.',
-        'Den Nationalsozialismus besiegt ihr im Spiel nicht, das gelang keiner Gruppe im Widerstand. Gemessen wird, wie vielen Menschen ihr beisteht. Das zeigt die Anzeige „Geholfen“ oben am Bildschirm.',
+        'Ihr könnt die Nazis nicht besiegen. Das hat damals keine Gruppe geschafft. Aber ihr könnt Menschen helfen. Jede Hilfe zählt bei „Geholfen“ oben am Bildschirm. Tippt darauf, dann seht ihr die Gesichter.',
+        'Den Nationalsozialismus besiegt ihr im Spiel nicht, das gelang keiner Gruppe im Widerstand. Gemessen wird, wie vielen Menschen ihr beisteht. Das zeigt die Anzeige „Geholfen“ oben am Bildschirm. Tippt ihr darauf, seht ihr die Menschen dahinter.',
       ),
     ],
   },

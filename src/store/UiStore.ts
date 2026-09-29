@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { isMuted, setMuted, sound } from '../audio/sound'
 import type { Level } from '../game/text'
 
-type Overlay = 'lexikon' | 'lehrkraefte' | 'vorbilder' | 'chronik' | 'bildnachweis' | null
+type Overlay = 'lexikon' | 'lehrkraefte' | 'vorbilder' | 'chronik' | 'bildnachweis' | 'geholfen' | null
 
 interface UiState {
   overlay: Overlay
@@ -12,6 +12,8 @@ interface UiState {
   openAlbum: () => void
   openChronicle: () => void
   openCredits: () => void
+  /** Die Gesichter der Menschen, denen die Gruppe geholfen hat */
+  openHelped: () => void
   /** Mit welchem Kapitel ein neues Spiel beginnt */
   startChapter: 1 | 2
   setStartChapter: (c: 1 | 2) => void
@@ -38,6 +40,7 @@ export const useUi = create<UiState>()((set) => ({
   openAlbum: () => set({ overlay: 'vorbilder' }),
   openChronicle: () => set({ overlay: 'chronik' }),
   openCredits: () => set({ overlay: 'bildnachweis' }),
+  openHelped: () => set({ overlay: 'geholfen' }),
   startChapter: 1,
   setStartChapter: (c) => set({ startChapter: c }),
   draftLevel: 'leicht',

@@ -48,13 +48,13 @@ export function HeroCardView({ card, number }: { card: Card; number: number }) {
         <div>
           <Portrait card={card} className="aspect-[3/4] w-full max-w-[180px]" />
           {card.photo && (
-            <p className="mt-2 font-type text-[10px] leading-snug text-slate">
+            <p className="mt-2 font-type text-xs leading-snug text-slate">
               {card.photo.caption}. {card.photo.fit === 'contain' ? 'Quelle' : 'Foto'}: {card.photo.credit}, {card.photo.license}
             </p>
           )}
         </div>
         <div>
-          <p className="font-type text-[11px] font-bold tracking-[0.2em] text-crimson uppercase">Ein echter Mensch im Widerstand</p>
+          <p className="font-type text-[13px] font-bold tracking-[0.12em] text-crimson uppercase">Ein echter Mensch im Widerstand</p>
           <h3 className="font-serif text-3xl leading-tight font-bold">{card.name}</h3>
           <p className="font-type text-sm text-slate">
             {card.years}, {card.role}
@@ -62,7 +62,7 @@ export function HeroCardView({ card, number }: { card: Card; number: number }) {
           {card.quote && (
             <blockquote className="mt-3 border-l-4 border-[#b08d3c] pl-3 font-serif text-lg leading-snug italic">
               {card.quote.text}
-              <footer className="mt-1 font-type text-[11px] text-slate not-italic">{card.quote.source}</footer>
+              <footer className="mt-1 font-type text-[13px] text-slate not-italic">{card.quote.source}</footer>
             </blockquote>
           )}
           <dl className="mt-3 space-y-3 font-serif text-[16px] leading-relaxed">
@@ -125,7 +125,7 @@ export function CardReveal() {
     <div className={h.stage} role="dialog" aria-modal="true" aria-label={`Neues Vorbild: ${card.name}`}>
       <div className={h.beam} aria-hidden />
       <div className="relative mx-auto flex min-h-full max-w-3xl flex-col items-center justify-center px-4 py-10">
-        <p className={`${s.typewriter} ${h.fadeUp} mb-2 flex items-center gap-2 text-sm font-bold tracking-[0.3em] text-[#e0be6e] uppercase`}>
+        <p className={`${s.typewriter} ${h.fadeUp} mb-2 flex items-center gap-2 text-sm font-bold tracking-[0.15em] text-[#e0be6e] uppercase`}>
           <Medal size={18} aria-hidden /> Ein Vorbild entdeckt
         </p>
         <p className={`${h.fadeUp} mb-8 max-w-xl text-center font-serif text-lg text-paper/85`}>
@@ -169,7 +169,7 @@ export function CardAlbum() {
           </div>
         ) : (
           <>
-            <p className="font-type text-xs tracking-[0.3em] text-slate uppercase">Echte Menschen im Widerstand</p>
+            <p className="font-type text-xs tracking-[0.15em] text-slate uppercase">Echte Menschen im Widerstand</p>
             <h2 className="mt-1 font-serif text-3xl font-bold">Vorbilder</h2>
             <p className="mt-1 font-type text-sm text-slate">
               {unlocked.length} von {CARDS.length} entdeckt. Gesperrte Karten zeigen, wie du sie findest.
@@ -184,15 +184,15 @@ export function CardAlbum() {
                       <button onClick={() => setOpen(raw)} className={`${h.card} flex h-full w-full flex-col items-center p-2.5 text-center !outline-0`}>
                         <Portrait card={c} className="aspect-[3/4] w-full" />
                         <span className="mt-2 block font-serif text-base leading-tight font-bold">{c.name}</span>
-                        <span className="block font-type text-[11px] text-slate">{c.years}</span>
+                        <span className="block font-type text-[13px] text-slate">{c.years}</span>
                       </button>
                     ) : (
                       <div className="flex h-full flex-col items-center border-2 border-dashed border-slate/60 p-2.5 text-center">
                         <span className="grid aspect-[3/4] w-full place-items-center bg-slate/15 text-slate">
                           <Lock size={22} aria-hidden />
                         </span>
-                        <span className="mt-2 font-type text-[11px] font-bold text-slate">Vorbild {i + 1}</span>
-                        <span className="font-type text-[11px] leading-snug text-slate">{c.hint}</span>
+                        <span className="mt-2 font-type text-[13px] font-bold text-slate">Vorbild {i + 1}</span>
+                        <span className="font-type text-[13px] leading-snug text-slate">{c.hint}</span>
                       </div>
                     )}
                   </li>

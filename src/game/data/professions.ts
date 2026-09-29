@@ -144,8 +144,3 @@ export function leaderStats(profession: ProfessionKey, ideology: IdeologyKey): S
   }
   return stats
 }
-
-export const NAME_SUGGESTIONS: Record<Gender, string[]> = {
-  m: ['Karl', 'Otto', 'Emil', 'Walter', 'Fritz', 'Kurt'],
-  w: ['Frieda', 'Marta', 'Grete', 'Hedwig', 'Lotte', 'Erna'],
-}

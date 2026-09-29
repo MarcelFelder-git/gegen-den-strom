@@ -1,3 +1,4 @@
+import { HelpedFaces } from './HelpedWall'
 import { BookOpen, HandHeart, Medal, Printer, ScrollText } from 'lucide-react'
 import s from '../styles/period.module.css'
 import { Avatar } from './Avatar'
@@ -24,7 +25,8 @@ export function EndScreen({ onNewGame, onNewChapter2 }: { onNewGame: () => void;
   const { endReason, history, supporters, moral, members, weekIndex, sourceAnswers, cards, ideology, continueToChapter2, groupName, helped, level, chapterHelpedStart } =
     useGame()
   const leader = useGame(selectLeader)
-  const { openLexicon, openAlbum, openChronicle, resetCutscenes } = useUi()
+  const { openLexicon, openAlbum, openChronicle, openHelped, resetCutscenes } = useUi()
+  const helpedPeople = useGame((g) => g.helpedPeople)
   const t = useT()
 
   const chapter = chapterOf(weekIndex)
@@ -65,7 +67,7 @@ export function EndScreen({ onNewGame, onNewChapter2 }: { onNewGame: () => void;
     <main className={`${s.vignette} min-h-dvh px-4 py-8 sm:py-14`}>
       <article className={`${s.paper} ${s.riseIn} mx-auto max-w-3xl px-5 py-8 sm:px-10`}>
         <header className="flex flex-col items-center text-center">
-          <p className={`${s.typewriter} text-sm tracking-[0.3em] text-slate uppercase`}>{chapter.title}</p>
+          <p className={`${s.typewriter} text-sm tracking-[0.15em] text-slate uppercase`}>{chapter.title}</p>
           <h1 className="mt-2 font-serif text-4xl font-bold sm:text-5xl">{title}</h1>
           <p className="mt-1 font-serif text-lg italic">Widerstandsgruppe {quoted(groupName)}</p>
           {leader && (
@@ -77,11 +79,19 @@ export function EndScreen({ onNewGame, onNewChapter2 }: { onNewGame: () => void;
 
         {/* Die Bewertung: nicht Sieg oder Niederlage, sondern wie vielen Menschen ihr beigestanden habt */}
         <section className="mt-6 border-4 border-double border-group bg-[#dfe9e8] p-5 text-center text-group" aria-labelledby="solidaritaet">
-          <p className="flex items-center justify-center gap-2 font-type text-xs font-bold tracking-[0.2em] uppercase">
+          <p className="flex items-center justify-center gap-2 font-type text-xs font-bold tracking-[0.12em] uppercase">
             <HandHeart size={16} aria-hidden /> Eure Solidarität in diesem Kapitel
           </p>
           <p className="mt-1 font-serif text-5xl font-bold tabular-nums">{chapterHelped}</p>
           <p className="font-type text-sm">{chapterHelped === 1 ? 'Mensch, dem ihr geholfen habt' : 'Menschen, denen ihr geholfen habt'}</p>
+          {helpedPeople.length > 0 && (
+            <div className="mt-4 flex flex-col items-center gap-2">
+              <HelpedFaces people={helpedPeople} max={14} />
+              <button onClick={openHelped} className="font-type text-sm font-bold underline decoration-dotted underline-offset-4">
+                Alle Gesichter ansehen
+              </button>
+            </div>
+          )}
           <ol className="mt-4 flex justify-center gap-2" aria-label={`Stufe ${stage} von 3`}>
             {SOLIDARITY_RATINGS.map((r) => (
               <li
@@ -198,7 +208,7 @@ export function EndScreen({ onNewGame, onNewChapter2 }: { onNewGame: () => void;
         </section>
 
         <section className="mt-8 border-2 border-ink p-5" aria-labelledby="nachdenken">
-          <h2 id="nachdenken" className={`${s.typewriter} text-sm font-bold tracking-[0.2em] uppercase`}>
+          <h2 id="nachdenken" className={`${s.typewriter} text-sm font-bold tracking-[0.12em] uppercase`}>
             Zum Nachdenken
           </h2>
           <ol className="mt-3 list-decimal space-y-2 pl-5 font-serif text-[17px] leading-relaxed">

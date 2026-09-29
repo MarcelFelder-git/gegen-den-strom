@@ -43,7 +43,7 @@ export function TitleScreen({ canContinue, onNew, onContinue, onPrologue }: Titl
             <StampButton variant="ink" onClick={onContinue} data-autofocus className="flex-col !gap-0.5">
               <span>Spiel fortsetzen</span>
               {leaderName && (
-                <span className="text-[11px] font-normal tracking-[0.08em] normal-case opacity-80">
+                <span className="text-[13px] font-normal tracking-[0.08em] normal-case opacity-80">
                   Spielstand von {leaderName}, {chapterOf(weekIndex).id === 1 ? '1933' : '1936 bis 1938'}, Woche {weekInChapter(weekIndex)} von{' '}
                   {weeksInChapter(chapterOf(weekIndex))}
                 </span>

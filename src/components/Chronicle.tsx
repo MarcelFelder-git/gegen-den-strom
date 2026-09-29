@@ -32,7 +32,7 @@ export function Chronicle() {
   return (
     <Modal label={`Chronik: ${w.dateLabel}`} onClose={close} width="max-w-4xl">
       <div className="mb-3 flex items-center justify-between gap-3 text-paper">
-        <p className={`${s.typewriter} text-xs tracking-[0.2em] uppercase`}>
+        <p className={`${s.typewriter} text-xs tracking-[0.12em] uppercase`}>
           Chronik · {page + 1} von {indices.length}
         </p>
         <button onClick={close} className="grid h-10 w-10 place-items-center border-2 border-paper/60 hover:bg-paper hover:text-ink" aria-label="Chronik schließen">
@@ -40,7 +40,7 @@ export function Chronicle() {
         </button>
       </div>
       <article className={`${s.newsprint} px-5 py-6 sm:px-8`} key={index}>
-        <p className={`${s.typewriter} text-xs tracking-[0.2em] text-slate uppercase`}>{w.dateLabel}</p>
+        <p className={`${s.typewriter} text-xs tracking-[0.12em] text-slate uppercase`}>{w.dateLabel}</p>
         <h2 className="mt-1 font-serif text-3xl leading-tight font-bold sm:text-4xl">{w.headline}</h2>
         <p className="mt-2 font-serif text-lg italic">{w.subline}</p>
         <div className="mt-4 grid gap-5 md:grid-cols-[1fr_240px]">
@@ -56,14 +56,14 @@ export function Chronicle() {
           <NewsIllustration kind={w.illustration} caption={w.caption} />
         </div>
         <aside className="mt-5 border-2 border-ink bg-paper p-4">
-          <p className="flex items-center gap-2 font-type text-xs font-bold tracking-[0.2em] uppercase">
+          <p className="flex items-center gap-2 font-type text-xs font-bold tracking-[0.12em] uppercase">
             <GraduationCap size={16} aria-hidden /> Zum Verständnis
           </p>
           <p className="mt-2 font-serif text-[16px] leading-relaxed">{w.context}</p>
         </aside>
         {src && (
           <aside className="mt-4 border-l-4 border-archive bg-paper-dark p-4">
-            <p className="flex items-center gap-2 font-type text-xs font-bold tracking-[0.2em] text-archive uppercase">
+            <p className="flex items-center gap-2 font-type text-xs font-bold tracking-[0.12em] text-archive uppercase">
               <Archive size={16} aria-hidden /> Quelle: {src.title}
             </p>
             <p className="mt-2 font-serif text-[16px] leading-relaxed whitespace-pre-line">{src.text}</p>
@@ -72,7 +72,7 @@ export function Chronicle() {
         )}
         {w.witnesses?.map((wt) => (
           <blockquote key={wt.text} className="mt-4 border-l-4 border-archive-light bg-ink p-4 text-paper">
-            <p className="font-type text-[10px] font-bold tracking-[0.2em] text-archive-light uppercase">Zeitzeugenbericht, echt</p>
+            <p className="font-type text-xs font-bold tracking-[0.12em] text-archive-light uppercase">Zeitzeugenbericht, echt</p>
             <p className="mt-1 font-serif text-lg">{wt.text}</p>
             <footer className="mt-1 font-type text-xs text-fog">
               {wt.who}. Quelle: {wt.source}

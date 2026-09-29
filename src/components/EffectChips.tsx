@@ -1,3 +1,4 @@
+import s from '../styles/period.module.css'
 import { describeItem } from '../game/logic'
 import type { DistrictKey, Effects, ItemKey } from '../game/types'
 import { STAT_LABELS } from '../game/data/professions'
@@ -32,25 +33,31 @@ export function effectChips(e: Effects): Chip[] {
   return chips
 }
 
-/** Auswirkungen als kleine Etiketten, wie mit dem Stempelkasten gesetzt */
+/**
+ * Auswirkungen als Etiketten, wie mit dem Stempelkasten gesetzt. Gute Folgen in der Farbe der
+ * Solidarität, schlechte in Rot, mit Pfeil davor, damit sie auch ohne Farbe zu unterscheiden sind.
+ * Sie schlagen nacheinander auf, damit man jede Folge einzeln wahrnimmt.
+ */
 export function EffectChips({ effects, onDark = false }: { effects: Effects; onDark?: boolean }) {
   const chips = effectChips(effects)
   if (chips.length === 0) return null
   return (
     <ul className="flex flex-wrap gap-2" aria-label="Auswirkungen">
-      {chips.map((c) => (
+      {chips.map((c, i) => (
         <li
           key={c.text}
-          className={`border px-2 py-0.5 font-type text-sm font-bold ${
+          style={{ animationDelay: `${150 + i * 140}ms` }}
+          className={`${s.stampIn} flex items-center gap-1 border-2 px-2.5 py-1 font-type text-[15px] font-bold ${
             c.good
               ? onDark
-                ? 'border-paper text-paper'
-                : 'border-ink text-ink'
+                ? 'border-group-light bg-group/40 text-group-light'
+                : 'border-group bg-group/10 text-group'
               : onDark
-                ? 'border-ember text-ember'
-                : 'border-crimson text-crimson'
+                ? 'border-ember bg-crimson/25 text-ember'
+                : 'border-crimson bg-crimson/10 text-crimson'
           }`}
         >
+          <span aria-hidden>{c.good ? '▲' : '▼'}</span>
           {c.text}
         </li>
       ))}

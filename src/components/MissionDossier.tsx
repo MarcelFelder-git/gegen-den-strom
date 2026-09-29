@@ -84,7 +84,7 @@ export function MissionDossier({ mission, onClose }: MissionDossierProps) {
     <Modal label={`Akte: ${t.title}`} onClose={onClose} width="max-w-5xl">
       <div className={`${s.folder} ${s.riseIn} relative mt-6 px-4 pt-8 pb-6 sm:px-8`}>
         {/* Reiter der Akte */}
-        <div className="absolute -top-7 left-6 h-8 w-44 bg-[#d8c59b] px-3 pt-1.5 font-type text-xs font-bold tracking-[0.2em] uppercase shadow-[0_-2px_0_rgba(0,0,0,0.12)]">
+        <div className="absolute -top-7 left-6 h-8 w-44 bg-[#d8c59b] px-3 pt-1.5 font-type text-xs font-bold tracking-[0.12em] uppercase shadow-[0_-2px_0_rgba(0,0,0,0.12)]">
           Akte Nr. {weekIndex + 1}/{mission.uid.split('-')[1]}
         </div>
         <span className={s.clip} style={{ left: '46%' }} aria-hidden />
@@ -194,7 +194,7 @@ export function MissionDossier({ mission, onClose }: MissionDossierProps) {
                           <span className="flex items-center gap-2">
                             <span className="truncate font-serif text-base font-bold">{m.name}</span>
                             {isWanted(m) && m.status === 'bereit' && (
-                              <span className="font-type text-[11px] font-bold tracking-wider text-crimson uppercase">{st.label}</span>
+                              <span className="font-type text-[13px] font-bold tracking-wider text-crimson uppercase">{st.label}</span>
                             )}
                           </span>
                           {reason ? (

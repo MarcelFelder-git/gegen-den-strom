@@ -6,7 +6,8 @@ import { StampButton } from './ui/StampButton'
 import { TUTORIAL, TUTORIAL_RESOURCES, TUTORIAL_WEEK, type TutorialPage } from '../game/data/tutorial'
 import { PRISON_HELP } from '../game/data/prison'
 import { WANTED_THRESHOLD } from '../game/logic'
-import { weekGoal } from '../game/data/goals'
+import { goalById } from '../game/data/goals'
+import { useGame } from '../store/GameStore'
 import { MISSION_ICONS } from './icons'
 import { useMissions, useT } from '../store/content'
 import { sound } from '../audio/sound'
@@ -45,7 +46,7 @@ export function Tutorial({ weekIndex, onClose }: { weekIndex: number; onClose: (
         >
           <X size={20} aria-hidden />
         </button>
-        <p className={`${s.typewriter} text-[11px] font-bold tracking-[0.25em] text-archive-light uppercase`}>
+        <p className={`${s.typewriter} text-[13px] font-bold tracking-[0.15em] text-archive-light uppercase`}>
           So geht’s · {page + 1} von {TUTORIAL.length}
         </p>
         <h2 key={p.id} className={`${s.riseIn} mt-1 pr-12 font-serif text-3xl leading-tight font-bold`}>
@@ -98,12 +99,13 @@ function Picture({ id, weekIndex }: { id: TutorialPage['id']; weekIndex: number 
   const t = useT()
   const missions = useMissions()
   const Hide = MISSION_ICONS.unterschlupf
+  const goalId = useGame((g) => g.goalId)
   switch (id) {
     case 'ziel':
       return (
         <Frame>
           <div className="inline-flex flex-col border-2 border-group-light/70 bg-group/50 px-4 py-2" aria-hidden>
-            <span className={`${s.typewriter} flex items-center gap-1 text-[11px] font-bold tracking-[0.15em] text-group-light uppercase`}>
+            <span className={`${s.typewriter} flex items-center gap-1 text-[13px] font-bold tracking-[0.15em] text-group-light uppercase`}>
               <HandHeart size={13} /> Geholfen
             </span>
             <span className={`${s.typewriter} text-2xl font-bold`}>
@@ -145,7 +147,7 @@ function Picture({ id, weekIndex }: { id: TutorialPage['id']; weekIndex: number 
                 </span>
                 <span className={`${s.typewriter} block text-xs text-fog`}>Hinterhof, Neukölln</span>
               </span>
-              <span className="border border-ember px-1.5 font-type text-[11px] font-bold text-ember uppercase">Gefahr mittel</span>
+              <span className="border border-ember px-1.5 font-type text-[13px] font-bold text-ember uppercase">Gefahr mittel</span>
             </div>
             <div className="flex items-center justify-end gap-2 font-type text-sm text-fog">
               Person wählen, dann <span className={`${s.stampInk} pointer-events-none`}>Einteilen</span>
@@ -197,7 +199,7 @@ function Picture({ id, weekIndex }: { id: TutorialPage['id']; weekIndex: number 
         <dl className="grid gap-2 sm:grid-cols-2">
           {TUTORIAL_RESOURCES.map((r) => (
             <div key={r.label} className="border border-paper/25 p-3">
-              <dt className={`${s.typewriter} text-[11px] font-bold tracking-[0.2em] text-fog uppercase`}>{r.label}</dt>
+              <dt className={`${s.typewriter} text-[13px] font-bold tracking-[0.12em] text-fog uppercase`}>{r.label}</dt>
               <dd className="mt-0.5 font-serif text-[16px] leading-snug">{t(r.text)}</dd>
             </div>
           ))}
@@ -208,10 +210,10 @@ function Picture({ id, weekIndex }: { id: TutorialPage['id']; weekIndex: number 
         <Frame>
           <div className="flex w-full max-w-md flex-col gap-3" aria-hidden>
             <div className="border-2 border-group-light/60 bg-group/30 p-3">
-              <p className="flex items-center gap-1.5 font-type text-[10px] font-bold tracking-[0.2em] text-group-light uppercase">
+              <p className="flex items-center gap-1.5 font-type text-xs font-bold tracking-[0.12em] text-group-light uppercase">
                 <Flag size={12} /> Ziel der Woche
               </p>
-              <p className="mt-1 font-serif text-[15px] font-bold">{t(weekGoal(weekIndex).text)}</p>
+              <p className="mt-1 font-serif text-[15px] font-bold">{t(goalById(goalId, weekIndex).text)}</p>
             </div>
             <span className={`${s.stamp} pointer-events-none w-full`}>Woche beenden</span>
           </div>

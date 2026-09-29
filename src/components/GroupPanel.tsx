@@ -54,7 +54,7 @@ export function GroupPanel() {
   return (
     <section aria-labelledby="gruppe-titel" className="space-y-3">
       <div className="border-2 border-group-light/60 bg-group/40 p-3">
-        <p className={`${s.typewriter} text-[10px] tracking-[0.2em] text-group-light uppercase`}>Eure Widerstandsgruppe</p>
+        <p className={`${s.typewriter} text-xs tracking-[0.12em] text-group-light uppercase`}>Eure Widerstandsgruppe</p>
         <h2 id="gruppe-titel" className="font-serif text-2xl leading-tight font-bold">
           {quoted(groupName)}
         </h2>
@@ -133,7 +133,7 @@ function MemberCard({
                 </p>
               )}
             </div>
-            <span className={`${s.rubber} shrink-0 text-[11px] ${TONE_CLASS[st.tone]}`}>{st.label}</span>
+            <span className={`${s.rubber} shrink-0 text-[13px] ${TONE_CLASS[st.tone]}`}>{st.label}</span>
           </div>
           {!gone && (
             <div className="mt-2">
@@ -253,8 +253,8 @@ function PrisonHelpBox({ m, canHelp }: { m: Character; canHelp: boolean }) {
           })}
         </div>
       )}
-      {m.prison?.lawyer && <p className="mt-1 font-type text-[11px] text-slate">Ein Anwalt kümmert sich.</p>}
-      {(m.prison?.packages ?? 0) > 0 && <p className="font-type text-[11px] text-slate">Pakete geschickt: {m.prison?.packages}</p>}
+      {m.prison?.lawyer && <p className="mt-1 font-type text-[13px] text-slate">Ein Anwalt kümmert sich.</p>}
+      {(m.prison?.packages ?? 0) > 0 && <p className="font-type text-[13px] text-slate">Pakete geschickt: {m.prison?.packages}</p>}
       {msg && (
         <p className="mt-1 font-serif text-[13px] leading-snug" role="status">
           {msg}

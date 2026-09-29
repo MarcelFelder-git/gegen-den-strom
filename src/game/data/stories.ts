@@ -255,6 +255,7 @@ export const STORIES: CompanionStory[] = [
     ),
     [
       {
+        helps: { name: 'Familien in Neukölln', gender: 'w', who: L('Vor einer Razzia gewarnt', 'Rechtzeitig vor einer Razzia gewarnt') },
         label: 'Die Warnung sofort in Neukölln weitergeben',
         effects: { heatAll: -8, supporters: 2, trust: { neukoelln: 1 }, helped: 2 },
         result: L(
@@ -263,6 +264,7 @@ export const STORIES: CompanionStory[] = [
         ),
       },
       {
+        helps: { name: 'Familien in Neukölln', gender: 'w', who: L('Vor einer Razzia gewarnt', 'Rechtzeitig vor einer Razzia gewarnt') },
         label: '„Finde erst heraus, welche Straßen gemeint sind.“',
         effects: { heatAll: -4, self: { heat: 10 }, helped: 1 },
         result: L(
@@ -285,6 +287,7 @@ export const STORIES: CompanionStory[] = [
     ),
     [
       {
+        helps: { name: 'Frau eines Verhafteten', gender: 'w', who: L('Ihr habt ihr gesagt, was mit ihrem Mann geschah', 'Benachrichtigt, als ihr Mann verschleppt wurde') },
         label: '„Wir sagen seiner Familie Bescheid.“',
         effects: { supporters: 1, moral: 3, self: { heat: 5 }, helped: 1 },
         result: L(
@@ -344,6 +347,7 @@ export const STORIES: CompanionStory[] = [
     ),
     [
       {
+        helps: { name: 'Dr. Levin', gender: 'm', who: L('Jüdischer Arzt, ihr habt beim Boykott zu ihm gehalten', 'Jüdischer Arzt, dem ihr am Tag des Boykotts beigestanden habt') },
         label: '„Ich komme mit.“',
         effects: { moral: 8, heatLeader: 10, self: { heat: 10 }, helped: 1 },
         result: L(
@@ -372,6 +376,7 @@ export const STORIES: CompanionStory[] = [
     ),
     [
       {
+        helps: { name: 'Familie Levin', gender: 'w', who: L('Mit eurer Hilfe ausgewandert', 'Mit eurer Hilfe bei Verkauf und Papieren ausgewandert') },
         label: L('Mit der Gruppe beim Verkauf und den Papieren helfen', 'Mit der ganzen Gruppe beim Verkauf und bei den Papieren helfen'),
         needsKasse: 10,
         effects: { kasse: -10, moral: 5, helped: 3, self: { heat: 5 } },
@@ -431,6 +436,7 @@ export const STORIES: CompanionStory[] = [
     ),
     [
       {
+        helps: { name: 'Christen jüdischer Herkunft', gender: 'm', who: L('Johannes hat sich offen für sie eingesetzt', 'Gemeindemitglieder, für die Johannes offen eingetreten ist') },
         label: '„Widersprich offen.“',
         effects: { moral: 6, supporters: 2, self: { heat: 15 }, helped: 1 },
         result: L(
@@ -461,6 +467,7 @@ export const STORIES: CompanionStory[] = [
     ),
     [
       {
+        helps: { name: 'Familien von Gefangenen', gender: 'w', who: L('Mit Annis Liste gefunden und besucht', 'Über Annis abgeschriebene Liste gefunden und unterstützt') },
         label: '„Schreib sie ab.“',
         effects: { supporters: 2, self: { heat: 10 }, trust: { mitte: 1 }, helped: 2 },
         result: L(
@@ -497,6 +504,7 @@ export const STORIES: CompanionStory[] = [
         ),
       },
       {
+        helps: { name: 'Dr. Frankel', gender: 'm', who: L('Jüdischer Anwalt, ihr habt ihm beim Verkauf geholfen', 'Jüdischer Anwalt mit Berufsverbot, dem ihr beim Verkauf geholfen habt') },
         label: '„Lass sie ihm. Er wird das Geld brauchen.“',
         effects: { moral: 3, helped: 1 },
         result: L(

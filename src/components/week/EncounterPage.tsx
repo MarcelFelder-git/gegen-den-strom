@@ -65,7 +65,7 @@ export function EncounterPage({ stage, readOnly }: { stage: number; readOnly: bo
     <div className={`${s.paper} ${s.riseIn} overflow-hidden text-ink`}>
       {personal ? (
         <div className="flex flex-wrap items-center justify-between gap-2 bg-group px-5 py-3 text-paper sm:px-8">
-          <p className="flex items-center gap-2 font-type text-xs font-bold tracking-[0.2em] uppercase">
+          <p className="flex items-center gap-2 font-type text-xs font-bold tracking-[0.12em] uppercase">
             <UsersRound size={16} aria-hidden /> Aus eurer Gruppe
           </p>
           <p className="font-type text-xs">
@@ -75,7 +75,7 @@ export function EncounterPage({ stage, readOnly }: { stage: number; readOnly: bo
         </div>
       ) : (
         <div className="flex flex-wrap items-center justify-between gap-2 bg-crimson px-5 py-3 text-paper sm:px-8">
-          <p className="flex items-center gap-2 font-type text-xs font-bold tracking-[0.2em] uppercase">
+          <p className="flex items-center gap-2 font-type text-xs font-bold tracking-[0.12em] uppercase">
             <UserRound size={16} aria-hidden /> Begegnung
           </p>
           <p className="font-type text-xs">Ein Mensch aus der Stadt braucht eure Antwort</p>

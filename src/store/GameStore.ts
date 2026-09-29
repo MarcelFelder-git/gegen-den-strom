@@ -8,8 +8,9 @@ import { getStory, storiesFor } from '../game/data/stories'
 import { CHAPTERS, chapterOf } from '../game/data/chapters'
 import { SOURCES } from '../game/data/sources'
 import { cardsForMission, cardsForWeek } from '../game/data/cards'
+import { MISSION_HELP, PRISON_FAMILY_WHO, letterFor, portraitFor, type HelpedPerson, type HelpKind } from '../game/data/helped'
 import { CODENAMES } from '../game/data/group'
-import { weekGoal } from '../game/data/goals'
+import { chooseGoal, goalById } from '../game/data/goals'
 import { PRISON_HELP, prisonPlace } from '../game/data/prison'
 import { difficultyOf } from '../game/difficulty'
 import { t, type Level } from '../game/text'
@@ -34,9 +35,11 @@ import {
   type Rng,
 } from '../game/logic'
 import type {
+  AvatarConfig,
   Character,
   Decision,
   Effects,
+  MissionType,
   EndReason,
   IdeologyKey,
   LeaderDraft,
@@ -94,6 +97,14 @@ interface GameData extends ResourceState {
   chapterHelpedStart: number
   /** Die Einführung auf der Stadtkarte wurde in diesem Spiel schon gezeigt */
   tutorialSeen: boolean
+  /** Die Menschen hinter der Zahl „Geholfen“ */
+  helpedPeople: HelpedPerson[]
+  /** Woche, in der zuletzt ein Brief kam */
+  lastLetterWeek: number
+  /** Das Ziel dieser Woche, beim Wochenbeginn so gewählt, dass es erreichbar ist */
+  goalId?: string
+  /** Stand von „Geholfen“ zu Wochenbeginn: Jede Hilfe der Woche zählt für das Ziel */
+  weekHelpedStart?: number
 }
 
 interface GameActions {
@@ -147,13 +158,15 @@ const initialData: GameData = {
   eventStage: 0,
   decisions: [],
   sourceAnswers: {},
-  groupName: 'Morgenrot',
-  motto: 'Wir schweigen nicht.',
+  groupName: 'Tante Frieda',
+  motto: 'Wir sehen nicht weg.',
   cards: [],
   pendingCards: [],
   crisis: false,
   chapterHelpedStart: 0,
   tutorialSeen: false,
+  helpedPeople: [],
+  lastLetterWeek: -10,
 }
 
 const rng: Rng = Math.random
@@ -180,6 +193,18 @@ function companionFrom(c: (typeof COMPANIONS)[number], id: string, r: Rng, level
     status: 'bereit',
     injuredWeeks: 0,
   }
+}
+
+/** Die selbst gewählten Gefährten, aufgefüllt mit zufälligen, falls weniger als drei gewählt wurden */
+function chosenCompanions(names: string[], leaderName: string, r: Rng, level: Level): Character[] {
+  const chosen = names
+    .map((n) => COMPANIONS.find((c) => c.name === n))
+    .filter((c): c is (typeof COMPANIONS)[number] => !!c && firstName(c) !== firstName({ name: leaderName }))
+    .slice(0, 3)
+  const picked = chosen.map((c, i) => companionFrom(c, `g${i + 1}`, r, level))
+  if (picked.length === 3) return picked
+  const extra = createCompanions(leaderName, r, level, chosen.map((c) => c.name), 3 - picked.length, 'g')
+  return [...picked, ...extra.map((m, i) => ({ ...m, id: `g${picked.length + i + 1}` }))]
 }
 
 function createCompanions(leaderName: string, r: Rng, level: Level, exclude: string[] = [], count = 3, idPrefix = 'g'): Character[] {
@@ -214,8 +239,11 @@ function beginWeek(s: GameData, index: number): GameData {
   const weekCards = cardsForWeek(index)
     .map((c) => c.id)
     .filter((id) => !next.cards.includes(id))
+  const missions = generateMissions(index, next.flags, rng)
   return {
     ...next,
+    goalId: chooseGoal(index, missions, next.kasse, next.inventory).id,
+    weekHelpedStart: next.helped,
     // Hilfe für Gefangene ist jede Woche neu möglich
     members: next.members.map((m) => (m.prison ? { ...m, prison: { ...m.prison, helpedThisWeek: false } } : m)),
     cards: [...next.cards, ...weekCards],
@@ -224,7 +252,7 @@ function beginWeek(s: GameData, index: number): GameData {
     eventStage: 0,
     phase: 'newspaper',
     weekNotes: notes,
-    missions: generateMissions(index, next.flags, rng),
+    missions,
     eventOutcome: null,
     report: null,
   }
@@ -287,6 +315,52 @@ function recruitIfEmpty(s: GameData): { state: GameData; recruited: string[] } {
   }
 }
 
+interface HelpSpec {
+  name: string
+  who: string
+  avatar: AvatarConfig
+  kind: HelpKind
+}
+
+/**
+ * Hält fest, wem die Gruppe geholfen hat. Taucht derselbe Name wieder auf, wächst sein Eintrag,
+ * damit auf der Wand niemand doppelt steht.
+ */
+function recordHelp<T extends GameData>(s: T, count: number, spec: HelpSpec): T {
+  if (count <= 0) return s
+  const existing = s.helpedPeople.find((p) => p.name === spec.name)
+  if (existing) {
+    return {
+      ...s,
+      helpedPeople: s.helpedPeople.map((p) => (p === existing ? { ...p, count: p.count + count, week: s.weekIndex } : p)),
+    }
+  }
+  const person: HelpedPerson = { id: `h${s.helpedPeople.length + 1}-${s.weekIndex}`, count, week: s.weekIndex, ...spec }
+  return { ...s, helpedPeople: [...s.helpedPeople, person] }
+}
+
+/** Ein Mensch aus dem Namensvorrat eines Auftrags, möglichst jemand Neues */
+function missionHelp(s: GameData, type: MissionType): HelpSpec | null {
+  const tpl = MISSION_HELP[type]
+  if (!tpl) return null
+  const used = new Set(s.helpedPeople.map((p) => p.name))
+  const fresh = tpl.names.filter((n) => !used.has(n.name))
+  const pick = (fresh.length ? fresh : tpl.names)[Math.floor(rng() * (fresh.length || tpl.names.length))]
+  return { name: pick.name, who: t(tpl.who, s.level), avatar: portraitFor(pick.name, pick.gender), kind: type as HelpKind }
+}
+
+/**
+ * Etwa alle drei Wochen kommt Post von jemandem, dem die Gruppe früher geholfen hat.
+ * So wird aus der Zahl wieder ein Mensch.
+ */
+function pickLetter(s: GameData): { person: HelpedPerson; text: string } | null {
+  if (s.weekIndex - s.lastLetterWeek < 3) return null
+  const person = s.helpedPeople.find((p) => !p.letter && s.weekIndex - p.week >= 2)
+  if (!person) return null
+  const text = t(letterFor(person, chapterOf(s.weekIndex).id === 2), s.level)
+  return { person, text }
+}
+
 export const useGame = create<GameState>()(
   persist(
     (set, get) => ({
@@ -323,8 +397,8 @@ export const useGame = create<GameState>()(
           kasse: prof.startKasse + diff.startKasse + (later ? 20 : 0),
           flags: later ? ['unterschlupf'] : [],
           inventory: { papier: 2, farbe: 1, flugblaetter: 0, ausweise: 0 },
-          members: [leader, ...withCodenames(createCompanions(leader.name, rng, level), [draft.codename])],
-          groupName: draft.groupName.trim() || 'Morgenrot',
+          members: [leader, ...withCodenames(chosenCompanions(draft.companions ?? [], leader.name, rng, level), [draft.codename])],
+          groupName: draft.groupName.trim() || 'Tante Frieda',
           motto: draft.motto,
         }
         set(beginWeek(base, startWeek))
@@ -398,8 +472,21 @@ export const useGame = create<GameState>()(
           success,
           result: fillNames(text, names),
         }
+        let next = applyEffects(s, effects, self?.id)
+        const helpedNow = next.helped - s.helped
+        if (helpedNow > 0) {
+          const spec: HelpSpec = choice.helps
+            ? {
+                name: choice.helps.name,
+                who: t(choice.helps.who, s.level),
+                avatar: portraitFor(choice.helps.name, choice.helps.gender),
+                kind: 'begegnung',
+              }
+            : { name: fillNames(event.speaker, names), who: t(event.speakerRole, s.level), avatar: event.portrait, kind: 'begegnung' }
+          next = recordHelp(next, helpedNow, spec)
+        }
         set({
-          ...applyEffects(s, effects, self?.id),
+          ...next,
           eventOutcome: { choiceIndex: index, success, text, effects },
           decisions: [...s.decisions, decision],
         })
@@ -494,7 +581,16 @@ export const useGame = create<GameState>()(
             : kind === 'anwalt'
               ? { kasse: -option.cost }
               : { kasse: -option.cost, moral: 2, supporters: 1, helped: 1 }
-        const next = applyEffects(s, effects)
+        let next = applyEffects(s, effects)
+        if (kind === 'familie') {
+          const name = `Familie von ${firstName(m)}`
+          next = recordHelp(next, next.helped - s.helped, {
+            name,
+            who: t(PRISON_FAMILY_WHO, s.level),
+            avatar: portraitFor(name, m.avatar.gender === 'm' ? 'w' : 'm'),
+            kind: 'haft',
+          })
+        }
         set({ ...next, members: next.members.map((x) => (x.id === memberId ? { ...x, prison } : x)) })
         return null
       },
@@ -571,7 +667,10 @@ export const useGame = create<GameState>()(
             level: s.level,
           })
           results.push(r)
+          const helpedBefore = state.helped
           state = applyEffects(state, mergeEffects(r.effects, { moral: -diff.arrestMoralLoss * r.arrested.length }))
+          const spec = missionHelp(state, r.type)
+          if (spec) state = recordHelp(state, state.helped - helpedBefore, spec)
           const gain = heatGain(r.type, r.detected)
           state = {
             ...state,
@@ -619,8 +718,9 @@ export const useGame = create<GameState>()(
         })
 
         // Ziel der Woche
-        const goal = weekGoal(s.weekIndex)
-        const goalMet = goal.met({ results, helpedDelta: state.helped - before.helped })
+        // Jede Hilfe der Woche zählt: Begegnungen, Geschichten, Hilfe für Gefangene und Aufträge
+        const goal = goalById(s.goalId, s.weekIndex)
+        const goalMet = goal.met({ results, helpedDelta: state.helped - (s.weekHelpedStart ?? before.helped) })
         if (goalMet) state = applyEffects(state, goal.reward)
 
         // Leichte Stufe: Die Gruppe gibt nicht auf, und wenn niemand mehr frei ist, springen Unterstützer ein
@@ -631,6 +731,15 @@ export const useGame = create<GameState>()(
 
         const leader = state.members.find((m) => m.isLeader)
         const acting = leader && isGone(leader) && !diff.gameOver ? actingLeader(state.members) : undefined
+
+        const letter = pickLetter(state)
+        if (letter) {
+          state = {
+            ...state,
+            lastLetterWeek: s.weekIndex,
+            helpedPeople: state.helpedPeople.map((p) => (p.id === letter.person.id ? { ...p, letter: true } : p)),
+          }
+        }
 
         const report: WeekReport = {
           weekIndex: s.weekIndex,
@@ -648,7 +757,11 @@ export const useGame = create<GameState>()(
           recruited,
           helpedBefore: before.helped,
           helpedAfter: state.helped,
+          letter: letter
+            ? { name: letter.person.name, who: letter.person.who, avatar: letter.person.avatar, text: letter.text, week: letter.person.week }
+            : undefined,
           goalMet,
+          goalId: goal.id,
           moralBefore: before.moral,
           moralAfter: state.moral,
           supportersBefore: before.supporters,

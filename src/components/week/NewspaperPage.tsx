@@ -20,7 +20,7 @@ export function NewspaperPage() {
   return (
     <div className="space-y-4">
       <article className={`${s.newsprint} ${s.spinIn} px-4 py-5 sm:px-8 sm:py-7`} lang="de">
-        <div className={`${s.typewriter} flex flex-wrap justify-between gap-2 text-[11px] tracking-[0.15em] uppercase`}>
+        <div className={`${s.typewriter} flex flex-wrap justify-between gap-2 text-[13px] tracking-[0.15em] uppercase`}>
           <span>Morgenausgabe</span>
           <span>Nr. {23 + weekIndex * 11}</span>
           <span>Einzelpreis 15 Pfennig</span>
@@ -54,7 +54,7 @@ export function NewspaperPage() {
             ))}
           </div>
         </div>
-        <p className="mt-5 border-t border-ink/40 pt-2 font-type text-[11px] text-slate">
+        <p className="mt-5 border-t border-ink/40 pt-2 font-type text-[13px] text-slate">
           Nachgestellte Zeitung. Die Meldungen berichten über echte Ereignisse, im Ton der Presse jener Zeit.
         </p>
       </article>
@@ -98,7 +98,7 @@ export function NewspaperPage() {
       )}
 
       <aside className="border-2 border-ink bg-paper p-5 text-ink" aria-label="Zum Verständnis">
-        <p className="flex items-center gap-2 font-type text-xs font-bold tracking-[0.2em] uppercase">
+        <p className="flex items-center gap-2 font-type text-xs font-bold tracking-[0.12em] uppercase">
           <GraduationCap size={18} aria-hidden /> Zum Verständnis
         </p>
         <p className="mt-2 font-serif text-[17px] leading-relaxed">{w.context}</p>
@@ -133,11 +133,11 @@ function Label({ icon, title, tag, tone }: { icon: ReactNode; title: string; tag
     tone === 'crimson' ? 'border-crimson text-crimson' : tone === 'archive' ? 'border-archive-light text-archive-light' : 'border-fog text-fog'
   return (
     <div className="flex flex-wrap items-center justify-between gap-2">
-      <p className={`${s.typewriter} flex items-center gap-2 text-xs font-bold tracking-[0.2em] uppercase ${color}`}>
+      <p className={`${s.typewriter} flex items-center gap-2 text-xs font-bold tracking-[0.12em] uppercase ${color}`}>
         {icon}
         {title}
       </p>
-      <span className={`border px-1.5 py-0.5 font-type text-[10px] font-bold tracking-[0.1em] uppercase ${tagClass}`}>{tag}</span>
+      <span className={`border px-1.5 py-0.5 font-type text-xs font-bold tracking-[0.1em] uppercase ${tagClass}`}>{tag}</span>
     </div>
   )
 }

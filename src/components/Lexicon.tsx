@@ -31,7 +31,7 @@ export function Lexicon() {
         >
           <X size={20} aria-hidden />
         </button>
-        <p className={`${s.typewriter} text-xs tracking-[0.3em] text-slate uppercase`}>Für das Geschichtsheft</p>
+        <p className={`${s.typewriter} text-xs tracking-[0.15em] text-slate uppercase`}>Für das Geschichtsheft</p>
         <h2 className="mt-1 font-serif text-3xl font-bold">Worterklärungen</h2>
         <dl className="mt-5 divide-y divide-ink/25">
           {LEXICON.map((e) => {

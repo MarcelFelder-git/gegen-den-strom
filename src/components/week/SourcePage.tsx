@@ -37,7 +37,7 @@ export function SourcePage() {
   return (
     <div className={`${s.paperDark} ${s.riseIn} relative border-t-[10px] border-archive px-5 py-6 text-ink sm:px-8`}>
       <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-archive pb-3">
-        <p className="flex items-center gap-2 font-type text-xs font-bold tracking-[0.2em] text-archive uppercase">
+        <p className="flex items-center gap-2 font-type text-xs font-bold tracking-[0.12em] text-archive uppercase">
           <Archive size={16} aria-hidden /> Quelle der Woche, echtes Dokument aus dem Archiv
         </p>
         <span className={`${s.rubber} text-xs text-archive`}>{src.kind}</span>

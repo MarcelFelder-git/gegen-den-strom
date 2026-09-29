@@ -15,9 +15,17 @@ import { PRISON_HELP } from './data/prison'
 import { COMPANIONS } from './data/companions'
 import { PROFESSIONS, IDEOLOGIES } from './data/professions'
 import { TUTORIAL, TUTORIAL_RESOURCES, TUTORIAL_WEEK } from './data/tutorial'
+import { MISSION_HELP, PRISON_FAMILY_WHO, letterFor, portraitFor, type HelpKind } from './data/helped'
 import { isLeveled, resolve, type Leveled } from './text'
 
-const ALL = { WEEKS, MISSIONS, STORIES, SOURCES, CARDS, LEXICON, TIMELINE, TIMELINE_INTRO, TIMELINE_OUTRO, DISTRICTS, SOLIDARITY_RATINGS, HONEST_NOTE, PRISON_HELP, COMPANIONS, PROFESSIONS, IDEOLOGIES, TUTORIAL, TUTORIAL_RESOURCES, TUTORIAL_WEEK }
+const LETTER_KINDS: HelpKind[] = ['unterschlupf', 'besorgung', 'rotehilfe', 'warnung', 'ausreise', 'pakete', 'begegnung', 'haft']
+const LETTERS = LETTER_KINDS.flatMap((kind) =>
+  [false, true].flatMap((later) =>
+    ['h1-3', 'h2-12'].map((id) => letterFor({ id, name: 'X', who: '', count: 1, week: 3, avatar: portraitFor('X', 'w'), kind }, later)),
+  ),
+)
+
+const ALL = { WEEKS, MISSIONS, STORIES, SOURCES, CARDS, LEXICON, TIMELINE, TIMELINE_INTRO, TIMELINE_OUTRO, DISTRICTS, SOLIDARITY_RATINGS, HONEST_NOTE, PRISON_HELP, COMPANIONS, PROFESSIONS, IDEOLOGIES, TUTORIAL, TUTORIAL_RESOURCES, TUTORIAL_WEEK, MISSION_HELP, PRISON_FAMILY_WHO, LETTERS }
 
 /** Sammelt alle zweistufigen Texte aus einem Datenbaum */
 function collect(value: unknown, out: Leveled[] = []): Leveled[] {
@@ -125,5 +133,25 @@ describe('Inhalte', () => {
     for (const t of Object.values(MISSIONS)) {
       if (t.solidarity) expect(t.success(rng, []).helped ?? 0).toBeGreaterThan(0)
     }
+  })
+})
+
+describe('Menschen hinter der Zahl', () => {
+  it('jeder solidarische Auftrag hat Namen und eine Beschreibung', () => {
+    for (const t of Object.values(MISSIONS)) {
+      if (t.solidarity) expect(MISSION_HELP[t.type], t.type).toBeDefined()
+    }
+  })
+
+  it('jede Geschichte, die hilft, nennt, wem sie hilft', () => {
+    for (const st of STORIES) {
+      for (const c of st.event.choices) {
+        if ((c.effects.helped ?? 0) > 0) expect(c.helps, `${st.companion}: ${resolve(c.label, 'schwer')}`).toBeDefined()
+      }
+    }
+  })
+
+  it('dieselbe Person sieht immer gleich aus', () => {
+    expect(portraitFor('Familie Cohn', 'w')).toEqual(portraitFor('Familie Cohn', 'w'))
   })
 })

@@ -46,7 +46,14 @@ export function Avatar({ config, size = 96, className, title, crossed }: AvatarP
   const R = 50 + w
   const female = config.gender === 'w'
   const hairFill =
-    config.hairTone === 'dunkel' ? INK : config.hairTone === 'grau' ? '#8e9094' : `url(#${id('hairHatch')})`
+    config.hairTone === 'dunkel'
+      ? INK
+      : config.hairTone === 'grau'
+        ? '#8e9094'
+        : config.hairTone === 'rot'
+          ? `url(#${id('hairRed')})`
+          : `url(#${id('hairHatch')})`
+  const detail = config.detail ?? 'keine'
 
   return (
     <svg
@@ -69,6 +76,14 @@ export function Avatar({ config, size = 96, className, title, crossed }: AvatarP
         <pattern id={id('hairHatch')} width="2.2" height="2.2" patternUnits="userSpaceOnUse" patternTransform="rotate(-20)">
           <rect width="2.2" height="2.2" fill="#b5a47f" />
           <line x1="0" y1="0" x2="0" y2="2.2" stroke={INK} strokeWidth="0.9" />
+        </pattern>
+        <pattern id={id('hairRed')} width="2.2" height="2.2" patternUnits="userSpaceOnUse" patternTransform="rotate(-20)">
+          <rect width="2.2" height="2.2" fill="#a8643f" />
+          <line x1="0" y1="0" x2="0" y2="2.2" stroke={INK} strokeWidth="0.8" />
+        </pattern>
+        <pattern id={id('stripes')} width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(90)">
+          <rect width="4" height="4" fill="#7a2a22" />
+          <line x1="0" y1="0" x2="0" y2="4" stroke={PAPER} strokeWidth="1.1" opacity="0.8" />
         </pattern>
         <pattern id={id('dots')} width="6" height="6" patternUnits="userSpaceOnUse">
           <rect width="6" height="6" fill={INK} />
@@ -95,6 +110,14 @@ export function Avatar({ config, size = 96, className, title, crossed }: AvatarP
         <path d="M50 78 L57.5 76 L57.5 92 Z" fill={`url(#${id('shade')})`} />
 
         <Clothing config={config} dots={`url(#${id('dots')})`} />
+
+        {/* Schal um den Hals */}
+        {detail === 'schal' && (
+          <g stroke={INK} strokeWidth="1.3" strokeLinejoin="round">
+            <path d="M54 88 L60 88 L61.5 106 L55 106 Z" fill={`url(#${id('stripes')})`} />
+            <path d="M37 82 Q50 89 63 82 L64 90 Q50 98 36 90 Z" fill={`url(#${id('stripes')})`} />
+          </g>
+        )}
 
         {/* Ohren */}
         <ellipse cx={L + 0.5} cy="58" rx="3" ry="4.6" fill={SKIN} stroke={INK} strokeWidth="1.4" />
@@ -127,6 +150,31 @@ export function Avatar({ config, size = 96, className, title, crossed }: AvatarP
           <path d="M44.5 70.2 Q50 71.8 55.5 70" fill="none" stroke={INK} strokeWidth="1.5" strokeLinecap="round" />
         )}
         <path d={`M${L + 3.5} 62 Q${L + 5} 71 ${L + 11} 75.5`} fill="none" stroke={INK} strokeWidth="0.8" opacity="0.7" />
+
+        {detail === 'sommersprossen' && (
+          <g fill={INK} opacity="0.55">
+            {[
+              [39, 60.5],
+              [42, 62.3],
+              [44.5, 60.2],
+              [40.5, 64],
+              [55.5, 60.2],
+              [58, 62.3],
+              [61, 60.5],
+              [59.5, 64],
+            ].map(([x, y]) => (
+              <circle key={`${x}-${y}`} cx={x} cy={y} r="0.65" />
+            ))}
+          </g>
+        )}
+        {detail === 'schnurrbart' && (
+          <path
+            d="M43.5 67.8 Q46.5 65.2 50 66.8 Q53.5 65.2 56.5 67.8 Q53.5 69.4 50 68.3 Q46.5 69.4 43.5 67.8 Z"
+            fill={hairFill}
+            stroke={INK}
+            strokeWidth="0.9"
+          />
+        )}
 
         <HairFront config={config} L={L} R={R} top={top} fill={hairFill} />
 

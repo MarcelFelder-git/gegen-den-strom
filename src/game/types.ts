@@ -5,7 +5,9 @@ export type Gender = 'm' | 'w'
 export type FaceShape = 'oval' | 'rund' | 'kantig' | 'schmal'
 export type Headwear = 'schiebermuetze' | 'fedora' | 'kurz' | 'zoepfe' | 'welle' | 'glocke'
 export type Clothing = 'arbeiterjacke' | 'trenchcoat' | 'weste' | 'kleid'
-export type HairTone = 'dunkel' | 'hell' | 'grau'
+export type HairTone = 'dunkel' | 'hell' | 'rot' | 'grau'
+/** Eine Besonderheit im Gesicht oder an der Kleidung */
+export type AvatarDetail = 'keine' | 'sommersprossen' | 'schal' | 'schnurrbart'
 
 export interface AvatarConfig {
   gender: Gender
@@ -14,6 +16,7 @@ export interface AvatarConfig {
   hairTone: HairTone
   glasses: boolean
   clothing: Clothing
+  detail?: AvatarDetail
 }
 
 export type ProfessionKey = 'arbeiter' | 'journalist' | 'lehrer' | 'haendler'
@@ -160,6 +163,10 @@ export interface WeekReport {
   recruited: string[]
   helpedBefore: number
   helpedAfter: number
+  /** Welches Ziel in dieser Woche galt */
+  goalId?: string
+  /** Post von jemandem, dem die Gruppe früher geholfen hat */
+  letter?: { name: string; who: string; avatar: AvatarConfig; text: string; week: number }
   /** Ziel der Woche erreicht? */
   goalMet?: boolean
   moralBefore: number
@@ -193,4 +200,6 @@ export interface LeaderDraft {
   avatar: AvatarConfig
   profession: ProfessionKey
   ideology: IdeologyKey
+  /** Selbst gewählte Gefährten (Namen); fehlen sie, werden drei zufällig bestimmt */
+  companions?: string[]
 }

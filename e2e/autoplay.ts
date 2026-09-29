@@ -92,6 +92,19 @@ export async function play(page: Page, problems: Problems, o: PlayOptions): Prom
     if (started && s.dialog === null && o.until(s)) return log
     if (o.stopAtDialog && s.dialog && o.stopAtDialog.test(s.dialog)) return log
     const find = (re: RegExp) => s.btns.find((b) => re.test(b.label))
+    // Figur anlegen: Vornamen eintippen und drei Gefährten wählen, wie ein Kind es tut
+    const nameField = page.locator('#leader-name')
+    if ((await nameField.count()) && !(await nameField.inputValue())) {
+      await nameField.fill('Frieda')
+      log.push('Figur: Vorname Frieda')
+      continue
+    }
+    const team = page.getByRole('group', { name: 'Gefährten wählen' })
+    if ((await team.count()) && (await team.locator('[aria-pressed=true]').count()) < 3) {
+      await team.locator('button[aria-pressed=false]:not([disabled])').first().tap()
+      log.push('Figur: Gefährte gewählt')
+      continue
+    }
     let hit: Btn | undefined
     if (!started) {
       hit = find(o.start)

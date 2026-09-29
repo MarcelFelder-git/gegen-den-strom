@@ -12,7 +12,7 @@ export function LevelSelect({ value, onChange, onNext, onBack }: { value: Level;
         <button onClick={onBack} className={`${s.typewriter} tap-area mb-4 inline-flex items-center gap-2 text-sm text-fog hover:text-paper`}>
           <ArrowLeft size={16} aria-hidden /> Zurück zum Titel
         </button>
-        <p className={`${s.typewriter} text-center text-sm tracking-[0.3em] text-fog uppercase`}>Bevor es losgeht</p>
+        <p className={`${s.typewriter} text-center text-sm tracking-[0.15em] text-fog uppercase`}>Bevor es losgeht</p>
         <h1 className="mt-2 text-center font-serif text-4xl font-bold text-paper sm:text-5xl">Wer spielt?</h1>
         <p className="mx-auto mt-3 max-w-2xl text-center font-serif text-lg text-paper/85">
           Die Geschichte ist in beiden Stufen dieselbe. Nichts wird beschönigt. Die Stufen unterscheiden sich in der Sprache,
@@ -38,7 +38,7 @@ export function LevelSelect({ value, onChange, onNext, onBack }: { value: Level;
                     <Check size={18} />
                   </span>
                 )}
-                <span className={`${s.typewriter} block text-xs font-bold tracking-[0.2em] text-crimson uppercase`}>
+                <span className={`${s.typewriter} block text-xs font-bold tracking-[0.12em] text-crimson uppercase`}>
                   {key === 'leicht' ? 'Stufe 1' : 'Stufe 2'}
                 </span>
                 <span className="mt-1 block font-serif text-3xl font-bold">{d.label}</span>

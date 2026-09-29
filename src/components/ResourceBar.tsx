@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { BookOpen, HandHeart, House, Medal, Volume2, VolumeX } from 'lucide-react'
+import { BookOpen, ChevronRight, HandHeart, House, Medal, Volume2, VolumeX } from 'lucide-react'
 import s from '../styles/period.module.css'
 import { chapterOf, weekInChapter, weeksInChapter } from '../game/data/chapters'
 import { CARDS } from '../game/data/cards'
@@ -48,10 +48,10 @@ export function ResourceBar({ onMenu }: { onMenu: () => void }) {
       <div className="mx-auto grid max-w-[1500px] grid-cols-[1fr_auto] items-stretch gap-x-5 gap-y-3 px-3 py-3 sm:px-5 lg:grid-cols-[auto_1fr_auto] xl:grid-cols-[auto_minmax(180px,260px)_auto_auto_1fr_auto] xl:gap-x-0 xl:divide-x xl:divide-paper/15">
         {/* Datum und Fortschritt */}
         <div className="lg:order-1 xl:order-none xl:pr-5">
-          <p className={`${s.typewriter} max-w-[240px] truncate text-[10px] font-bold tracking-[0.15em] text-ember uppercase`}>
+          <p className={`${s.typewriter} max-w-[240px] truncate text-xs font-bold tracking-[0.15em] text-ember uppercase`}>
             Widerstandsgruppe {quoted(groupName)}
           </p>
-          <p className={`${s.typewriter} text-[10px] tracking-[0.2em] text-fog uppercase`}>
+          <p className={`${s.typewriter} text-xs tracking-[0.12em] text-fog uppercase`}>
             {chapter.id === 1 ? '1933' : '1936 bis 1938'} · Woche {weekInChapter(weekIndex)} von {weeksInChapter(chapter)} · {DIFFICULTIES[level].label}
           </p>
           <p className="font-serif text-xl leading-tight font-bold whitespace-nowrap">{weeks[weekIndex].dateLabel.replace('Woche vom ', '')}</p>
@@ -88,7 +88,7 @@ export function ResourceBar({ onMenu }: { onMenu: () => void }) {
         {/* Moral */}
         <div className={`col-span-2 self-center lg:order-2 lg:col-span-1 xl:order-none xl:px-5 ${moralFlash}`}>
           <div className="flex items-baseline justify-between">
-            <span className={`${s.typewriter} text-[10px] tracking-[0.2em] uppercase ${low ? 'text-ember' : 'text-fog'}`}>
+            <span className={`${s.typewriter} text-xs tracking-[0.12em] uppercase ${low ? 'text-ember' : 'text-fog'}`}>
               {low ? 'Die Gruppe wankt' : 'Moral der Gruppe'}
             </span>
             <span className={`${s.typewriter} text-xl font-bold tabular-nums ${low ? 'text-ember' : ''}`}>{moral}%</span>
@@ -107,7 +107,7 @@ export function ResourceBar({ onMenu }: { onMenu: () => void }) {
 
         {/* Vorrat */}
         <div className="col-span-2 md:col-span-1 lg:order-5 lg:col-span-2 xl:order-none xl:col-span-1 xl:px-5">
-          <p className={`${s.typewriter} text-[10px] tracking-[0.2em] text-fog uppercase`}>Vorrat</p>
+          <p className={`${s.typewriter} text-xs tracking-[0.12em] text-fog uppercase`}>Vorrat</p>
           <dl className="mt-1 grid grid-cols-4 gap-1.5 xl:flex xl:gap-2">
             {ITEM_ORDER.map((k) => (
               <Item key={k} k={k} value={inventory[k]} />
@@ -123,7 +123,7 @@ function Tile({ label, value, unit }: { label: string; value: number; unit?: str
   const flash = useFlash(value)
   return (
     <div className={`border border-paper/15 px-3 py-1.5 xl:border-0 xl:px-5 xl:py-0 ${flash}`}>
-      <dt className={`${s.typewriter} text-[10px] tracking-[0.2em] text-fog uppercase`}>{label}</dt>
+      <dt className={`${s.typewriter} text-xs tracking-[0.12em] text-fog uppercase`}>{label}</dt>
       <dd className={`${s.typewriter} text-xl leading-tight font-bold tabular-nums whitespace-nowrap`}>
         {value}
         {unit && <span className="ml-1 text-sm text-fog">{unit}</span>}
@@ -136,21 +136,26 @@ function Tile({ label, value, unit }: { label: string; value: number; unit?: str
 function HelpedTile({ value }: { value: number }) {
   const flash = useFlash(value)
   const prev = useRef(value)
+  const openHelped = useUi((u) => u.openHelped)
   useEffect(() => {
     if (value > prev.current) sound.helped()
     prev.current = value
   }, [value])
   return (
     <div
-      className={`border-2 border-group-light/70 bg-group/50 px-3 py-1.5 xl:border-y-0 xl:border-r-0 xl:border-l-2 xl:px-5 xl:py-0 ${flash}`}
+      className={`relative border-2 border-group-light/70 bg-group/50 px-3 py-1.5 xl:border-y-0 xl:border-r-0 xl:border-l-2 xl:px-5 xl:py-0 ${flash}`}
       title="Menschen, denen eure Gruppe geholfen hat. Darum geht es im Spiel."
     >
-      <dt className={`${s.typewriter} flex items-center gap-1 text-[10px] font-bold tracking-[0.15em] text-group-light uppercase`}>
+      {/* Die ganze Kachel öffnet die Gesichter hinter der Zahl */}
+      <button onClick={openHelped} className="absolute inset-0 z-10 hover:bg-group-light/10" aria-label={`${value} Menschen geholfen. Gesichter ansehen`} />
+      <dt className={`${s.typewriter} flex items-center gap-1 text-xs font-bold tracking-[0.15em] text-group-light uppercase`}>
         <HandHeart size={12} aria-hidden /> Geholfen
+        <ChevronRight size={12} className="ml-auto" aria-hidden />
       </dt>
       <dd className={`${s.typewriter} text-xl leading-tight font-bold tabular-nums whitespace-nowrap`}>
         {value}
-        <span className="ml-1 text-sm text-group-light">{value === 1 ? 'Mensch' : 'Menschen'}</span>
+        <span className="ml-1 text-sm text-group-light max-xl:hidden">{value === 1 ? 'Mensch' : 'Menschen'}</span>
+
       </dd>
     </div>
   )
@@ -166,7 +171,7 @@ function Item({ k, value }: { k: ItemKey; value: number }) {
     >
       <dt className="flex items-center gap-1">
         <Icon size={15} aria-hidden />
-        <span className={`${s.typewriter} text-[11px]`}>{ITEM_SHORT[k]}</span>
+        <span className={`${s.typewriter} text-[13px]`}>{ITEM_SHORT[k]}</span>
       </dt>
       <dd className={`${s.typewriter} ml-auto text-sm font-bold tabular-nums`}>{value}</dd>
     </div>
