@@ -28,7 +28,7 @@ export function TitleScreen({ canContinue, onNew, onContinue, onPrologue }: Titl
           className={`${s.flicker} mt-5 font-serif text-5xl leading-[0.95] font-bold tracking-tight text-balance text-paper sm:text-7xl`}
           style={{ textShadow: '3px 3px 0 #8b0000' }}
         >
-          Solidarity is Resistance
+          Solidarity
         </h1>
         <p className={`${s.fraktur} mt-4 text-3xl text-paper sm:text-4xl`}>Berlin 1933 bis 1938</p>
         <hr className="my-7 w-40 border-t border-fog/50" />

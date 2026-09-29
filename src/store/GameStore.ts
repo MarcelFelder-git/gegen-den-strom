@@ -8,6 +8,7 @@ import { getStory, storiesFor } from '../game/data/stories'
 import { CHAPTERS, chapterOf } from '../game/data/chapters'
 import { SOURCES } from '../game/data/sources'
 import { cardsForMission, cardsForWeek } from '../game/data/cards'
+import { companionName, renamed, templateName } from '../game/names'
 import { MISSION_HELP, PRISON_FAMILY_WHO, letterFor, portraitFor, type HelpedPerson, type HelpKind } from '../game/data/helped'
 import { CODENAMES } from '../game/data/group'
 import { chooseGoal, goalById } from '../game/data/goals'
@@ -185,10 +186,13 @@ function shuffle<T>(items: T[], r: Rng): T[] {
   return a
 }
 
-function companionFrom(c: (typeof COMPANIONS)[number], id: string, r: Rng, level: Level): Character {
+function companionFrom(c: (typeof COMPANIONS)[number], id: string, r: Rng, level: Level, leaderName = ''): Character {
+  // Heißt ein Gefährte wie die eigene Figur, bekommt er einen anderen Vornamen. Geschichten laufen über template weiter.
+  const name = companionName(c.name, leaderName)
   return {
     id,
-    name: c.name,
+    name,
+    ...(name !== c.name ? { template: c.name } : {}),
     isLeader: false,
     avatar: c.avatar,
     beruf: c.beruf,
@@ -204,9 +208,9 @@ function companionFrom(c: (typeof COMPANIONS)[number], id: string, r: Rng, level
 function chosenCompanions(names: string[], leaderName: string, r: Rng, level: Level): Character[] {
   const chosen = names
     .map((n) => COMPANIONS.find((c) => c.name === n))
-    .filter((c): c is (typeof COMPANIONS)[number] => !!c && firstName(c) !== firstName({ name: leaderName }))
+    .filter((c): c is (typeof COMPANIONS)[number] => !!c)
     .slice(0, 3)
-  const picked = chosen.map((c, i) => companionFrom(c, `g${i + 1}`, r, level))
+  const picked = chosen.map((c, i) => companionFrom(c, `g${i + 1}`, r, level, leaderName))
   if (picked.length === 3) return picked
   const extra = createCompanions(leaderName, r, level, chosen.map((c) => c.name), 3 - picked.length, 'g')
   return [...picked, ...extra.map((m, i) => ({ ...m, id: `g${picked.length + i + 1}` }))]
@@ -217,7 +221,7 @@ function createCompanions(leaderName: string, r: Rng, level: Level, exclude: str
     COMPANIONS.filter((c) => firstName(c) !== firstName({ name: leaderName }) && !exclude.includes(c.name)),
     r,
   )
-  return pool.slice(0, count).map((c, i) => companionFrom(c, `${idPrefix}${i + 1}`, r, level))
+  return pool.slice(0, count).map((c, i) => companionFrom(c, `${idPrefix}${i + 1}`, r, level, leaderName))
 }
 
 /** Vergibt freie Decknamen an neue Gefährten */
@@ -240,7 +244,7 @@ function beginWeek(s: GameData, index: number): GameData {
   }
   let next: GameData = { ...s, weekIndex: index }
   for (const n of notes) next = applyEffects(next, n.effects)
-  const present = next.members.filter((m) => !m.isLeader && !isGone(m)).map((m) => m.name)
+  const present = next.members.filter((m) => !m.isLeader && !isGone(m)).map(templateName)
   const weekCards = cardsForWeek(index)
     .map((c) => c.id)
     .filter((id) => !next.cards.includes(id))
@@ -273,8 +277,8 @@ export interface CurrentEvent {
 export function currentEvent(s: Pick<GameData, 'weekIndex' | 'eventStage' | 'storyIds' | 'members'>): CurrentEvent {
   if (s.eventStage > 0) {
     const st = getStory(s.storyIds[s.eventStage - 1])
-    const self = st && s.members.find((m) => m.name === st.companion)
-    if (st && self) return { event: st.event, self }
+    const self = st && s.members.find((m) => templateName(m) === st.companion)
+    if (st && self) return { event: renamed(st.event, self), self }
   }
   return { event: WEEKS[s.weekIndex].event }
 }
@@ -329,7 +333,7 @@ function recruitIfEmpty(s: GameData): { state: GameData; recruited: string[] } {
   const first = chapterOf(s.weekIndex).first
   const rescues = new Set(s.members.map((m) => recruitWeek(m.id)).filter((w): w is number => w !== null && w >= first)).size
   if (rescues >= difficultyOf(s.level).rescuesPerChapter) return { state: s, recruited: [] }
-  const taken = s.members.map((m) => m.name)
+  const taken = s.members.map(templateName)
   const leaderName = s.members.find((m) => m.isLeader)?.name ?? ''
   const fresh = createCompanions(leaderName, rng, s.level, taken, 2, `r${s.weekIndex}-`)
   const joined = withCodenames(fresh, s.members.map((m) => m.codename ?? ''))
@@ -440,7 +444,7 @@ export const useGame = create<GameState>()(
         })
         const free = members.filter((m) => !m.isLeader && !isGone(m)).length
         if (free < 3) {
-          const taken = members.map((m) => m.name)
+          const taken = members.map(templateName)
           const extra = createCompanions(members.find((m) => m.isLeader)?.name ?? '', rng, s.level, taken, 3 - free, 'n')
           members = [...members, ...withCodenames(extra, members.map((m) => m.codename ?? ''))]
         }
@@ -532,7 +536,7 @@ export const useGame = create<GameState>()(
         let stage = s.eventStage + 1
         while (stage <= s.storyIds.length) {
           const st = getStory(s.storyIds[stage - 1])
-          const who = st && s.members.find((m) => m.name === st.companion)
+          const who = st && s.members.find((m) => templateName(m) === st.companion)
           if (who && !isGone(who)) return set({ eventStage: stage, eventOutcome: null })
           stage++
         }

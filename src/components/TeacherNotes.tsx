@@ -64,7 +64,7 @@ export function TeacherNotes() {
         <h2 className="font-serif text-3xl font-bold">Hinweise für Lehrkräfte</h2>
         <div className="mt-4 space-y-5 font-serif text-[16px] leading-relaxed">
           <p>
-            In <em lang="en">Solidarity is Resistance</em> führen Schülerinnen und Schüler eine kleine Widerstandsgruppe durch Berlin,
+            In <em lang="en">Solidarity</em> führen Schülerinnen und Schüler eine kleine Widerstandsgruppe durch Berlin,
             von Januar bis Mai 1933 (Kapitel 1) und von März 1936 bis Dezember 1938 (Kapitel 2). Die Gruppe besteht aus Menschen, die
             selbst nicht rassistisch verfolgt werden. Sie könnten wegsehen und sagen: „Uns geht es doch gut.“ Das Spiel zeigt, dass
             Widerstand gerade darin bestand, es nicht zu tun.

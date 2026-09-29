@@ -1,5 +1,6 @@
 import { L, type Txt } from '../text'
 import type { Character, IdeologyKey } from '../types'
+import { renamed, templateName } from '../names'
 
 /**
  * Was aus den Figuren wahrscheinlich geworden wäre. Die Figuren sind erfunden,
@@ -144,11 +145,11 @@ export function fateOf(c: Character): Txt {
     const fill = (s: string) => s.replace('{name}', c.name.split(' ')[0]).replace('{pron}', pronoun(c))
     return typeof tpl === 'string' ? fill(tpl) : L(fill(tpl.leicht), fill(tpl.schwer))
   }
-  const f = COMPANION_FATES[c.name]
+  const f = COMPANION_FATES[templateName(c)]
   if (!f) return ''
-  if (c.status === 'ausgewandert' && f.ausgewandert) return f.ausgewandert
-  if (c.status === 'verhaftet') return f.verhaftet
-  return f.frei
+  if (c.status === 'ausgewandert' && f.ausgewandert) return renamed(f.ausgewandert, c)
+  if (c.status === 'verhaftet') return renamed(f.verhaftet, c)
+  return renamed(f.frei, c)
 }
 
 export function leaderFate(ideology: IdeologyKey, status: Character['status']): Txt {

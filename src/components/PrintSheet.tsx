@@ -30,7 +30,7 @@ export function PrintSheet() {
   return (
     <section className="print-sheet" aria-hidden>
       <header style={{ borderBottom: '2px solid #000', paddingBottom: '6mm', marginBottom: '6mm' }}>
-        <p style={{ fontSize: '9pt', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Solidarity is Resistance. Berlin 1933 bis 1938 · Stufe: {DIFFICULTIES[level].label}</p>
+        <p style={{ fontSize: '9pt', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Solidarity. Berlin 1933 bis 1938 · Stufe: {DIFFICULTIES[level].label}</p>
         <h1 style={{ fontSize: '22pt', fontWeight: 700, margin: '2mm 0' }}>Abschlussblatt</h1>
         <p style={{ fontSize: '11pt' }}>
           Name: ______________________ &nbsp; Klasse: ________ &nbsp; Datum: ______________

@@ -5,6 +5,10 @@ import type { IdeologyKey, ProfessionKey } from '../game/types'
 import type { Level } from '../game/text'
 import { currentEvent, useGame } from './GameStore'
 import { goalById, weekGoal } from '../game/data/goals'
+import { STORIES } from '../game/data/stories'
+import { fateOf } from '../game/data/fates'
+import { companionName, renamed } from '../game/names'
+import { t } from '../game/text'
 
 const draft = (profession: ProfessionKey, ideology: IdeologyKey) => ({
   name: 'Frieda',
@@ -60,6 +64,32 @@ describe('Spielablauf', () => {
 })
 
 describe('Gefährten und Geholfene', () => {
+  it('wer so heißt wie die eigene Figur, kommt mit einem anderen Vornamen mit, samt Geschichten und Schicksal', () => {
+    useGame.getState().startGame({ ...draft('lehrer', 'christlich'), name: 'Lotte', companions: ['Lotte Krause', 'Hans Wendt', 'Anni Neumann'] })
+    const lotte = useGame.getState().members.find((m) => m.template === 'Lotte Krause')
+    expect(lotte?.name).toBe('Liesel Krause')
+    expect(useGame.getState().members.map((m) => m.name)).not.toContain('Lotte Krause')
+    // Ihre Geschichte erscheint trotzdem, mit dem neuen Namen
+    const story = STORIES.find((st) => st.companion === 'Lotte Krause')!
+    const text = JSON.stringify(renamed(story.event, lotte))
+    expect(text).toContain('Liesel')
+    expect(text).not.toMatch(/Lotte/)
+    expect(t(fateOf({ ...lotte!, status: 'bereit' }), 'leicht')).toMatch(/^Liesel /)
+    // Wer anders heißt, bleibt unverändert
+    expect(useGame.getState().members.find((m) => m.name === 'Hans Wendt')?.template).toBeUndefined()
+  })
+
+  it('der Genitiv passt sich an', () => {
+    const hans = { name: 'Willi Wendt', template: 'Hans Wendt' }
+    expect(renamed('Hans’ Küche, bei Hans. Hansi bleibt.', hans)).toBe('Willis Küche, bei Willi. Hansi bleibt.')
+    const august = { name: 'Emil Brenner', template: 'August Brenner' }
+    expect(renamed('Augusts Mietshaus. August nickt.', august)).toBe('Emils Mietshaus. Emil nickt.')
+    expect(companionName('Hans Wendt', 'Willi')).toBe('Hans Wendt')
+    expect(companionName('Hans Wendt', 'hans')).toBe('Willi Wendt')
+    // Heißt die Figur auch wie der erste Ersatz, kommt der zweite
+    expect(companionName('Lotte Krause', 'Lotte')).toBe('Liesel Krause')
+  })
+
   it('die selbst gewählten Gefährten kommen mit', () => {
     useGame.getState().startGame({ ...draft('lehrer', 'christlich'), companions: ['August Brenner', 'Grete Hoffmann', 'Anni Neumann'] })
     const names = useGame.getState().members.filter((m) => !m.isLeader).map((m) => m.name)

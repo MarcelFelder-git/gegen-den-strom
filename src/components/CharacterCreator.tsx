@@ -30,7 +30,7 @@ import { useUi } from '../store/UiStore'
 import { CHAPTERS } from '../game/data/chapters'
 import { CODENAMES, FIRST_NAMES, GROUP_NAMES, GROUP_RULES, MORE_GROUP_NAMES, MORE_MOTTOS, MOTTOS } from '../game/data/group'
 import { COMPANIONS } from '../game/data/companions'
-import { firstName } from '../game/logic'
+import { companionName } from '../game/names'
 import { resolve } from '../game/text'
 import { DIFFICULTIES } from '../game/difficulty'
 
@@ -118,11 +118,10 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
     patch({ details: cur.includes(d) ? cur.filter((x) => x !== d) : [...cur, d] })
   }
 
-  // Wer genauso heißt wie du, kann nicht in die Gruppe: Sonst wüsste niemand, wer gemeint ist
-  const sameName = (companion: string) => !!name.trim() && firstName({ name: companion }) === firstName({ name: name.trim() })
+  // Wer genauso heißt wie du, kommt trotzdem mit, aber unter einem anderen Vornamen. Sonst wüsste niemand, wer gemeint ist.
   const toggleCompanion = (companion: string) =>
     setTeam((cur) => (cur.includes(companion) ? cur.filter((x) => x !== companion) : cur.length >= 3 ? cur : [...cur, companion]))
-  const activeTeam = team.filter((c) => !sameName(c))
+  const activeTeam = team
 
   const patch = (p: Partial<AvatarConfig>) => setAvatar((a) => ({ ...a, ...p }))
 
@@ -377,13 +376,12 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
                   <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3" role="group" aria-label="Gefährten wählen">
                     {COMPANIONS.map((c) => {
                       const picked = team.includes(c.name)
-                      const blocked = sameName(c.name)
+                      const shown = companionName(c.name, name)
                       const full = !picked && team.length >= 3
                       return (
                         <button
                           key={c.name}
                           onClick={() => toggleCompanion(c.name)}
-                          disabled={blocked}
                           aria-pressed={picked}
                           aria-disabled={full || undefined}
                           className={`${s.chip} relative flex gap-3 p-3 text-left ${full ? 'cursor-default border-dashed !bg-paper-dark text-slate shadow-none' : ''}`}
@@ -392,12 +390,18 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
                             <Avatar config={c.avatar} size={64} title="" />
                           </span>
                           <span className="min-w-0">
-                            <span className="block font-serif text-lg leading-tight font-bold">{c.name}</span>
+                            <span className="block font-serif text-lg leading-tight font-bold">{shown}</span>
                             <span className="block font-type text-xs text-slate">{c.beruf}</span>
                             <span className="mt-1 block font-serif text-[15px] leading-snug">{resolve(c.bio, level)}</span>
                             <span className="mt-1 block font-type text-xs font-bold text-crimson">
-                              {blocked ? 'Heißt wie du' : `Stark in: ${STAT_LABELS[bestStat(c.stats)]}`}
+                              Stark in: {STAT_LABELS[bestStat(c.stats)]}
                             </span>
+                            {shown !== c.name && (
+                              <span className="mt-0.5 block font-type text-xs text-slate">
+                                Heißt eigentlich {c.name.split(' ')[0]}, so wie du. In der Gruppe nennen alle {c.avatar.gender === 'w' ? 'sie' : 'ihn'}{' '}
+                                {shown.split(' ')[0]}.
+                              </span>
+                            )}
                           </span>
                           {picked && (
                             <span className="absolute top-2 right-2 grid h-6 w-6 place-items-center bg-crimson text-paper" aria-hidden>

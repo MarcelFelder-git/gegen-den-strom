@@ -9,6 +9,7 @@ import { STAT_LABELS } from '../../game/data/professions'
 import { getStory } from '../../game/data/stories'
 import { WEEKS } from '../../game/data/weeks'
 import { actingLeader, fillNames, isGone } from '../../game/logic'
+import { renamed, templateName } from '../../game/names'
 import { checkChance, eventNames, useGame } from '../../store/GameStore'
 import { useLevel, useR } from '../../store/content'
 
@@ -30,8 +31,8 @@ export function EncounterPage({ stage, readOnly }: { stage: number; readOnly: bo
   const r = useR()
 
   const story = stage > 0 ? getStory(storyIds[stage - 1]) : undefined
-  const self = story ? members.find((m) => m.name === story.companion) : undefined
-  const ev = r(story ? story.event : WEEKS[weekIndex].event)
+  const self = story ? members.find((m) => templateName(m) === story.companion) : undefined
+  const ev = r(story ? renamed(story.event, self) : WEEKS[weekIndex].event)
   const names = eventNames(members, self)
   const fill = (t: string) => fillNames(t, names)
   const personal = !!self
@@ -57,7 +58,7 @@ export function EncounterPage({ stage, readOnly }: { stage: number; readOnly: bo
 
   const moreStories = storyIds.slice(liveStage).some((id) => {
     const st = getStory(id)
-    const who = st && members.find((m) => m.name === st.companion)
+    const who = st && members.find((m) => templateName(m) === st.companion)
     return who && !isGone(who)
   })
 

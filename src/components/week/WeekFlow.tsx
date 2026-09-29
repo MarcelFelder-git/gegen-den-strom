@@ -8,6 +8,7 @@ import { EncounterPage } from './EncounterPage'
 import { SOURCES } from '../../game/data/sources'
 import { getStory } from '../../game/data/stories'
 import { isGone } from '../../game/logic'
+import { templateName } from '../../game/names'
 import { useGame } from '../../store/GameStore'
 
 export type StepKind = 'zeitung' | 'quelle' | 'begegnung' | 'gruppe'
@@ -53,7 +54,7 @@ export function WeekFlow() {
     list.push({ kind: 'begegnung', label: 'Begegnung', eventStage: 0 })
     storyIds.forEach((id, i) => {
       const st = getStory(id)
-      const who = st && members.find((m) => m.name === st.companion)
+      const who = st && members.find((m) => templateName(m) === st.companion)
       // Wer vor der eigenen Geschichte die Gruppe verlassen hat, taucht nicht mehr auf
       if (!st || !who || (isGone(who) && eventStage < i + 1)) return
       list.push({ kind: 'gruppe', label: who.name.split(' ')[0], storyId: id, eventStage: i + 1 })

@@ -65,6 +65,8 @@ export interface Character {
   prison?: Prison
   /** Wie oft die Person schon in Haft war */
   arrests?: number
+  /** Ursprünglicher Name, falls die Person im Spiel anders heißt, weil sie so hieß wie die eigene Figur */
+  template?: string
 }
 
 export interface Inventory {

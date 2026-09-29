@@ -1,4 +1,4 @@
-# Solidarity is Resistance. Berlin 1933 bis 1938
+# Solidarity. Berlin 1933 bis 1938
 
 Ein Geschichtsspiel für den Unterricht ab Klasse 6. Die Spielerinnen und Spieler führen eine kleine Widerstandsgruppe durch zwei Kapitel: zehn Wochen von Januar bis Mai 1933 und acht Wochen von März 1936 bis Dezember 1938. Die Gruppe besteht aus Menschen, die selbst nicht rassistisch verfolgt werden und sich trotzdem für die Verfolgten einsetzen. Gemessen wird nicht ein Sieg, sondern die Solidarität: wie vielen Menschen die Gruppe beigestanden hat.
 
