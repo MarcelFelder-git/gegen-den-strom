@@ -64,7 +64,7 @@ function burst(opts: { dur: number; type: BiquadFilterType; freq: number; q?: nu
   src.stop(t + opts.dur)
 }
 
-function tone(opts: { freq: number; dur: number; gain: number; type?: OscillatorType; freqEnd?: number; when?: number }) {
+function tone(opts: { freq: number; dur: number; gain: number; type?: OscillatorType; freqEnd?: number; when?: number; out?: AudioNode }) {
   const a = audio()
   if (!a) return
   const t = a.ctx.currentTime + (opts.when ?? 0)
@@ -75,7 +75,7 @@ function tone(opts: { freq: number; dur: number; gain: number; type?: Oscillator
   const g = a.ctx.createGain()
   g.gain.setValueAtTime(opts.gain, t)
   g.gain.exponentialRampToValueAtTime(0.0001, t + opts.dur)
-  o.connect(g).connect(a.out)
+  o.connect(g).connect(opts.out ?? a.out)
   o.start(t)
   o.stop(t + opts.dur)
 }
@@ -135,6 +135,10 @@ export const sound = {
       tone({ freq: freq * 2, dur: 1.4, gain: 0.015, when: i * 0.18 })
     })
     tone({ freq: 130.81, dur: 2.8, gain: 0.05, when: 0.72 })
+  },
+  /** Ein Auftrag ist gelungen: ein kurzer, warmer Dreiklang */
+  success() {
+    ;[523.25, 659.25, 783.99].forEach((freq, i) => tone({ freq, dur: 1.2 - i * 0.2, gain: 0.05, type: 'triangle', when: i * 0.09 }))
   },
   /** Jemandem wurde geholfen: ein heller, warmer Ton */
   helped() {
@@ -196,5 +200,137 @@ export function setMuted(value: boolean) {
   } catch {
     /* Speichern nicht möglich, dann gilt die Einstellung nur für diese Sitzung */
   }
-  if (value && ctx) void ctx.suspend().catch(() => {})
+  if (value) stopMusic()
+  else if (track) startMusic()
+}
+
+/* ---------- Musik ----------
+ * Eine Spieluhr, im Browser erzeugt. Auf Titel und Ende „Die Gedanken sind frei“ (Volkslied um 1800, gemeinfrei),
+ * in den Wochen leise, warme Akkorde mit langen Pausen. In der Nacht, der Wochenschau und der Vorgeschichte schweigt sie.
+ */
+
+export type Track = 'thema' | 'woche' | null
+
+let track: Track = null
+let bus: GainNode | null = null
+let timer: number | undefined
+
+const hz = (midi: number) => 440 * 2 ** ((midi - 69) / 12)
+
+/** Ein Ton der Spieluhr: klarer Anschlag, langes Ausklingen */
+function pluck(out: AudioNode, when: number, midi: number, gain: number, ring = 2.2) {
+  const f = hz(midi)
+  tone({ freq: f, dur: ring, gain, when, out })
+  tone({ freq: f * 2, dur: ring * 0.45, gain: gain * 0.22, when, out })
+  tone({ freq: f * 3, dur: ring * 0.2, gain: gain * 0.06, when, out })
+}
+
+/** Ein weicher, tiefer Ton als Grundlage */
+function bass(out: AudioNode, when: number, midi: number, dur: number, gain = 0.05) {
+  tone({ freq: hz(midi), dur, gain, type: 'triangle', when, out })
+}
+
+// „Die Gedanken sind frei“ in C-Dur, 3/4-Takt, [MIDI-Ton, Dauer in Schlägen]
+// Nach dem Satz im LilyPond-Wiki (lilypond.miraheze.org/wiki/Die_Gedanken_sind_frei)
+const G4 = 67, A4 = 69, B4 = 71, C5 = 72, D5 = 74, E5 = 76, F4 = 65, D4 = 62, E4 = 64, C4 = 60
+const MELODY: [number, number][] = [
+  [G4, 0.5], [G4, 0.5],
+  [C5, 1], [C5, 1], [E5, 0.5], [C5, 0.5], [G4, 2], [G4, 1], [F4, 1], [D4, 1], [G4, 1], [E4, 1], [C4, 1],
+  [G4, 1], [C5, 1], [C5, 1], [E5, 0.5], [C5, 0.5], [G4, 2], [G4, 1], [F4, 1], [D4, 1], [G4, 1], [E4, 1], [C4, 1],
+  [C5, 1], [B4, 1], [D5, 1], [B4, 1], [C5, 1], [E5, 1], [C5, 1], [B4, 1], [D5, 1], [B4, 1], [C5, 1], [E5, 1],
+  [C5, 1], [A4, 1], [A4, 1], [C5, 0.5], [A4, 0.5], [G4, 2],
+  [C5, 0.5], [E5, 0.5], [E5, 0.5], [D5, 0.5], [C5, 1], [B4, 1], [C5, 2],
+]
+// Grundtöne je Takt: C, C, G, C, C, C, G, C, G, C, G, C, F, C, G, C
+const BASS_BARS = [48, 48, 43, 48, 48, 48, 43, 48, 43, 48, 43, 48, 41, 48, 43, 48]
+
+/** Ohne laufenden Tonkanal nichts vormerken, sonst stauen sich die Töne und kommen alle auf einmal */
+function running(): boolean {
+  const a = audio()
+  return !!a && a.ctx.state === 'running' && !document.hidden
+}
+
+/** Spielt das Thema einmal und liefert seine Dauer in Sekunden */
+function playTheme(out: GainNode, slow = 1): number {
+  const beat = 0.62 * slow
+  const start = 0.3
+  let t = 0
+  for (const [midi, dur] of MELODY) {
+    pluck(out, start + t * beat, midi, 0.07)
+    t += dur
+  }
+  // Der Auftakt dauert einen Schlag, danach 16 Takte zu je drei Schlägen
+  BASS_BARS.forEach((m, i) => bass(out, start + (1 + i * 3) * beat, m, 3 * beat))
+  return t * beat
+}
+
+// Leise Akkorde für die Wochen: C, a-Moll, F, G. Aus jedem Akkord erklingen nur zwei oder drei Töne.
+const CHORDS = [
+  { root: 48, notes: [64, 67, 72, 76] },
+  { root: 45, notes: [64, 69, 72, 76] },
+  { root: 41, notes: [65, 69, 72, 77] },
+  { root: 43, notes: [62, 67, 71, 74] },
+]
+
+/** Spielt die vier Akkorde einmal und liefert ihre Dauer in Sekunden */
+function playWeek(out: GainNode): number {
+  const len = 3.8
+  CHORDS.forEach((c, i) => {
+    const start = 0.3 + i * len
+    bass(out, start, c.root, len * 1.1, 0.035)
+    const count = 2 + Math.floor(Math.random() * 2)
+    for (let k = 0; k < count; k++) {
+      const note = c.notes[Math.floor(Math.random() * c.notes.length)]
+      pluck(out, start + 0.2 + k * (0.9 + Math.random() * 0.5), note, 0.045, 2.6)
+    }
+  })
+  return CHORDS.length * len
+}
+
+function schedule() {
+  if (!track || muted) return
+  if (!running() || !bus) {
+    timer = window.setTimeout(schedule, 1000)
+    return
+  }
+  let wait: number
+  if (track === 'thema') {
+    wait = playTheme(bus) + 7
+  } else {
+    // Ab und zu klingt das Thema langsam an, sonst nur Akkorde, dazwischen Stille
+    wait = Math.random() < 0.25 ? playTheme(bus, 1.25) + 10 : playWeek(bus) + 6 + Math.random() * 10
+  }
+  timer = window.setTimeout(schedule, wait * 1000)
+}
+
+function startMusic() {
+  stopMusic()
+  const a = audio()
+  if (!a || !track) return
+  bus = a.ctx.createGain()
+  bus.gain.value = 0.55
+  bus.connect(a.out)
+  schedule()
+}
+
+function stopMusic() {
+  if (timer) clearTimeout(timer)
+  timer = undefined
+  const old = bus
+  bus = null
+  if (!old || !ctx) return
+  try {
+    old.gain.setTargetAtTime(0, ctx.currentTime, 0.25)
+    window.setTimeout(() => old.disconnect(), 1500)
+  } catch {
+    /* bereits getrennt */
+  }
+}
+
+/** Welche Musik gerade laufen soll. Dieselbe Musik wird nicht neu begonnen. */
+export function setMusic(next: Track) {
+  if (next === track) return
+  track = next
+  if (!next) return stopMusic()
+  if (!muted) startMusic()
 }

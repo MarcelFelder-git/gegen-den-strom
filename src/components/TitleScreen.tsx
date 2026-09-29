@@ -90,7 +90,7 @@ export function TitleScreen({ canContinue, onNew, onContinue, onPrologue }: Titl
 
         <button onClick={toggleMuted} className="tap-area mt-6 inline-flex items-center gap-2 font-type text-sm text-fog hover:text-paper">
           {muted ? <VolumeX size={16} aria-hidden /> : <Volume2 size={16} aria-hidden />}
-          {muted ? 'Geräusche sind aus' : 'Geräusche sind an'}
+          {muted ? 'Musik und Geräusche sind aus' : 'Musik und Geräusche sind an'}
         </button>
 
         <p className="mt-6 max-w-md font-type text-xs leading-relaxed text-fog">

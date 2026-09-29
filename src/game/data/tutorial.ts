@@ -66,11 +66,11 @@ export const TUTORIAL: TutorialPage[] = [
     text: [
       L(
         'Verhaftete fehlen der Gruppe für ein bis zwei Wochen. Ihr könnt ihnen helfen. Schickt ein Paket, bezahlt einen Anwalt oder versorgt die Familie.',
-        'Verhaftete fehlen der Gruppe für Wochen. Hilfe von außen ist möglich: Pakete ins Gefängnis, ein Anwalt, Unterstützung für die Familie.',
+        'Verhaftete fehlen der Gruppe zwei Wochen, mit Anwalt eine. Hilfe von außen ist möglich: Pakete ins Gefängnis, ein Anwalt, Unterstützung für die Familie.',
       ),
       L(
         'Ist die Person in Haft, die euch anführt? Dann übernimmt jemand anderes. Sind alle in Haft, springen zwei Unterstützer ein. Eure Gruppe macht weiter.',
-        'Manche kommen nicht zurück. Wird die Person verhaftet, die euch anführt, oder verliert die Gruppe allen Mut, ist das Spiel vorbei. Eine Chronik erzählt dann, wie es weiterging.',
+        'Manche kommen nicht zurück. Sind alle zugleich in Haft, springen einmal Unterstützer ein. Geschieht das ein zweites Mal oder verliert die Gruppe allen Mut, ist sie zerschlagen. Eine Chronik erzählt dann, wie es weiterging.',
       ),
     ],
   },

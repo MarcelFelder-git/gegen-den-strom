@@ -125,6 +125,36 @@ describe('Ziel der Woche', () => {
   })
 })
 
+describe('Wenn niemand mehr frei ist', () => {
+  const allGone = () =>
+    useGame.setState((g) => ({ phase: 'map', members: g.members.map((m) => ({ ...m, status: 'lager' as const })), missions: g.missions.map((m) => ({ ...m, assigned: [] })) }))
+
+  it('springen in der schweren Stufe einmal pro Kapitel Unterstützer ein, beim zweiten Mal ist die Gruppe zerschlagen', () => {
+    useGame.getState().startGame({ ...draft('lehrer', 'christlich'), level: 'schwer' })
+    allGone()
+    useGame.getState().endWeek()
+    expect(useGame.getState().report?.recruited).toHaveLength(2)
+    useGame.getState().nextWeek()
+    expect(useGame.getState().phase).not.toBe('end')
+
+    allGone()
+    useGame.getState().endWeek()
+    expect(useGame.getState().report?.recruited).toHaveLength(0)
+    useGame.getState().nextWeek()
+    expect(useGame.getState().endReason).toBe('verhaftet')
+  })
+
+  it('springen in der leichten Stufe jedes Mal Unterstützer ein', () => {
+    useGame.getState().startGame({ ...draft('lehrer', 'christlich'), level: 'leicht' })
+    for (let i = 0; i < 3; i++) {
+      allGone()
+      useGame.getState().endWeek()
+      expect(useGame.getState().report?.recruited).toHaveLength(2)
+      useGame.getState().nextWeek()
+    }
+  })
+})
+
 describe('Einführung', () => {
   it('erscheint in jedem neuen Spiel einmal', () => {
     useGame.getState().startGame(draft('lehrer', 'christlich'))
@@ -162,7 +192,7 @@ describe('Doppeltes Tippen auf dem Tablet', () => {
  * Spielt viele Partien mit einer einfachen, vernünftigen Strategie.
  * Dient als Prüfung der Spielbalance: gut spielbar, aber nicht trivial.
  */
-function autoplay(profession: ProfessionKey, ideology: IdeologyKey, level: Level, startWeek = 0) {
+function autoplay(profession: ProfessionKey, ideology: IdeologyKey, level: Level, startWeek = 0, bold = false) {
   useGame.getState().startGame({ ...draft(profession, ideology), level }, startWeek)
   for (let guard = 0; guard < 160; guard++) {
     const s = useGame.getState()
@@ -181,7 +211,8 @@ function autoplay(profession: ProfessionKey, ideology: IdeologyKey, level: Level
         const mission = cur.missions.find((m) => m.type === type && m.assigned.length === 0)
         if (!mission || !canAfford(MISSIONS[type], cur.kasse, cur.inventory)) continue
         const busy = new Set(cur.missions.flatMap((m) => m.assigned))
-        const free = cur.members.filter((m) => m.status === 'bereit' && !busy.has(m.id) && !isWanted(m))
+        // Mutig heißt: wie ein Kind beim ersten Mal, auch Gesuchte werden losgeschickt
+        const free = cur.members.filter((m) => m.status === 'bereit' && !busy.has(m.id) && (bold || !isWanted(m)))
         const t = MISSIONS[type]
         const sorted = [...free].sort((a, b) => b.stats[t.primary] - a.stats[t.primary])
         const team = sorted.slice(0, 1)
@@ -189,8 +220,10 @@ function autoplay(profession: ProfessionKey, ideology: IdeologyKey, level: Level
         if (team.length) cur.assign(mission.uid, team.map((m) => m.id))
       }
       const cur = useGame.getState()
-      for (const m of cur.members) if (cur.inventory.ausweise > 0 && m.heat >= 50) cur.giveAusweis(m.id)
-      for (const m of useGame.getState().members) if (m.status === 'verhaftet') useGame.getState().helpPrisoner(m.id, 'paket')
+      if (!bold) {
+        for (const m of cur.members) if (cur.inventory.ausweise > 0 && m.heat >= 50) cur.giveAusweis(m.id)
+        for (const m of useGame.getState().members) if (m.status === 'verhaftet') useGame.getState().helpPrisoner(m.id, 'paket')
+      }
       useGame.getState().endWeek()
     } else if (s.phase === 'report') s.nextWeek()
   }
@@ -224,6 +257,19 @@ describe('Spielbalance', () => {
     expect(rate).toBeGreaterThan(0.45)
     // Keine Obergrenze: Seit das Risiko auf ein Fünftel gesenkt ist, schafft die sehr umsichtige Simulation
     // das Kapitel fast immer. Kinder spielen mutiger, für sie ist es schwerer.
+  })
+
+  it('schwere Stufe: auch wer mutig alle losschickt, schafft meist das erste Kapitel', () => {
+    let survived = 0
+    let total = 0
+    for (const [p, i] of COMBOS) {
+      for (let n = 0; n < 40; n++) {
+        total++
+        if (autoplay(p, i, 'schwer', 0, true).endReason === 'kapitelende') survived++
+      }
+    }
+    // Vorher schaffte das nur jede zweite Gruppe. Kinder spielen einmal und sollen ein Erfolgserlebnis haben.
+    expect(survived / total).toBeGreaterThan(0.8)
   })
 
   it('leichte Stufe: die Gruppe kommt immer bis zum Kapitelende', () => {

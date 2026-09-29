@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { setMusic, type Track } from './audio/sound'
 import { CharacterCreator } from './components/CharacterCreator'
 import { EndScreen } from './components/EndScreen'
 import { GroupPanel } from './components/GroupPanel'
@@ -118,6 +119,19 @@ export default function App() {
   }
 
   const inGame = before === null
+  // Musik nur an ruhigen Stellen: Titel, Figur, Wochenplanung, Bericht und Ende.
+  // Vorgeschichte, Wochenschau und Nacht bleiben ohne Musik.
+  const cutscene = (phase === 'newspaper' && introSeen !== weekIndex) || (phase === 'report' && nightSeen !== weekIndex)
+  const track: Track =
+    before === 'intro' || before === 'prologue'
+      ? null
+      : before === 'title' || before === 'level' || phase === 'title' || phase === 'creation' || phase === 'end'
+        ? 'thema'
+        : cutscene
+          ? null
+          : 'woche'
+  useEffect(() => setMusic(track), [track])
+
   return (
     <>
       {screen}

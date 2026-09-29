@@ -70,21 +70,23 @@ export const DIFFICULTIES: Record<Level, Difficulty> = {
       'Ausführliche Texte und Quellen',
       'Realistische Erfolgsaussichten',
       'Manche Verhaftete kehren nicht zurück',
-      'Die Gruppe kann zerschlagen werden. Danach lest ihr, wie es weiterging.',
+      'Sind alle in Haft, springen einmal Unterstützer ein. Beim zweiten Mal ist die Gruppe zerschlagen.',
     ],
-    successBonus: 0,
-    riskFactor: 1.1,
+    // Gemessen mit simulierten Erstspielern, die alle losschicken: So schaffen gut neun von zehn das Kapitel.
+    // Vorher war es nur jede zweite Gruppe, meist am Ende ohne Moral. Verhaftungen bleiben gleich häufig.
+    successBonus: 5,
+    riskFactor: 1.0,
     arrestChance: 0.55,
     arrestChanceUnknown: 0.15,
-    startKasse: 0,
-    moralDecay: 3,
-    arrestMoralLoss: 15,
+    startKasse: 10,
+    moralDecay: 2,
+    arrestMoralLoss: 10,
     // Zwei Wochen, mit Anwalt eine. Der Ernst liegt darin, dass manche nicht zurückkommen.
     prisonWeeks: [2, 2],
     // Etwa jede fünfte Person kommt nach der Haft nicht zurück: ins Lager verurteilt oder tot
     noReturn: { 1: [0.16, 0.04], 2: [0.14, 0.06] },
     gameOver: true,
-    rescuesPerChapter: 0,
+    rescuesPerChapter: 1,
     helpedGoals: { 1: [10, 22], 2: [8, 18] },
   },
 }

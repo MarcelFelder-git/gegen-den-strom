@@ -110,7 +110,7 @@ export function NightSequence({ report, members, onDone }: { report: WeekReport;
             : { text: 'Gescheitert', tone: 'blood' },
         auto: 2800,
         roll: { chance: r.chance, roll: r.roll, risk: r.risk, detectRoll: r.detectRoll },
-        sfx: outcome === 'entdeckt' ? () => sound.whistle(1.4) : undefined,
+        sfx: outcome === 'entdeckt' ? () => sound.whistle(1.4) : outcome === 'gelungen' ? () => sound.success() : undefined,
       }
       const caught = r.arrested.map(byId).filter((m): m is Character => !!m)
       return caught.length ? [mission, arrestShot(`${r.uid}-haft`, caught, false, level)] : [mission]
@@ -119,7 +119,7 @@ export function NightSequence({ report, members, onDone }: { report: WeekReport;
     ...(report.heatArrests.length
       ? [arrestShot('abgeholt', report.heatArrests.map(byId).filter((m): m is Character => !!m), true, level)]
       : []),
-    // Leichte Stufe: Ist niemand mehr frei, springen Unterstützer ein. Das soll man sehen, nicht nur lesen.
+    // Ist niemand mehr frei, springen Unterstützer ein (schwer nur einmal pro Kapitel). Das soll man sehen, nicht nur lesen.
     ...(report.recruited.length ? [arrivalShot(report.recruited.map(byId).filter((m): m is Character => !!m))] : []),
     {
       id: 'morgen',

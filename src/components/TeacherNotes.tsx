@@ -91,8 +91,11 @@ export function TeacherNotes() {
             realistische Gefahren. Hier ist nichts markiert, und Wegsehen bringt echte Vorteile wie weniger Verdacht. So wird spürbar,
             warum so viele wegsahen. Die Ereignisse und ihre Grausamkeit sind in beiden Stufen dieselben. Die leichte Stufe mildert
             aber die Folgen für die eigene Gruppe: Verhaftete kehren dort immer zurück, und das Spiel läuft immer bis zum Ende des
-            Kapitels. Sind einmal alle zugleich in Haft, springen zwei Unterstützer ein und führen die Gruppe weiter. In der schweren Stufe werden manche Verhaftete verurteilt oder überleben die Haft nicht. Ist niemand mehr frei
-            oder verliert die Gruppe allen Mut, ist sie zerschlagen. Dann erzählt eine Chronik, wie es weiterging.
+            Kapitels. Sind einmal alle zugleich in Haft, springen zwei Unterstützer ein und führen die Gruppe weiter. In der
+            schweren Stufe werden manche Verhaftete verurteilt oder überleben die Haft nicht. Unterstützer springen dort nur einmal
+            pro Kapitel ein. Ist danach wieder niemand frei oder verliert die Gruppe allen Mut, ist sie zerschlagen. Dann erzählt
+            eine Chronik, wie es weiterging. Die schwere Stufe ist so eingestellt, dass auch mutig spielende Gruppen das Kapitel
+            meist schaffen: Der Ernst liegt in den Verlusten, nicht im frühen Spielende.
           </Block>
 
           <Block title="Sensible Inhalte">
@@ -187,9 +190,10 @@ export function TeacherNotes() {
           </Block>
 
           <Block title="Ton und Datenschutz">
-            Der Ton ist zu Beginn aus und lässt sich oben mit „Ton“ einschalten. Es gibt nur wenige kurze Geräusche an wichtigen
-            Stellen: Stempel, Klopfen an der Tür, Zellentür, Trillerpfeife, neue Post, geholfen und ein neues Vorbild. Sie werden im
-            Browser erzeugt. Im Klassenraum empfehlen sich dafür Kopfhörer.
+            Der Ton ist zu Beginn aus und lässt sich oben mit „Ton“ einschalten. Dann spielt eine leise Spieluhr: auf dem Titel und
+            am Ende das Volkslied „Die Gedanken sind frei“, in den Wochen ruhige Akkorde. Vorgeschichte, Wochenschau und Nacht
+            bleiben ohne Musik. Dazu kommen wenige kurze Geräusche an wichtigen Stellen, etwa ein Stempel, ein Klopfen an der Tür
+            oder ein warmer Ton, wenn ein Auftrag gelingt. Alles wird im Browser erzeugt. Im Klassenraum empfehlen sich Kopfhörer.
             Schriften und Fotos werden mitgeliefert, es werden keine externen Dienste geladen. Nur die Links „Mehr erfahren“ und
             „ansehen“ führen auf fremde Seiten.
           </Block>

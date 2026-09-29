@@ -133,8 +133,10 @@ export function WeekReport() {
               Neu in der Gruppe
             </h3>
             <p className="mt-1 font-serif text-[16px] leading-relaxed">
-              Niemand aus der Gruppe war mehr frei. Zwei eurer Unterstützer sind eingesprungen. Wer in Haft ist, kommt in ein bis zwei
-              Wochen zurück. Dann ist eure Gruppe größer als vorher.
+              Niemand aus der Gruppe war mehr frei. Zwei eurer Unterstützer sind eingesprungen und bleiben bei euch.
+              {level === 'leicht'
+                ? ' Wer in Haft ist, kommt in ein bis zwei Wochen zurück. Dann ist eure Gruppe größer als vorher.'
+                : ' Das geht nur einmal in diesem Kapitel. Sind wieder alle in Haft, ist die Gruppe zerschlagen.'}
             </p>
             <ul className="mt-3 grid gap-3 sm:grid-cols-2">
               {report.recruited.map((id) => {
