@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 
 interface ModalProps {
   label: string
@@ -14,7 +15,11 @@ interface ModalProps {
 
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])'
 
-/** Zugänglicher Dialog: Escape schließt, der Fokus bleibt im Dialog */
+/**
+ * Zugänglicher Dialog: Escape schließt, der Fokus bleibt im Dialog.
+ * Er hängt direkt am body. Steckt er in einem animierten Element (transform), würde er sich sonst an diesem
+ * ausrichten statt am Bildschirm: Er erschiene weit oben auf der Seite und ließe sich nicht scrollen.
+ */
 export function Modal({ label, onClose, children, width = 'max-w-3xl', top = false, closeOnBackdrop = true }: ModalProps) {
   const ref = useRef<HTMLDivElement>(null)
 
@@ -50,7 +55,7 @@ export function Modal({ label, onClose, children, width = 'max-w-3xl', top = fal
     }
   }, [onClose])
 
-  return (
+  return createPortal(
     <div
       className={`fixed inset-0 z-50 flex items-start justify-center overflow-y-auto px-4 ${top ? 'bg-black/90 pt-0 pb-6' : 'bg-black/75 py-6 sm:py-10'}`}
       onMouseDown={(e) => {
@@ -60,6 +65,7 @@ export function Modal({ label, onClose, children, width = 'max-w-3xl', top = fal
       <div ref={ref} role="dialog" aria-modal="true" aria-label={label} className={`relative w-full ${top ? '' : 'my-auto'} ${width}`}>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
