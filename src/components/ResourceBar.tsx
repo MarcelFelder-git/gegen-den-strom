@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { BookOpen, ChevronRight, HandHeart, House, Medal, Volume2, VolumeX } from 'lucide-react'
+import { BookOpen, ChevronRight, HandHeart, House, Mail, Medal, Volume2, VolumeX } from 'lucide-react'
 import s from '../styles/period.module.css'
 import { chapterOf, weekInChapter, weeksInChapter } from '../game/data/chapters'
 import { CARDS } from '../game/data/cards'
@@ -29,6 +29,11 @@ function useFlash(value: number): string {
   return cls
 }
 
+/**
+ * Der Kopf des Spielbildschirms in höchstens drei flachen Zeilen:
+ * oben Gruppe, Datum und Menü, darunter gleich hohe Karten für Geholfen, Moral, Unterstützer und Kasse,
+ * der Vorrat daneben (quer) oder darunter (hochkant).
+ */
 export function ResourceBar({ onMenu }: { onMenu: () => void }) {
   const { moral, supporters, kasse, inventory, weekIndex, helped } = useGame()
   const weeks = useWeeks()
@@ -39,124 +44,135 @@ export function ResourceBar({ onMenu }: { onMenu: () => void }) {
   const groupName = useGame((g) => g.groupName)
   const muted = useUi((u) => u.muted)
   const toggleMuted = useUi((u) => u.toggleMuted)
-  const low = moral < 25
-  const moralFlash = useFlash(moral)
 
   return (
     <header className={`${s.panel} z-30 xl:sticky xl:top-0`}>
-      <div className="mx-auto grid max-w-[1500px] grid-cols-[1fr_auto] items-stretch gap-x-5 gap-y-3 px-3 py-3 sm:px-5 lg:grid-cols-[auto_1fr_auto] xl:grid-cols-[auto_minmax(180px,260px)_auto_auto_1fr_auto] xl:gap-x-0 xl:divide-x xl:divide-paper/15">
-        {/* Datum und Fortschritt */}
-        <div className="lg:order-1 xl:order-none xl:pr-5">
-          <p className={`${s.typewriter} max-w-[240px] truncate text-xs font-bold tracking-[0.15em] text-ember uppercase`}>
-            Widerstandsgruppe {quoted(groupName)}
-          </p>
-          <p className={`${s.typewriter} text-xs tracking-[0.12em] text-fog uppercase`}>
-            {chapter.id === 1 ? '1933' : '1936 bis 1938'} · Woche {weekInChapter(weekIndex)} von {weeksInChapter(chapter)}
-          </p>
-          <p className="font-serif text-xl leading-tight font-bold whitespace-nowrap">{weeks[weekIndex].dateLabel.replace('Woche vom ', '')}</p>
-          <div className="mt-1.5 flex gap-1" aria-hidden>
-            {weeks.slice(chapter.first, chapter.last + 1).map((w, j) => {
-              const i = chapter.first + j
-              return (
-              <span
-                key={w.dateLabel}
-                title={w.dateLabel}
-                className={`h-1.5 w-3 ${i < weekIndex ? 'bg-fog' : i === weekIndex ? 'bg-ember' : 'border border-paper/25'}`}
-              />
-              )
-            })}
+      <div className="mx-auto max-w-[1500px] space-y-2.5 px-3 py-2.5 sm:px-5">
+        {/* Gruppe, Datum und Menü */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className={`${s.typewriter} flex min-w-0 gap-1.5 text-xs text-fog`}>
+              <span className="truncate font-bold text-ember">{quoted(groupName)}</span>
+              <span className="shrink-0 whitespace-nowrap">
+                · Woche {weekInChapter(weekIndex)} von {weeksInChapter(chapter)}
+              </span>
+            </p>
+            <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+              <p className="font-serif text-xl leading-tight font-bold whitespace-nowrap">{weeks[weekIndex].dateLabel.replace('Woche vom ', '')}</p>
+              <div className="flex gap-1" aria-hidden>
+                {weeks.slice(chapter.first, chapter.last + 1).map((w, j) => {
+                  const i = chapter.first + j
+                  return (
+                    <span
+                      key={w.dateLabel}
+                      className={`h-1.5 w-3 ${i < weekIndex ? 'bg-fog' : i === weekIndex ? 'bg-ember' : 'border border-paper/25'}`}
+                    />
+                  )
+                })}
+              </div>
+            </div>
           </div>
+
+          <nav className="flex shrink-0 items-center gap-2" aria-label="Spielmenü">
+            <MenuButton label={muted ? 'Ton: aus' : 'Ton: an'} title={muted ? 'Ton ist aus. Einschalten' : 'Ton ist an. Ausschalten'} onClick={toggleMuted}>
+              {muted ? <VolumeX size={16} aria-hidden /> : <Volume2 size={16} aria-hidden />}
+            </MenuButton>
+            <MenuButton label={`Vorbilder ${cardCount}/${CARDS.length}`} title="Album der echten Vorbilder" onClick={openAlbum}>
+              <Medal size={16} aria-hidden />
+            </MenuButton>
+            <MenuButton label="Wörter" title="Worterklärungen" onClick={() => openLexicon()}>
+              <BookOpen size={16} aria-hidden />
+            </MenuButton>
+            <MenuButton label="Menü" title="Zum Titel, das Spiel bleibt gespeichert" onClick={onMenu}>
+              <House size={16} aria-hidden />
+            </MenuButton>
+          </nav>
         </div>
 
-        {/* Menü */}
-        <nav className="flex items-start justify-end gap-2 lg:order-3 lg:items-center xl:order-last xl:pl-5" aria-label="Spielmenü">
-          <MenuButton label={muted ? 'Ton: aus' : 'Ton: an'} title={muted ? 'Ton ist aus. Einschalten' : 'Ton ist an. Ausschalten'} onClick={toggleMuted}>
-            {muted ? <VolumeX size={16} aria-hidden /> : <Volume2 size={16} aria-hidden />}
-          </MenuButton>
-          <MenuButton label={`Vorbilder ${cardCount}/${CARDS.length}`} title="Album der echten Vorbilder" onClick={openAlbum}>
-            <Medal size={16} aria-hidden />
-          </MenuButton>
-          <MenuButton label="Wörter" title="Worterklärungen" onClick={() => openLexicon()}>
-            <BookOpen size={16} aria-hidden />
-          </MenuButton>
-          <MenuButton label="Menü" title="Zum Titel, das Spiel bleibt gespeichert" onClick={onMenu}>
-            <House size={16} aria-hidden />
-          </MenuButton>
-        </nav>
-
-        {/* Moral */}
-        <div className={`col-span-2 self-center lg:order-2 lg:col-span-1 xl:order-none xl:px-5 ${moralFlash}`}>
-          <div className="flex items-baseline justify-between">
-            <span className={`${s.typewriter} text-xs tracking-[0.12em] uppercase ${low ? 'text-ember' : 'text-fog'}`}>
-              {low ? 'Die Gruppe wankt' : 'Moral der Gruppe'}
-            </span>
-            <span className={`${s.typewriter} text-xl font-bold tabular-nums ${low ? 'text-ember' : ''}`}>{moral}%</span>
+        {/* Kennzahlen: alle gleich hoch, der Vorrat quer daneben, hochkant darunter */}
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-[1.25fr_1.25fr_1fr_1fr_1.9fr]">
+          <HelpedCard value={helped} />
+          <MoralCard value={moral} />
+          <StatCard label="Unterstützer" value={supporters} />
+          <StatCard label="Kasse" value={kasse} unit="RM" />
+          <div className="col-span-2 flex items-center gap-2 sm:col-span-4 lg:col-span-1 lg:border lg:border-paper/20 lg:px-2.5 lg:py-1.5">
+            <p className={`${s.typewriter} text-xs tracking-[0.06em] text-fog uppercase lg:sr-only`}>Vorrat</p>
+            <dl className="grid flex-1 grid-cols-4 gap-1.5 lg:grid-cols-2" aria-label="Vorrat">
+              {ITEM_ORDER.map((k) => (
+                <Item key={k} k={k} value={inventory[k]} />
+              ))}
+            </dl>
           </div>
-          <div className="mt-1 h-3 border border-paper/60" role="meter" aria-label="Moral der Gruppe" aria-valuenow={moral} aria-valuemin={0} aria-valuemax={100}>
-            <div className={`h-full ${low ? 'bg-ember' : 'bg-paper'} transition-[width] duration-700`} style={{ width: `${moral}%` }} />
-          </div>
-        </div>
-
-        {/* Kennzahlen */}
-        <dl className="col-span-2 grid grid-cols-3 gap-2 md:col-span-1 lg:order-4 xl:order-none xl:col-span-2 xl:flex xl:gap-0 xl:divide-x xl:divide-paper/15">
-          <HelpedTile value={helped} />
-          <Tile label={'Unter­stützer'} value={supporters} />
-          <Tile label="Kasse" value={kasse} unit="RM" />
-        </dl>
-
-        {/* Vorrat */}
-        <div className="col-span-2 md:col-span-1 lg:order-5 lg:col-span-2 xl:order-none xl:col-span-1 xl:px-5">
-          <p className={`${s.typewriter} text-xs tracking-[0.12em] text-fog uppercase`}>Vorrat</p>
-          <dl className="mt-1 grid grid-cols-4 gap-1.5 xl:flex xl:gap-2">
-            {ITEM_ORDER.map((k) => (
-              <Item key={k} k={k} value={inventory[k]} />
-            ))}
-          </dl>
         </div>
       </div>
     </header>
   )
 }
 
-function Tile({ label, value, unit }: { label: string; value: number; unit?: string }) {
+const CARD = 'flex min-h-[68px] min-w-0 flex-col justify-between border px-3 py-2'
+const LABEL = `${s.typewriter} flex items-center gap-1 text-xs font-bold tracking-[0.06em] uppercase`
+
+function StatCard({ label, value, unit }: { label: string; value: number; unit?: string }) {
   const flash = useFlash(value)
   return (
-    <div className={`min-w-0 border border-paper/15 px-3 py-1.5 xl:border-0 xl:px-5 xl:py-0 ${flash}`}>
-      <dt className={`${s.typewriter} text-xs tracking-[0.04em] break-words hyphens-manual text-fog max-xl:tracking-normal max-xl:normal-case xl:uppercase`}>{label}</dt>
-      <dd className={`${s.typewriter} text-xl leading-tight font-bold tabular-nums whitespace-nowrap`}>
+    <dl className={`${CARD} border-paper/20 ${flash}`}>
+      <dt className={`${LABEL} text-fog`}>{label}</dt>
+      <dd className={`${s.typewriter} text-2xl leading-none font-bold tabular-nums`}>
         {value}
-        {unit && <span className="ml-1 text-sm text-fog">{unit}</span>}
+        {unit && <span className="ml-1 text-sm font-normal text-fog">{unit}</span>}
       </dd>
-    </div>
+    </dl>
   )
 }
 
-/** Die wichtigste Zahl im Spiel: wie vielen Menschen die Gruppe beigestanden hat */
-function HelpedTile({ value }: { value: number }) {
+/** Moral als Karte mit Balken, damit sie keine eigene Zeile braucht */
+function MoralCard({ value }: { value: number }) {
+  const flash = useFlash(value)
+  const low = value < 25
+  return (
+    <dl className={`${CARD} ${low ? 'border-ember' : 'border-paper/20'} ${flash}`}>
+      <dt className={`${LABEL} ${low ? 'text-ember' : 'text-fog'}`}>{low ? 'Die Gruppe wankt' : 'Moral'}</dt>
+      <dd>
+        <span className={`${s.typewriter} text-2xl leading-none font-bold tabular-nums ${low ? 'text-ember' : ''}`}>{value} %</span>
+        <span className="mt-1.5 block h-2 border border-paper/50" role="meter" aria-label="Moral der Gruppe" aria-valuenow={value} aria-valuemin={0} aria-valuemax={100}>
+          <span className={`block h-full ${low ? 'bg-ember' : 'bg-paper'} transition-[width] duration-700`} style={{ width: `${value}%` }} />
+        </span>
+      </dd>
+    </dl>
+  )
+}
+
+/** Die wichtigste Zahl im Spiel: wie vielen Menschen die Gruppe beigestanden hat. Ein Tipp zeigt die Gesichter und die Post. */
+function HelpedCard({ value }: { value: number }) {
   const flash = useFlash(value)
   const prev = useRef(value)
   const openHelped = useUi((u) => u.openHelped)
+  const unread = useGame((g) => g.helpedPeople.filter((p) => p.letter).length - (g.lettersRead ?? 0))
   useEffect(() => {
     if (value > prev.current) sound.helped()
     prev.current = value
   }, [value])
   return (
-    <div
-      className={`relative border-2 border-group-light/70 bg-group/50 px-3 py-1.5 xl:border-y-0 xl:border-r-0 xl:border-l-2 xl:px-5 xl:py-0 ${flash}`}
+    <button
+      onClick={openHelped}
+      className={`${CARD} relative border-2 border-group-light/70 bg-group/50 text-left hover:bg-group/70 ${flash}`}
+      aria-label={`${value} ${value === 1 ? 'Mensch' : 'Menschen'} geholfen${unread > 0 ? `, ${unread} neue ${unread === 1 ? 'Nachricht' : 'Nachrichten'}` : ''}. Gesichter ansehen`}
       title="Menschen, denen eure Gruppe geholfen hat. Darum geht es im Spiel."
     >
-      {/* Die ganze Kachel öffnet die Gesichter hinter der Zahl */}
-      <button onClick={openHelped} className="absolute inset-0 z-10 hover:bg-group-light/10" aria-label={`${value} Menschen geholfen. Gesichter ansehen`} />
-      <dt className={`${s.typewriter} flex items-center gap-1 text-xs font-bold tracking-[0.15em] text-group-light uppercase`}>
-        <HandHeart size={12} aria-hidden /> Geholfen
-        <ChevronRight size={12} className="ml-auto" aria-hidden />
-      </dt>
-      <dd className={`${s.typewriter} text-xl leading-tight font-bold tabular-nums whitespace-nowrap`}>
+      <span className={`${LABEL} w-full text-group-light`}>
+        <HandHeart size={13} aria-hidden /> Geholfen
+        {unread > 0 && (
+          <span className={`${s.pulse} ml-auto flex items-center gap-1 rounded-full bg-archive-light px-2 py-0.5 text-ink`} aria-hidden>
+            <Mail size={12} /> {unread}
+          </span>
+        )}
+        <ChevronRight size={14} className={unread > 0 ? '' : 'ml-auto'} aria-hidden />
+      </span>
+      <span className={`${s.typewriter} text-2xl leading-none font-bold tabular-nums`}>
         {value}
-        <span className="block text-xs font-normal text-group-light xl:ml-1 xl:inline xl:text-sm">{value === 1 ? 'Mensch' : 'Menschen'} ›</span>
-
-      </dd>
-    </div>
+        <span className="ml-1.5 text-sm font-normal text-group-light">{value === 1 ? 'Mensch' : 'Menschen'}</span>
+      </span>
+    </button>
   )
 }
 
@@ -165,12 +181,12 @@ function Item({ k, value }: { k: ItemKey; value: number }) {
   const flash = useFlash(value)
   return (
     <div
-      className={`flex items-center gap-1.5 border px-2 py-1 ${value > 0 ? 'border-paper/40' : 'border-paper/15 text-fog'} ${flash}`}
+      className={`flex min-w-0 items-center gap-1.5 border px-2 py-1 ${value > 0 ? 'border-paper/40' : 'border-paper/15 text-fog'} ${flash}`}
       title={ITEM_LABELS[k].name}
     >
-      <dt className="flex items-center gap-1">
-        <Icon size={15} aria-hidden />
-        <span className={`${s.typewriter} text-[13px]`}>{ITEM_SHORT[k]}</span>
+      <dt className="flex min-w-0 items-center gap-1">
+        <Icon size={15} className="shrink-0" aria-hidden />
+        <span className={`${s.typewriter} truncate text-[13px] max-sm:sr-only`}>{ITEM_SHORT[k]}</span>
       </dt>
       <dd className={`${s.typewriter} ml-auto text-sm font-bold tabular-nums`}>{value}</dd>
     </div>
@@ -183,7 +199,7 @@ function MenuButton({ label, title, onClick, children }: { label: string; title:
       onClick={onClick}
       title={title}
       aria-label={title}
-      className={`${s.typewriter} flex h-11 min-w-11 items-center justify-center gap-1.5 border border-paper/40 px-3 text-xs font-bold tracking-[0.1em] uppercase transition-colors hover:border-paper hover:bg-paper hover:text-ink`}
+      className={`${s.typewriter} flex h-11 min-w-11 items-center justify-center gap-1.5 border border-paper/40 px-3 text-xs font-bold tracking-[0.06em] uppercase transition-colors hover:border-paper hover:bg-paper hover:text-ink`}
     >
       {children}
       <span className="hidden md:inline xl:hidden 2xl:inline" aria-hidden>

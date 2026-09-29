@@ -10,7 +10,7 @@ Die Gruppenmitglieder sind erfunden. Die Ereignisse, Quellen, Zeitzeugenberichte
 | --- | --- | --- |
 | Sprache | einfache Sprache, kurze Sätze | ausführliche Texte, anspruchsvollere Quellenfragen |
 | Aufträge | Erfolgsaussicht +10, Gefahr × 0,8, Tipps | realistische Werte, auch Unbekannte können verhaftet werden |
-| Haft | Rückkehr nach 2 bis 3 Wochen | 2 bis 4 Wochen, manche werden verurteilt oder überleben nicht |
+| Haft | Rückkehr nach 1 bis 2 Wochen | 2 Wochen (mit Anwalt 1), manche werden verurteilt oder überleben nicht |
 | Ende | läuft immer bis zum Kapitelende | Gruppe kann zerschlagen werden, danach Chronik der restlichen Wochen |
 
 ## Starten

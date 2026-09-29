@@ -18,6 +18,8 @@ export interface HelpedPerson {
   kind: HelpKind
   /** Ein Brief von dieser Person kam schon */
   letter?: boolean
+  /** In welcher Woche der Brief kam */
+  letterWeek?: number
 }
 
 interface HelpTemplate {

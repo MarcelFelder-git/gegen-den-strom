@@ -101,6 +101,8 @@ interface GameData extends ResourceState {
   helpedPeople: HelpedPerson[]
   /** Woche, in der zuletzt ein Brief kam */
   lastLetterWeek: number
+  /** So viele Briefe wurden schon auf der Gesichter-Wand gelesen */
+  lettersRead?: number
   /** Das Ziel dieser Woche, beim Wochenbeginn so gewählt, dass es erreichbar ist */
   goalId?: string
   /** Stand von „Geholfen“ zu Wochenbeginn: Jede Hilfe der Woche zählt für das Ziel */
@@ -126,6 +128,8 @@ interface GameActions {
   endWeek: () => void
   nextWeek: () => void
   markTutorial: () => void
+  /** Die Gesichter-Wand wurde geöffnet, alle Briefe gelten als gelesen */
+  readLetters: () => void
 }
 
 export type GameState = GameData & GameActions
@@ -167,6 +171,7 @@ const initialData: GameData = {
   tutorialSeen: false,
   helpedPeople: [],
   lastLetterWeek: -10,
+  lettersRead: 0,
 }
 
 const rng: Rng = Math.random
@@ -720,7 +725,8 @@ export const useGame = create<GameState>()(
           }),
         }
 
-        const income = Math.floor(state.supporters / 3) + prof.weeklyIncome
+        // Freunde und Unterstützer legen jede Woche etwas zusammen, damit Hilfe nicht an ein paar Mark scheitert
+        const income = 2 + Math.floor(state.supporters / 2) + prof.weeklyIncome
         state = applyEffects(state, {
           kasse: income,
           moral:
@@ -750,7 +756,7 @@ export const useGame = create<GameState>()(
           state = {
             ...state,
             lastLetterWeek: s.weekIndex,
-            helpedPeople: state.helpedPeople.map((p) => (p.id === letter.person.id ? { ...p, letter: true } : p)),
+            helpedPeople: state.helpedPeople.map((p) => (p.id === letter.person.id ? { ...p, letter: true, letterWeek: s.weekIndex } : p)),
           }
         }
 
@@ -799,6 +805,8 @@ export const useGame = create<GameState>()(
       },
 
       markTutorial: () => set({ tutorialSeen: true }),
+
+      readLetters: () => set((g) => ({ lettersRead: g.helpedPeople.filter((p) => p.letter).length })),
 
       nextWeek: () => {
         const s = get()

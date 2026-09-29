@@ -1,23 +1,45 @@
+import { useEffect, useState } from 'react'
 import { HandHeart, Mail, X } from 'lucide-react'
 import s from '../styles/period.module.css'
 import { Avatar } from './Avatar'
 import { Modal } from './ui/Modal'
-import type { HelpedPerson } from '../game/data/helped'
+import { letterFor, type HelpedPerson } from '../game/data/helped'
+import { chapterOf } from '../game/data/chapters'
 import type { AvatarConfig } from '../game/types'
 import { useGame } from '../store/GameStore'
 import { useUi } from '../store/UiStore'
-import { useWeeks } from '../store/content'
+import { useT, useWeeks } from '../store/content'
 
-/** Die Wand der Menschen, denen die Gruppe beigestanden hat: Gesichter statt einer Zahl */
+/**
+ * Die Wand der Menschen, denen die Gruppe beigestanden hat: Gesichter statt einer Zahl.
+ * Oben die Post, die von ihnen kam, darunter alle Gesichter.
+ */
 export function HelpedWall() {
   const close = useUi((u) => u.close)
   const people = useGame((g) => g.helpedPeople)
   const helped = useGame((g) => g.helped)
   const groupName = useGame((g) => g.groupName)
+  const readLetters = useGame((g) => g.readLetters)
+  // Wie viele Briefe schon gelesen waren, bevor die Wand geöffnet wurde: Die übrigen sind neu
+  const [readBefore] = useState(() => useGame.getState().lettersRead ?? 0)
   const weeks = useWeeks()
+  const t = useT()
   const named = people.reduce((sum, p) => sum + p.count, 0)
   const unnamed = Math.max(0, helped - named)
   const newestFirst = [...people].reverse()
+  // Briefe in der Reihenfolge, in der sie ankamen, der neueste oben
+  const letters = people
+    .filter((p) => p.letter)
+    .map((p, i) => ({ p, order: i, week: p.letterWeek ?? p.week }))
+    .sort((a, b) => b.week - a.week || b.order - a.order)
+  const lettersInOrder = [...letters].sort((a, b) => a.week - b.week || a.order - b.order)
+  const isNew = (id: string) => lettersInOrder.findIndex((l) => l.p.id === id) >= readBefore
+
+  useEffect(() => {
+    readLetters()
+  }, [readLetters])
+
+  const dateOf = (week: number) => weeks[week]?.dateLabel.replace('Woche vom ', '') ?? ''
 
   return (
     <Modal label="Menschen, denen ihr geholfen habt" onClose={close} width="max-w-4xl">
@@ -38,15 +60,41 @@ export function HelpedWall() {
         <p className="mt-2 max-w-2xl font-serif text-[17px] leading-relaxed text-sepia">
           {helped === 0
             ? 'Aufträge mit einem Herz und viele Entscheidungen helfen verfolgten Menschen. Hier erscheinen ihre Gesichter.'
-            : 'Hinter jeder Zahl steht ein Mensch. Die Namen sind erfunden, ihre Lage war damals Alltag in Berlin.'}
+            : 'Hinter jeder Zahl steht ein Mensch. Die Namen sind erfunden, ihre Lage war damals Alltag in Berlin. Manchmal kommt Post von ihnen.'}
         </p>
 
+        {letters.length > 0 && (
+          <section className="mt-6" aria-labelledby="post-wand">
+            <h3 id="post-wand" className={`${s.typewriter} flex items-center gap-2 text-sm font-bold tracking-[0.1em] text-group uppercase`}>
+              <Mail size={16} aria-hidden /> Post ({letters.length})
+            </h3>
+            <ul className="mt-2 space-y-3">
+              {letters.map(({ p, week }) => (
+                <li key={p.id} id={`brief-${p.id}`}>
+                  <LetterCard
+                    letter={{ name: p.name, who: p.who, avatar: p.avatar, text: t(letterFor(p, chapterOf(week).id === 2)) }}
+                    when={dateOf(p.week)}
+                    arrived={dateOf(week)}
+                    fresh={isNew(p.id)}
+                    compact
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         {people.length > 0 && (
-          <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {newestFirst.map((p) => (
-              <PersonCard key={p.id} p={p} when={weeks[p.week]?.dateLabel.replace('Woche vom ', '') ?? ''} />
-            ))}
-          </ul>
+          <>
+            <h3 className={`${s.typewriter} mt-7 flex items-center gap-2 text-sm font-bold tracking-[0.1em] text-group uppercase`}>
+              <HandHeart size={16} aria-hidden /> Alle Gesichter
+            </h3>
+            <ul className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {newestFirst.map((p) => (
+                <PersonCard key={p.id} p={p} when={dateOf(p.week)} />
+              ))}
+            </ul>
+          </>
         )}
         {unnamed > 0 && (
           <p className={`${s.typewriter} mt-4 text-sm text-slate`}>
@@ -61,23 +109,22 @@ export function HelpedWall() {
 function PersonCard({ p, when }: { p: HelpedPerson; when: string }) {
   return (
     <li className={`${s.riseIn} flex gap-3 border border-ink/30 bg-paper-dark p-3`}>
-      <span className="relative shrink-0">
+      <span className="shrink-0 self-start">
         <Avatar config={p.avatar} size={56} title="" />
-        {p.count > 1 && (
-          <span className="absolute -right-2 -bottom-2 grid h-7 min-w-7 place-items-center rounded-full border-2 border-paper bg-group px-1 font-type text-xs font-bold text-paper">
-            {p.count}
-          </span>
-        )}
       </span>
       <span className="min-w-0">
         <span className="block font-serif text-lg leading-tight font-bold">{p.name}</span>
         <span className="mt-0.5 block font-serif text-[15px] leading-snug">{p.who}</span>
-        <span className="mt-1 flex items-center gap-1.5 font-type text-xs text-slate">
+        {p.count > 1 && <span className="mt-0.5 block font-type text-xs font-bold text-group">{p.count} Menschen</span>}
+        <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 font-type text-xs text-slate">
           {when}
           {p.letter && (
-            <span className="inline-flex items-center gap-1 text-group">
-              <Mail size={12} aria-hidden /> hat geschrieben
-            </span>
+            <button
+              onClick={() => document.getElementById(`brief-${p.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+              className="tap-area inline-flex items-center gap-1 font-bold text-group underline decoration-dotted underline-offset-2"
+            >
+              <Mail size={12} aria-hidden /> Brief lesen
+            </button>
           )}
         </span>
       </span>
@@ -99,22 +146,47 @@ export function HelpedFaces({ people, max = 12 }: { people: { id: string; avatar
   )
 }
 
-/** Post im Wochenbericht: ein Brief von jemandem, dem die Gruppe früher geholfen hat */
-export function LetterCard({ letter, when }: { letter: { name: string; who: string; avatar: AvatarConfig; text: string }; when: string }) {
+/** Ein Brief von jemandem, dem die Gruppe früher geholfen hat: im Wochenbericht und in der Post der Gesichter-Wand */
+export function LetterCard({
+  letter,
+  when,
+  arrived,
+  fresh = false,
+  compact = false,
+}: {
+  letter: { name: string; who: string; avatar: AvatarConfig; text: string }
+  when: string
+  arrived?: string
+  fresh?: boolean
+  compact?: boolean
+}) {
   return (
-    <section className={`${s.riseIn} mt-5 border-2 border-group bg-[#e4ece9] p-4 sm:p-5`} aria-labelledby="post-titel">
-      <p id="post-titel" className="flex items-center gap-2 font-type text-xs font-bold tracking-[0.12em] text-group uppercase">
-        <Mail size={16} aria-hidden /> Post für die Gruppe
-      </p>
-      <div className="mt-3 flex gap-4">
-        <span className="shrink-0 -rotate-2 border border-ink/40 bg-paper p-1.5 shadow-[3px_4px_0_rgba(28,28,30,0.2)]">
-          <Avatar config={letter.avatar} size={64} title="" />
+    <section className={`${s.riseIn} ${compact ? '' : 'mt-5'} relative border-2 border-group bg-[#e4ece9] p-4 sm:p-5`} aria-label={`Brief von ${letter.name}`}>
+      {!compact && (
+        <p className="flex items-center gap-2 font-type text-xs font-bold tracking-[0.12em] text-group uppercase">
+          <Mail size={16} aria-hidden /> Post für die Gruppe
+        </p>
+      )}
+      {fresh && (
+        <span className={`${s.rubber} absolute top-3 right-3 bg-paper text-xs text-group`} style={{ transform: 'rotate(4deg)' }}>
+          Neu
         </span>
-        <div className="min-w-0">
+      )}
+      <div className={`${compact ? '' : 'mt-3'} flex gap-4`}>
+        <span className="shrink-0 -rotate-2 self-start border border-ink/40 bg-paper p-1.5 shadow-[3px_4px_0_rgba(28,28,30,0.2)]">
+          <Avatar config={letter.avatar} size={compact ? 52 : 64} title="" />
+        </span>
+        <div className="min-w-0 pr-10">
           <p className="font-serif text-lg font-bold">{letter.name}</p>
           <p className="font-type text-xs text-slate">{letter.who}</p>
-          {when && <p className="font-type text-xs text-slate">Eure Hilfe: {when}</p>}
+          <p className="font-type text-xs text-slate">
+            {when && `Eure Hilfe: ${when}`}
+            {arrived && ` · Post aus der Woche vom ${arrived}`}
+          </p>
           <p className="mt-2 font-serif text-[17px] leading-relaxed italic">{letter.text}</p>
+          {!compact && (
+            <p className="mt-2 font-type text-xs text-slate">Alle Briefe findet ihr jederzeit oben unter „Geholfen“.</p>
+          )}
         </div>
       </div>
     </section>

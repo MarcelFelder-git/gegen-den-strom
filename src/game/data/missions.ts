@@ -406,11 +406,12 @@ export const MISSIONS: Record<MissionType, MissionTemplate> = {
     difficulty: 5,
     baseRisk: 12,
     heat: 5,
-    cost: { kasse: 35 },
+    cost: { kasse: 20 },
     places: ['kochstrasse', 'linienstrasse'],
     rewardLabel: 'Schritt 1 von 3 zur eigenen Druckerei',
     success: () => ({ flags: ['presse'], moral: 3 }),
-    failure: { kasse: 35 },
+    // Scheitert der Kauf, bringt die Gruppe das Geld zurück
+    failure: { kasse: 20 },
     texts: {
       success: [
         L(

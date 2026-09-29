@@ -75,6 +75,15 @@ describe('Gefährten und Geholfene', () => {
     }
   })
 
+  it('neue Briefe zählen als ungelesen, bis die Gesichter-Wand geöffnet wird', () => {
+    autoplay('lehrer', 'christlich', 'leicht')
+    const st = useGame.getState()
+    const letters = st.helpedPeople.filter((p) => p.letter)
+    expect(letters.every((p) => typeof p.letterWeek === 'number')).toBe(true)
+    useGame.getState().readLetters()
+    expect(useGame.getState().lettersRead).toBe(letters.length)
+  })
+
   it('ab und zu kommt Post von früher Geholfenen', () => {
     let letters = 0
     for (let i = 0; i < 20; i++) {
@@ -235,7 +244,7 @@ describe('Spielbalance', () => {
 })
 
 describe('Haft', () => {
-  it('Verhaftete kommen in der leichten Stufe nach einigen Wochen zurück', () => {
+  it('Verhaftete kommen in der leichten Stufe nach ein bis zwei Wochen zurück', () => {
     useGame.getState().startGame({ ...draft('arbeiter', 'humanistisch'), level: 'leicht' })
     const s = useGame.getState()
     useGame.setState({
@@ -314,5 +323,27 @@ describe('Haft', () => {
     const st = useGame.getState()
     expect(st.moral).toBeGreaterThan(0)
     expect(st.report?.crisis).toBe(true)
+  })
+})
+
+describe('Haftdauer', () => {
+  it('ist kurz genug für ein Kapitel: leicht 1 bis 2 Wochen, schwer 2 Wochen', () => {
+    for (const level of ['leicht', 'schwer'] as const) {
+      const seen = new Set<number>()
+      for (let i = 0; i < 40; i++) {
+        useGame.getState().startGame({ ...draft('arbeiter', 'kommunistisch'), level }, 3)
+        const s = useGame.getState()
+        // Wer ganz oben auf der Liste steht und trotzdem losgeht, wird abgeholt
+        useGame.setState({ phase: 'map', members: s.members.map((m) => (m.isLeader ? { ...m, heat: 100 } : m)) })
+        const spenden = useGame.getState().missions.find((x) => x.type === 'spenden')!
+        useGame.getState().assign(spenden.uid, ['leader'])
+        useGame.getState().endWeek()
+        const leader = useGame.getState().members.find((m) => m.isLeader)!
+        expect(leader.status).toBe('verhaftet')
+        seen.add(leader.prison!.weeks)
+      }
+      expect(Math.max(...seen)).toBeLessThanOrEqual(2)
+      expect(Math.min(...seen)).toBeGreaterThanOrEqual(level === 'leicht' ? 1 : 2)
+    }
   })
 })

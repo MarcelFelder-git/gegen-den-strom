@@ -43,7 +43,7 @@ export const DIFFICULTIES: Record<Level, Difficulty> = {
     details: [
       'Texte in einfacher Sprache',
       'Aufträge gelingen etwas öfter',
-      'Wer verhaftet wird, kommt nach einigen Wochen zurück',
+      'Wer verhaftet wird, kommt nach ein bis zwei Wochen zurück',
       'Das Spiel geht immer bis zum Ende des Kapitels',
     ],
     successBonus: 10,
@@ -53,7 +53,8 @@ export const DIFFICULTIES: Record<Level, Difficulty> = {
     startKasse: 15,
     moralDecay: 2,
     arrestMoralLoss: 10,
-    prisonWeeks: [2, 3],
+    // Kurz genug, dass niemand lange nur zusieht. Viele „Schutzhäftlinge“ kamen 1933 nach Tagen oder Wochen frei.
+    prisonWeeks: [1, 2],
     noReturn: { 1: [0, 0], 2: [0, 0] },
     gameOver: false,
     helpedGoals: { 1: [10, 24], 2: [8, 20] },
@@ -75,7 +76,8 @@ export const DIFFICULTIES: Record<Level, Difficulty> = {
     startKasse: 0,
     moralDecay: 3,
     arrestMoralLoss: 15,
-    prisonWeeks: [2, 4],
+    // Zwei Wochen, mit Anwalt eine. Der Ernst liegt darin, dass manche nicht zurückkommen.
+    prisonWeeks: [2, 2],
     noReturn: { 1: [0.3, 0.06], 2: [0.4, 0.12] },
     gameOver: true,
     helpedGoals: { 1: [10, 22], 2: [8, 18] },

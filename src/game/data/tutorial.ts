@@ -65,7 +65,7 @@ export const TUTORIAL: TutorialPage[] = [
     title: L('Wenn jemand verhaftet wird', 'Wenn jemand verhaftet wird'),
     text: [
       L(
-        'Verhaftete fehlen der Gruppe für einige Wochen. Ihr könnt ihnen helfen. Schickt ein Paket, bezahlt einen Anwalt oder versorgt die Familie.',
+        'Verhaftete fehlen der Gruppe für ein bis zwei Wochen. Ihr könnt ihnen helfen. Schickt ein Paket, bezahlt einen Anwalt oder versorgt die Familie.',
         'Verhaftete fehlen der Gruppe für Wochen. Hilfe von außen ist möglich: Pakete ins Gefängnis, ein Anwalt, Unterstützung für die Familie.',
       ),
       L(
