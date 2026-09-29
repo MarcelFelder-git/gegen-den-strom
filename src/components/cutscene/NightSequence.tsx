@@ -1,5 +1,5 @@
 import { Cinema, type Shot } from './Cinema'
-import { ArrestScene, MissionScene, MorningScene, NightfallScene, WEEK_WEATHER, type SceneOutcome, type Weather } from './scenes'
+import { ArrestScene, ArrivalScene, MissionScene, MorningScene, NightfallScene, WEEK_WEATHER, type SceneOutcome, type Weather } from './scenes'
 import { getPlace } from '../../game/data/districts'
 import { firstName, fillMissionText, joinNames } from '../../game/logic'
 import type { Character, WeekReport } from '../../game/types'
@@ -44,7 +44,19 @@ function arrestShot(id: string, people: Character[], atHome: boolean, level: 'le
     scene: <ArrestScene team={people.map((m) => m.avatar.gender)} atHome={atHome} />,
     caption: start + end,
     stamp: { text: 'Verhaftet', tone: 'blood' },
-    sfx: () => sound.cellDoor(),
+    sfx: () => (atHome ? sound.knock() : sound.cellDoor()),
+  }
+}
+
+/** Zwei Unterstützer stehen vor der Tür und bleiben in der Gruppe */
+function arrivalShot(people: Character[]): Shot {
+  const names = joinNames(people.map(firstName))
+  return {
+    id: 'neu-dabei',
+    scene: <ArrivalScene team={people.map((m) => m.avatar.gender)} />,
+    caption: `Jetzt ist niemand mehr frei. Am Abend klopft es leise. Vor der Tür stehen ${names}. Sie haben euch bisher heimlich mit Geld geholfen. „Wir haben gehört, was passiert ist. Wir machen mit.“`,
+    stamp: { text: 'Neu dabei', tone: 'ink' },
+    sfx: () => sound.knock(true),
   }
 }
 
@@ -75,7 +87,6 @@ export function NightSequence({ report, members, onDone }: { report: WeekReport;
       scene: <NightfallScene weekIndex={report.weekIndex} weather={weather} />,
       caption: results.length === 0 ? 'Die Gruppe hält still. In dieser Nacht verlässt niemand das Haus.' : NIGHT_CAPTION[weather],
       auto: 2400,
-      ambience: weather === 'regen' ? 'regen' : undefined,
     },
     ...results.flatMap((r): Shot[] => {
       const team = r.team.map(byId).filter((m): m is Character => !!m)
@@ -99,7 +110,6 @@ export function NightSequence({ report, members, onDone }: { report: WeekReport;
             : { text: 'Gescheitert', tone: 'blood' },
         auto: 2800,
         roll: { chance: r.chance, roll: r.roll, risk: r.risk, detectRoll: r.detectRoll },
-        ambience: weather === 'regen' ? 'regen' : undefined,
         sfx: outcome === 'entdeckt' ? () => sound.whistle(1.4) : undefined,
       }
       const caught = r.arrested.map(byId).filter((m): m is Character => !!m)
@@ -109,6 +119,8 @@ export function NightSequence({ report, members, onDone }: { report: WeekReport;
     ...(report.heatArrests.length
       ? [arrestShot('abgeholt', report.heatArrests.map(byId).filter((m): m is Character => !!m), true, level)]
       : []),
+    // Leichte Stufe: Ist niemand mehr frei, springen Unterstützer ein. Das soll man sehen, nicht nur lesen.
+    ...(report.recruited.length ? [arrivalShot(report.recruited.map(byId).filter((m): m is Character => !!m))] : []),
     {
       id: 'morgen',
       scene: <MorningScene weather={weather} troubled={detected || arrested} />,

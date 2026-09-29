@@ -8,7 +8,6 @@ const STORAGE_KEY = 'gegen-den-strom-ton'
 let ctx: AudioContext | null = null
 let master: GainNode | null = null
 let muted = readMuted()
-const loops = new Map<string, () => void>()
 
 function readMuted(): boolean {
   try {
@@ -81,28 +80,15 @@ function tone(opts: { freq: number; dur: number; gain: number; type?: Oscillator
   o.stop(t + opts.dur)
 }
 
+/**
+ * Nur wenige Töne an Stellen, die zählen: Stempel, Klopfen, Zellentür, Trillerpfeife,
+ * Post, Hilfe und Vorbild. Keine Dauergeräusche, nichts beim Tippen oder Blättern.
+ */
 export const sound = {
-  /** Eine Taste der Schreibmaschine */
-  typeKey() {
-    burst({ dur: 0.03, type: 'bandpass', freq: 2200 + Math.random() * 1400, q: 3, gain: 0.12 })
-  },
-  /** Die Glocke am Zeilenende */
-  bell() {
-    tone({ freq: 2093, dur: 0.7, gain: 0.05 })
-    tone({ freq: 3136, dur: 0.5, gain: 0.025 })
-  },
   /** Ein Gummistempel schlägt auf */
   stamp() {
     tone({ freq: 140, freqEnd: 45, dur: 0.18, gain: 0.35 })
     burst({ dur: 0.08, type: 'lowpass', freq: 900, gain: 0.25 })
-  },
-  /** Ein Kalenderblatt wird abgerissen */
-  tear(when = 0) {
-    burst({ dur: 0.35, type: 'bandpass', freq: 1400, freqEnd: 4200, q: 0.8, gain: 0.14, when })
-  },
-  /** Eine Zeitung wirbelt herein */
-  whoosh() {
-    burst({ dur: 0.7, type: 'bandpass', freq: 250, freqEnd: 1800, q: 0.7, gain: 0.12 })
   },
   /** Die Trillerpfeife einer Streife */
   whistle(when = 0) {
@@ -127,6 +113,20 @@ export const sound = {
     o.stop(t + 0.75)
     lfo.stop(t + 0.75)
   },
+  /** Klopfen an der Wohnungstür: hart am frühen Morgen, leise am Abend */
+  knock(soft = false) {
+    const v = soft ? 0.45 : 1
+    for (let i = 0; i < 3; i++) {
+      const when = i * (soft ? 0.26 : 0.2)
+      tone({ freq: 170, freqEnd: 80, dur: 0.09, gain: 0.32 * v, when })
+      burst({ dur: 0.05, type: 'lowpass', freq: 650, gain: 0.28 * v, when })
+    }
+  },
+  /** Ein Brief ist angekommen: zwei leise Töne */
+  post() {
+    tone({ freq: 880, dur: 0.6, gain: 0.04, type: 'triangle' })
+    tone({ freq: 698.46, dur: 0.9, gain: 0.04, type: 'triangle', when: 0.22 })
+  },
   /** Ein neues Vorbild: ein ruhiger, feierlicher Akkord wie von einer Spieluhr */
   honor() {
     const notes = [261.63, 329.63, 392.0, 523.25]
@@ -147,68 +147,9 @@ export const sound = {
     burst({ dur: 0.25, type: 'lowpass', freq: 700, gain: 0.3 })
     burst({ dur: 0.12, type: 'bandpass', freq: 2400, q: 6, gain: 0.08, when: 0.08 })
   },
-  /** Leises Klicken für Knöpfe */
+  /** Leises Klicken, nur beim Einschalten des Tons */
   click() {
     burst({ dur: 0.02, type: 'highpass', freq: 1800, gain: 0.05 })
-  },
-
-  /** Dauergeräusche: Projektor, Regen, Feuer */
-  startLoop(kind: 'projektor' | 'regen' | 'feuer') {
-    if (loops.has(kind)) return
-    const a = audio()
-    if (!a) return
-    const src = a.ctx.createBufferSource()
-    src.buffer = noise(a.ctx, 2)
-    src.loop = true
-    const f = a.ctx.createBiquadFilter()
-    const g = a.ctx.createGain()
-    const nodes: AudioNode[] = [src, f, g]
-    let timer: number | undefined
-    if (kind === 'projektor') {
-      f.type = 'bandpass'
-      f.frequency.value = 520
-      f.Q.value = 2
-      g.gain.value = 0.02
-      // Das Rattern des Filmprojektors: 18 Bilder pro Sekunde
-      const lfo = a.ctx.createOscillator()
-      lfo.type = 'square'
-      lfo.frequency.value = 18
-      const depth = a.ctx.createGain()
-      depth.gain.value = 0.012
-      lfo.connect(depth).connect(g.gain)
-      lfo.start()
-      nodes.push(lfo, depth)
-    } else if (kind === 'regen') {
-      f.type = 'highpass'
-      f.frequency.value = 1200
-      g.gain.value = 0.05
-    } else {
-      f.type = 'lowpass'
-      f.frequency.value = 500
-      g.gain.value = 0.06
-      timer = window.setInterval(() => {
-        if (Math.random() < 0.6) burst({ dur: 0.02 + Math.random() * 0.03, type: 'highpass', freq: 2500, gain: 0.08 + Math.random() * 0.1 })
-      }, 90)
-    }
-    src.connect(f).connect(g).connect(a.out)
-    src.start()
-    loops.set(kind, () => {
-      if (timer) clearInterval(timer)
-      try {
-        g.gain.setTargetAtTime(0, a.ctx.currentTime, 0.15)
-        src.stop(a.ctx.currentTime + 0.6)
-        for (const n of nodes) if (n instanceof OscillatorNode) n.stop(a.ctx.currentTime + 0.6)
-      } catch {
-        /* bereits gestoppt */
-      }
-    })
-  },
-  stopLoop(kind: 'projektor' | 'regen' | 'feuer') {
-    loops.get(kind)?.()
-    loops.delete(kind)
-  },
-  stopAll() {
-    for (const k of [...loops.keys()]) this.stopLoop(k as 'projektor')
   },
 }
 
@@ -255,5 +196,5 @@ export function setMuted(value: boolean) {
   } catch {
     /* Speichern nicht möglich, dann gilt die Einstellung nur für diese Sitzung */
   }
-  if (value) sound.stopAll()
+  if (value && ctx) void ctx.suspend().catch(() => {})
 }

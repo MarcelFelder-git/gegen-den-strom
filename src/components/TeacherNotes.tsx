@@ -91,7 +91,7 @@ export function TeacherNotes() {
             realistische Gefahren. Hier ist nichts markiert, und Wegsehen bringt echte Vorteile wie weniger Verdacht. So wird spürbar,
             warum so viele wegsahen. Die Ereignisse und ihre Grausamkeit sind in beiden Stufen dieselben. Die leichte Stufe mildert
             aber die Folgen für die eigene Gruppe: Verhaftete kehren dort immer zurück, und das Spiel läuft immer bis zum Ende des
-            Kapitels. In der schweren Stufe werden manche Verhaftete verurteilt oder überleben die Haft nicht. Ist niemand mehr frei
+            Kapitels. Sind einmal alle zugleich in Haft, springen zwei Unterstützer ein und führen die Gruppe weiter. In der schweren Stufe werden manche Verhaftete verurteilt oder überleben die Haft nicht. Ist niemand mehr frei
             oder verliert die Gruppe allen Mut, ist sie zerschlagen. Dann erzählt eine Chronik, wie es weiterging.
           </Block>
 
@@ -159,7 +159,8 @@ export function TeacherNotes() {
           </Block>
 
           <Block title="Darstellung und Fotos">
-            Das Intro und die Karten der Vorbilder zeigen echte Fotos, überwiegend aus dem Bundesarchiv. Auf einigen Fotos im Intro
+            Jedes Kapitel hat eigene Vorbilder, acht in Kapitel 1 und fünf in Kapitel 2. Wem die Gruppe im Spiel nicht begegnet,
+            stellt der Abschluss des Kapitels vor. Das Intro und die Karten der Vorbilder zeigen echte Fotos, überwiegend aus dem Bundesarchiv. Auf einigen Fotos im Intro
             sind Hakenkreuze zu sehen. Ihre Verwendung dient der historischen Aufklärung im Unterricht. Die Zwischensequenzen sind
             bewusst gezeichnet. Gewalt wird benannt, aber nicht ausgemalt.
             <button onClick={openCredits} className="mt-2 flex items-center gap-1.5 font-type text-sm text-sepia underline decoration-dotted underline-offset-4">
@@ -186,8 +187,9 @@ export function TeacherNotes() {
           </Block>
 
           <Block title="Ton und Datenschutz">
-            Der Ton ist zu Beginn aus. Die Geräusche werden im Browser erzeugt und lassen sich oben mit „Ton“ einschalten. Im
-            Klassenraum empfehlen sich dafür Kopfhörer.
+            Der Ton ist zu Beginn aus und lässt sich oben mit „Ton“ einschalten. Es gibt nur wenige kurze Geräusche an wichtigen
+            Stellen: Stempel, Klopfen an der Tür, Zellentür, Trillerpfeife, neue Post, geholfen und ein neues Vorbild. Sie werden im
+            Browser erzeugt. Im Klassenraum empfehlen sich dafür Kopfhörer.
             Schriften und Fotos werden mitgeliefert, es werden keine externen Dienste geladen. Nur die Links „Mehr erfahren“ und
             „ansehen“ führen auf fremde Seiten.
           </Block>

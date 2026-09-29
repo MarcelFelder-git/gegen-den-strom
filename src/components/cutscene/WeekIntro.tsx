@@ -5,7 +5,6 @@ import { WEEKS } from '../../game/data/weeks'
 import { CHAPTERS } from '../../game/data/chapters'
 import { L, t, type Level } from '../../game/text'
 import { useLevel } from '../../store/content'
-import { sound } from '../../audio/sound'
 
 /** Was zwischen den beiden Kapiteln geschah, 1934 und 1935 im Zeitraffer */
 function interlude(level: Level): Shot[] {
@@ -129,13 +128,11 @@ export function WeekIntro({
             ? 'Berlin, im Frühjahr 1936. Die Gruppe gibt es noch.'
             : `${to.weekday}, der ${to.day}. ${to.month} ${year}.`,
       auto: 1600,
-      sfx: reduced ? undefined : () => sound.tear(0.55),
     },
     {
       id: `ereignis-${weekIndex}`,
       scene: <EventScene kind={week.illustration} />,
       caption: t(week.intertitle, level),
-      ambience: ['tor', 'reichstag', 'buecher', 'synagoge', 'stadion'].includes(week.illustration) ? 'feuer' : undefined,
     },
   ]
   return <Cinema shots={shots} label={`Wochenschau: ${week.dateLabel}`} onDone={onDone} doneLabel="Zur Zeitung" />

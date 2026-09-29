@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { ArrowLeft, ArrowRight, Archive, Newspaper, UserRound, UsersRound, type LucideIcon } from 'lucide-react'
 import { Modal } from '../ui/Modal'
 import { StampButton } from '../ui/StampButton'
@@ -9,7 +9,6 @@ import { SOURCES } from '../../game/data/sources'
 import { getStory } from '../../game/data/stories'
 import { isGone } from '../../game/logic'
 import { useGame } from '../../store/GameStore'
-import { sound } from '../../audio/sound'
 
 export type StepKind = 'zeitung' | 'quelle' | 'begegnung' | 'gruppe'
 
@@ -66,10 +65,6 @@ export function WeekFlow() {
   const shown = view ?? live
   const step = steps[shown] ?? steps[0]
   const reading = view !== null && view < live
-
-  useEffect(() => {
-    if (!reading) sound.whoosh()
-  }, [shown, reading])
 
   const goBack = () => {
     if (shown > 0) setView(shown - 1)

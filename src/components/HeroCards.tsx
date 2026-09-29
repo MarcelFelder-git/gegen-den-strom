@@ -4,7 +4,8 @@ import s from '../styles/period.module.css'
 import h from './heroes.module.css'
 import { Modal } from './ui/Modal'
 import { StampButton } from './ui/StampButton'
-import { CARDS, getCard, type HeroCard } from '../game/data/cards'
+import { cardNumber, cardsOfChapter, getCard, type HeroCard } from '../game/data/cards'
+import { chapterOf } from '../game/data/chapters'
 import { useGame } from '../store/GameStore'
 import { useUi } from '../store/UiStore'
 import { useR } from '../store/content'
@@ -38,11 +39,12 @@ function Portrait({ card, className = '' }: { card: Card; className?: string }) 
   )
 }
 
-export function HeroCardView({ card, number }: { card: Card; number: number }) {
+export function HeroCardView({ card }: { card: Card }) {
+  const { number, total } = cardNumber(card)
   return (
     <article className={`${h.card} px-5 pt-7 pb-5 sm:px-7`}>
       <span className={h.ribbon}>
-        Vorbild {number} von {CARDS.length}
+        Kapitel {card.chapter}, Vorbild {number} von {total}
       </span>
       <div className="grid gap-5 sm:grid-cols-[180px_1fr]">
         <div>
@@ -133,7 +135,7 @@ export function CardReveal() {
         </p>
         <div key={card.id} className={`${h.reveal} w-full`}>
           <div className={h.glow}>
-            <HeroCardView card={r(card)} number={CARDS.findIndex((c) => c.id === card.id) + 1} />
+            <HeroCardView card={r(card)} />
           </div>
         </div>
         <div className={`${h.fadeUp} mt-8 flex flex-col items-center gap-2`}>
@@ -146,9 +148,75 @@ export function CardReveal() {
   )
 }
 
-/** Das Album aller Vorbilder, auch der noch gesperrten */
+/** Eine Karte im Kleinformat, zum Aufklappen */
+function SmallCard({ card, onOpen }: { card: Card; onOpen: () => void }) {
+  return (
+    <button onClick={onOpen} className={`${h.card} flex h-full w-full flex-col items-center p-2.5 text-center !outline-0`}>
+      <Portrait card={card} className="aspect-[3/4] w-full" />
+      <span className="mt-2 block font-serif text-base leading-tight font-bold">{card.name}</span>
+      <span className="block font-type text-[13px] text-slate">{card.years}</span>
+    </button>
+  )
+}
+
+/** Eine aufgeklappte Karte über dem Bildschirm */
+function CardModal({ card, onClose }: { card: HeroCard; onClose: () => void }) {
+  const r = useR()
+  return (
+    <Modal label={card.name} onClose={onClose} width="max-w-4xl">
+      <div className={`${s.paperDark} relative px-5 py-7 sm:px-8`}>
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 z-10 grid h-10 w-10 place-items-center border-2 border-ink bg-paper hover:bg-ink hover:text-paper"
+          aria-label="Karte schließen"
+        >
+          <X size={20} aria-hidden />
+        </button>
+        <div className="pt-4">
+          <HeroCardView card={r(card)} />
+        </div>
+      </div>
+    </Modal>
+  )
+}
+
+/**
+ * Am Ende eines Kapitels: die Vorbilder, denen die Gruppe nicht begegnet ist.
+ * So lernen alle jedes Vorbild ihres Kapitels kennen, auch wer wenig Zeit hatte.
+ */
+export function MissedCards({ chapter }: { chapter: 1 | 2 }) {
+  const unlocked = useGame((g) => g.cards)
+  const r = useR()
+  const [open, setOpen] = useState<HeroCard | null>(null)
+  const missed = cardsOfChapter(chapter).filter((c) => !unlocked.includes(c.id))
+  if (!missed.length) return null
+  return (
+    <section className="mt-8 border-t-2 border-ink pt-6" aria-labelledby="noch-nicht-getroffen">
+      <h2 id="noch-nicht-getroffen" className="flex items-center gap-2 font-serif text-2xl font-bold">
+        <Medal size={22} aria-hidden /> Diese Vorbilder habt ihr noch nicht getroffen
+      </h2>
+      <p className="mt-1 font-serif text-[16px] leading-relaxed">
+        Auch sie haben wirklich gelebt und nicht weggesehen. Tippe auf eine Karte, um mehr zu erfahren.
+      </p>
+      <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {missed.map((raw) => (
+          <li key={raw.id}>
+            <SmallCard card={r(raw)} onOpen={() => setOpen(raw)} />
+          </li>
+        ))}
+      </ul>
+      {open && <CardModal card={open} onClose={() => setOpen(null)} />}
+    </section>
+  )
+}
+
+/** Das Album aller Vorbilder, nach Kapiteln, auch der noch gesperrten */
 export function CardAlbum() {
   const unlocked = useGame((g) => g.cards)
+  const current = chapterOf(useGame((g) => g.weekIndex)).id
+  const ended = useGame((g) => g.phase === 'end')
+  // Ist ein Kapitel vorbei, sind alle seine Vorbilder offen, auch die, denen die Gruppe nicht begegnet ist
+  const done = (ch: 1 | 2) => ch < current || (ended && ch === current)
   const close = useUi((u) => u.close)
   const r = useR()
   const [open, setOpen] = useState<HeroCard | null>(null)
@@ -165,40 +233,52 @@ export function CardAlbum() {
         </button>
         {open ? (
           <div className="pt-4">
-            <HeroCardView card={r(open)} number={CARDS.findIndex((c) => c.id === open.id) + 1} />
+            <HeroCardView card={r(open)} />
           </div>
         ) : (
           <>
             <p className="font-type text-xs tracking-[0.15em] text-slate uppercase">Echte Menschen im Widerstand</p>
             <h2 className="mt-1 font-serif text-3xl font-bold">Vorbilder</h2>
             <p className="mt-1 font-type text-sm text-slate">
-              {unlocked.length} von {CARDS.length} entdeckt. Gesperrte Karten zeigen, wie du sie findest.
+              Gesperrte Karten zeigen, wie du sie findest. Am Ende des Kapitels lernst du alle kennen.
             </p>
-            <ul className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-              {CARDS.map((raw, i) => {
-                const c = r(raw)
-                const have = unlocked.includes(c.id)
-                return (
-                  <li key={c.id}>
-                    {have ? (
-                      <button onClick={() => setOpen(raw)} className={`${h.card} flex h-full w-full flex-col items-center p-2.5 text-center !outline-0`}>
-                        <Portrait card={c} className="aspect-[3/4] w-full" />
-                        <span className="mt-2 block font-serif text-base leading-tight font-bold">{c.name}</span>
-                        <span className="block font-type text-[13px] text-slate">{c.years}</span>
-                      </button>
-                    ) : (
-                      <div className="flex h-full flex-col items-center border-2 border-dashed border-slate/60 p-2.5 text-center">
-                        <span className="grid aspect-[3/4] w-full place-items-center bg-slate/15 text-slate">
-                          <Lock size={22} aria-hidden />
-                        </span>
-                        <span className="mt-2 font-type text-[13px] font-bold text-slate">Vorbild {i + 1}</span>
-                        <span className="font-type text-[13px] leading-snug text-slate">{c.hint}</span>
-                      </div>
-                    )}
-                  </li>
-                )
-              })}
-            </ul>
+            {([current, current === 1 ? 2 : 1] as const).map((ch) => {
+              const list = cardsOfChapter(ch)
+              const found = list.filter((c) => unlocked.includes(c.id)).length
+              return (
+                <section key={ch} className="mt-6" aria-label={`Vorbilder in Kapitel ${ch}`}>
+                  <h3 className="flex flex-wrap items-baseline justify-between gap-2 border-b-2 border-ink pb-1">
+                    <span className="font-serif text-xl font-bold">
+                      Kapitel {ch}: {ch === 1 ? '1933' : '1936 bis 1938'}
+                    </span>
+                    <span className="font-type text-sm text-slate">
+                      {found} von {list.length} entdeckt
+                    </span>
+                  </h3>
+                  <ul className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                    {list.map((raw, i) => {
+                      const c = r(raw)
+                      const have = unlocked.includes(c.id) || done(ch)
+                      return (
+                        <li key={c.id}>
+                          {have ? (
+                            <SmallCard card={c} onOpen={() => setOpen(raw)} />
+                          ) : (
+                            <div className="flex h-full flex-col items-center border-2 border-dashed border-slate/60 p-2.5 text-center">
+                              <span className="grid aspect-[3/4] w-full place-items-center bg-slate/15 text-slate">
+                                <Lock size={22} aria-hidden />
+                              </span>
+                              <span className="mt-2 font-type text-[13px] font-bold text-slate">Vorbild {i + 1}</span>
+                              <span className="font-type text-[13px] leading-snug text-slate">{c.hint}</span>
+                            </div>
+                          )}
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </section>
+              )
+            })}
           </>
         )}
       </div>

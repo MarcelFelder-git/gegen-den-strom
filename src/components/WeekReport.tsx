@@ -28,11 +28,14 @@ export function WeekReport() {
   const weeks = useWeeks()
   const t = useT()
   const hasResults = (report?.results.length ?? 0) > 0
+  const hasLetter = !!report?.letter
   useEffect(() => {
-    if (!hasResults) return
-    const t = setTimeout(() => sound.stamp(), 250)
-    return () => clearTimeout(t)
-  }, [hasResults])
+    const timers: number[] = []
+    if (hasResults) timers.push(window.setTimeout(() => sound.stamp(), 250))
+    // Neue Post bekommt einen eigenen, leisen Ton
+    if (hasLetter) timers.push(window.setTimeout(() => sound.post(), hasResults ? 900 : 300))
+    return () => timers.forEach((t) => clearTimeout(t))
+  }, [hasResults, hasLetter])
   if (!report) return null
 
   const byId = (id: string) => members.find((m) => m.id === id)
@@ -105,7 +108,7 @@ export function WeekReport() {
           </section>
         )}
 
-        {(acting || report.crisis || report.recruited.length > 0) && (
+        {(acting || report.crisis) && (
           <section className="mt-4 border-2 border-dashed border-ink p-4" aria-label="Die Gruppe hält zusammen">
             <ul className={`${s.typewriter} space-y-1.5 text-[15px] leading-relaxed`}>
               {acting && (
@@ -120,12 +123,34 @@ export function WeekReport() {
                   weiter, aber viele Unterstützer haben sich zurückgezogen.
                 </li>
               )}
-              {report.recruited.length > 0 && (
-                <li>
-                  Niemand aus der Gruppe war mehr frei. Zwei Unterstützer sind eingesprungen: {names(report.recruited)}. Die Gruppe lebt
-                  weiter.
-                </li>
-              )}
+            </ul>
+          </section>
+        )}
+
+        {report.recruited.length > 0 && (
+          <section className="mt-4 border-2 border-group bg-[#e4ece9] p-4 text-ink" aria-labelledby="neu-titel">
+            <h3 id="neu-titel" className="font-type text-xs font-bold tracking-[0.12em] text-group uppercase">
+              Neu in der Gruppe
+            </h3>
+            <p className="mt-1 font-serif text-[16px] leading-relaxed">
+              Niemand aus der Gruppe war mehr frei. Zwei eurer Unterstützer sind eingesprungen. Wer in Haft ist, kommt in ein bis zwei
+              Wochen zurück. Dann ist eure Gruppe größer als vorher.
+            </p>
+            <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+              {report.recruited.map((id) => {
+                const m = byId(id)
+                if (!m) return null
+                return (
+                  <li key={id} className="flex gap-3">
+                    <Avatar config={m.avatar} size={56} title="" />
+                    <span className="min-w-0">
+                      <span className="block font-serif text-lg leading-tight font-bold">{m.name}</span>
+                      <span className="block font-type text-xs text-slate">{m.beruf}</span>
+                      <span className="mt-1 block font-serif text-[15px] leading-snug">{m.bio}</span>
+                    </span>
+                  </li>
+                )
+              })}
             </ul>
           </section>
         )}

@@ -24,6 +24,8 @@ export interface HeroCard {
   /** Hinweis, solange die Karte noch gesperrt ist */
   hint: Txt
   unlock: { week?: number; weeks?: number[]; mission?: MissionType; fromWeek?: number }
+  /** In welchem Kapitel man diesem Menschen begegnet */
+  chapter: 1 | 2
   source: string
   photo?: Photo
 }
@@ -47,7 +49,8 @@ export const CARDS: HeroCard[] = [
       'In den Lagern Sonnenburg und Esterwegen wurde er schwer misshandelt. 1936 erhielt er den Friedensnobelpreis, durfte ihn aber nicht selbst entgegennehmen. Hitler verbot danach allen Deutschen, Nobelpreise anzunehmen. Ossietzky starb 1938 in Berlin an den Folgen der Haft, bis zuletzt von der Polizei bewacht. Heute tragen viele Schulen seinen Namen, vielleicht auch deine.',
     ),
     hint: L('Erlebe die Woche des Reichstagsbrands oder beginne Kapitel 2.', 'Erlebe die Woche des Reichstagsbrands oder beginne Kapitel 2.'),
-    unlock: { weeks: [2, 10] },
+    unlock: { week: 2 },
+    chapter: 1,
     source: 'https://www.gdw-berlin.de/vertiefung/biografien/personenverzeichnis/biografie/view-bio/carl-von-ossietzky/',
     photo: PHOTOS.ossietzky,
   },
@@ -70,6 +73,7 @@ export const CARDS: HeroCard[] = [
     ),
     hint: L('Male erfolgreich Parolen an eine Wand.', 'Male erfolgreich Parolen an eine Wand.'),
     unlock: { mission: 'parolen' },
+    chapter: 1,
     source: 'https://de.wikipedia.org/wiki/Dringender_Appell_(1932)',
     photo: PHOTOS.kollwitz,
   },
@@ -92,6 +96,7 @@ export const CARDS: HeroCard[] = [
     ),
     hint: L('Erlebe die Woche des Reichstagsbrands.', 'Erlebe die Woche des Reichstagsbrands.'),
     unlock: { week: 2 },
+    chapter: 1,
     source: 'https://www.zukunft-braucht-erinnerung.de/hans-litten/',
     photo: PHOTOS.litten,
   },
@@ -114,6 +119,7 @@ export const CARDS: HeroCard[] = [
     ),
     hint: L('Schreibe Nachrichten aus dem Ausland ab.', 'Schreibe Nachrichten aus dem Ausland ab.'),
     unlock: { mission: 'nachrichten' },
+    chapter: 1,
     source: 'https://www.gdw-berlin.de/vertiefung/biografien/personenverzeichnis/biografie/view-bio/erich-muehsam/',
     photo: PHOTOS.muehsam,
   },
@@ -137,6 +143,7 @@ export const CARDS: HeroCard[] = [
     quote: { text: '„Freiheit und Leben kann man uns nehmen, die Ehre nicht.“', source: 'Rede im Reichstag, 23. März 1933' },
     hint: L('Erlebe die Woche des Ermächtigungsgesetzes.', 'Erlebe die Woche des Ermächtigungsgesetzes.'),
     unlock: { week: 4 },
+    chapter: 1,
     source: 'https://www.fes.de/adsd50/otto-wels',
     photo: PHOTOS.wels,
   },
@@ -160,6 +167,7 @@ export const CARDS: HeroCard[] = [
     quote: { text: '„[…] dem Rad selbst in die Speichen zu fallen.“', source: '„Die Kirche vor der Judenfrage“, April 1933' },
     hint: L('Erlebe die Woche, in der jüdische Beamte entlassen werden.', 'Erlebe die Woche, in der jüdische Beamte entlassen werden.'),
     unlock: { week: 6 },
+    chapter: 1,
     source: 'https://www.dietrich-bonhoeffer.net/leben/entscheidung/',
     photo: PHOTOS.bonhoeffer,
   },
@@ -182,6 +190,7 @@ export const CARDS: HeroCard[] = [
     ),
     hint: L('Gib eine eigene Zeitung heraus.', 'Gib eine eigene Zeitung heraus.'),
     unlock: { mission: 'zeitung' },
+    chapter: 1,
     source: 'https://www.gdw-berlin.de/vertiefung/biografien/personenverzeichnis/biografie/view-bio/harro-schulze-boysen',
     photo: PHOTOS.schulzeBoysen,
   },
@@ -195,15 +204,16 @@ export const CARDS: HeroCard[] = [
       'Als er 1933 Deutscher Meister wurde, verweigerte er auf dem Siegerpodest den Hitlergruß. Dafür hielt ihn die Gestapo einige Tage im Columbia-Haus fest und sperrte ihn für 16 Monate. 1936 trat er dennoch bei den Olympischen Spielen in Berlin an.',
     ),
     link: L(
-      'Er kam aus einem Sportverein der Arbeiter. Deren heimliche Treffen besuchst du in Neukölln.',
-      'Er kam aus einem der Arbeitersportvereine, deren heimliche Treffen du in Neukölln besuchst.',
+      'Er kam aus einem Sportverein der Arbeiter in Neukölln. 1936 kämpfte er bei den Olympischen Spielen in Berlin. Das sind die Spiele, die du gerade erlebst.',
+      'Er kam aus einem der Arbeitersportvereine, deren heimliche Treffen du in Neukölln besuchst. Bei den Olympischen Spielen 1936, die du gerade erlebst, kämpfte er in Berlin mit.',
     ),
     fate: L(
       'Er arbeitete weiter im Widerstand. 1942 wurde er verhaftet und 1944 hingerichtet. Heute tragen Sportplätze seinen Namen.',
       'Er nutzte seine Reisen als Sportler, um Nachrichten für den Widerstand zu überbringen. 1942 wurde er verhaftet und 1944 in Brandenburg hingerichtet. Heute tragen Sportstätten seinen Namen.',
     ),
-    hint: L('Besuche erfolgreich ein Treffen des Sportvereins.', 'Besuche erfolgreich ein Treffen des Arbeitersportvereins.'),
-    unlock: { mission: 'sportverein' },
+    hint: L('Erlebe die Olympischen Spiele 1936.', 'Erlebe die Woche der Olympischen Spiele 1936.'),
+    unlock: { week: 12 },
+    chapter: 2,
     source: 'https://www.gedenktafeln-in-berlin.de/gedenktafeln/detail/werner-seelenbinder/3773',
     photo: PHOTOS.seelenbinder,
   },
@@ -226,6 +236,7 @@ export const CARDS: HeroCard[] = [
     ),
     hint: L('Hilf erfolgreich den Familien von Verhafteten.', 'Unterstütze erfolgreich die Familien von Verhafteten.'),
     unlock: { mission: 'rotehilfe' },
+    chapter: 1,
     source: 'https://de.wikipedia.org/wiki/Rote_Hilfe_Deutschlands',
     photo: PHOTOS.roteHilfe,
   },
@@ -248,6 +259,7 @@ export const CARDS: HeroCard[] = [
     ),
     hint: L('Verteile ab 1936 erfolgreich Flugblätter.', 'Verteile ab 1936 erfolgreich Flugblätter.'),
     unlock: { mission: 'verteilen', fromWeek: 10 },
+    chapter: 2,
     source: 'https://www.gdw-berlin.de/vertiefung/biografien/personenverzeichnis/biografie/view-bio/herbert-baum',
     photo: PHOTOS.baum,
   },
@@ -274,6 +286,7 @@ export const CARDS: HeroCard[] = [
     },
     hint: L('Erlebe die Woche im Juli 1937.', 'Erlebe die Woche im Juli 1937.'),
     unlock: { week: 13 },
+    chapter: 2,
     source: 'https://www.gdw-berlin.de/vertiefung/biografien/personenverzeichnis/biografie/view-bio/martin-niemoeller/',
     photo: PHOTOS.niemoeller,
   },
@@ -296,6 +309,7 @@ export const CARDS: HeroCard[] = [
     ),
     hint: L('Hilf einer jüdischen Familie bei der Ausreise.', 'Hilf einer jüdischen Familie bei der Ausreise.'),
     unlock: { mission: 'ausreise' },
+    chapter: 2,
     source: 'https://www.gdw-berlin.de/vertiefung/biografien/personenverzeichnis/biografie/view-bio/elisabeth-schmitz/',
     photo: PHOTOS.schmitz,
   },
@@ -318,10 +332,22 @@ export const CARDS: HeroCard[] = [
     ),
     hint: L('Erlebe die Nacht vom 9. auf den 10. November 1938.', 'Erlebe die Nacht vom 9. auf den 10. November 1938.'),
     unlock: { week: 16 },
+    chapter: 2,
     source: 'https://de.wikipedia.org/wiki/Wilhelm_Kr%C3%BCtzfeld',
     photo: PHOTOS.neueSynagoge,
   },
 ]
+
+/** Die Vorbilder eines Kapitels, in der Reihenfolge des Albums */
+export function cardsOfChapter(chapter: 1 | 2): HeroCard[] {
+  return CARDS.filter((c) => c.chapter === chapter)
+}
+
+/** „Vorbild 3 von 8, 1933“: die Nummer innerhalb des eigenen Kapitels */
+export function cardNumber(card: Pick<HeroCard, 'id' | 'chapter'>): { number: number; total: number } {
+  const list = cardsOfChapter(card.chapter)
+  return { number: list.findIndex((c) => c.id === card.id) + 1, total: list.length }
+}
 
 export function cardsForWeek(week: number): HeroCard[] {
   return CARDS.filter((c) => c.unlock.week === week || c.unlock.weeks?.includes(week))

@@ -1,9 +1,10 @@
 import { HelpedFaces } from './HelpedWall'
+import { MissedCards } from './HeroCards'
 import { BookOpen, HandHeart, Medal, Printer, ScrollText } from 'lucide-react'
 import s from '../styles/period.module.css'
 import { Avatar } from './Avatar'
 import { StampButton } from './ui/StampButton'
-import { CARDS } from '../game/data/cards'
+import { cardsOfChapter } from '../game/data/cards'
 import { quoted } from '../game/data/group'
 import { chapterOf } from '../game/data/chapters'
 import { HONEST_NOTE, SOLIDARITY_RATINGS, fateOf, leaderFate } from '../game/data/fates'
@@ -35,6 +36,8 @@ export function EndScreen({ onNewGame, onNewChapter2 }: { onNewGame: () => void;
   const answers = Object.values(sourceAnswers)
   const rightAnswers = answers.filter(Boolean).length
   const chapterHelped = helped - chapterHelpedStart
+  const chapterCards = cardsOfChapter(chapter.id)
+  const cardsFound = chapterCards.filter((c) => cards.includes(c.id)).length
 
   const survived = endReason === 'kapitelende'
   const canContinue = survived && chapter.id === 1
@@ -146,7 +149,7 @@ export function EndScreen({ onNewGame, onNewChapter2 }: { onNewGame: () => void;
           <Fact label="Menschen geholfen" value={helped} />
           <Fact label="Unterstützer" value={supporters} />
           <Fact label="Quellen richtig" value={`${rightAnswers} von ${answers.length}`} />
-          <Fact label="Vorbilder entdeckt" value={`${cards.length} von ${CARDS.length}`} />
+          <Fact label="Vorbilder entdeckt" value={`${cardsFound} von ${chapterCards.length}`} />
         </dl>
         <p className={`${s.typewriter} mt-3 text-sm text-slate`}>
           Moral der Gruppe zuletzt: {moral}%. Stufe: {diff.label}.
@@ -169,6 +172,8 @@ export function EndScreen({ onNewGame, onNewChapter2 }: { onNewGame: () => void;
           </ul>
           <p className="mt-5 border-l-4 border-crimson pl-4 font-serif text-[17px] leading-relaxed">{t(HONEST_NOTE)}</p>
         </section>
+
+        <MissedCards chapter={chapter.id} />
 
         <section className="mt-8 border-t-2 border-ink pt-6" aria-labelledby="danach">
           <h2 id="danach" className="font-serif text-2xl font-bold">

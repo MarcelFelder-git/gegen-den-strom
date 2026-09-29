@@ -6,7 +6,6 @@ import { StampButton } from '../ui/StampButton'
 import { PhotoFigure } from './PhotoFigure'
 import { TIMELINE, TIMELINE_INTRO, TIMELINE_OUTRO } from '../../game/data/timeline'
 import { resolve, type Level } from '../../game/text'
-import { sound } from '../../audio/sound'
 
 interface IntroTimelineProps {
   level: Level
@@ -37,7 +36,6 @@ export function IntroTimeline({ level, chapter, onDone, onBack }: IntroTimelineP
     (to: number) => {
       if (to < 0) return onBack()
       if (to >= pages) return onDone()
-      sound.tear()
       setPage(to)
     },
     [pages, onBack, onDone],
@@ -51,11 +49,6 @@ export function IntroTimeline({ level, chapter, onDone, onBack }: IntroTimelineP
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [go, page])
-
-  useEffect(() => {
-    sound.startLoop('projektor')
-    return () => sound.stopLoop('projektor')
-  }, [])
 
   // Die Fotos schon beim Lesen der Einleitung laden, damit sie im langsamen Schul-WLAN sofort da sind
   useEffect(() => {

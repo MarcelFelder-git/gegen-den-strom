@@ -672,3 +672,16 @@
     transform: scaleX(1);
   }
 }
+
+/* Zwei Menschen kommen von rechts zur Tür */
+.walkFromRight {
+  animation: walkFromRight 2.6s ease-out both;
+}
+@keyframes walkFromRight {
+  from {
+    transform: translateX(360px);
+  }
+  to {
+    transform: translateX(0);
+  }
+}

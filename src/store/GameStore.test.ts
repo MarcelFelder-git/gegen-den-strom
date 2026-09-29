@@ -222,8 +222,8 @@ describe('Spielbalance', () => {
     const rate = survived / total
     console.info(`Schwer: Überlebensrate ${(rate * 100).toFixed(0)}%, geholfen im Schnitt ${(helped / total).toFixed(1)}`, reasons)
     expect(rate).toBeGreaterThan(0.45)
-    // Die Simulation spielt sehr umsichtig. Kinder spielen mutiger, für sie ist es schwerer.
-    expect(rate).toBeLessThan(0.995)
+    // Keine Obergrenze: Seit das Risiko auf ein Fünftel gesenkt ist, schafft die sehr umsichtige Simulation
+    // das Kapitel fast immer. Kinder spielen mutiger, für sie ist es schwerer.
   })
 
   it('leichte Stufe: die Gruppe kommt immer bis zum Kapitelende', () => {

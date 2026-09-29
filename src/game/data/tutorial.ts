@@ -69,7 +69,7 @@ export const TUTORIAL: TutorialPage[] = [
         'Verhaftete fehlen der Gruppe für Wochen. Hilfe von außen ist möglich: Pakete ins Gefängnis, ein Anwalt, Unterstützung für die Familie.',
       ),
       L(
-        'Ist die Person in Haft, die euch anführt? Dann übernimmt jemand anderes. Eure Gruppe macht weiter.',
+        'Ist die Person in Haft, die euch anführt? Dann übernimmt jemand anderes. Sind alle in Haft, springen zwei Unterstützer ein. Eure Gruppe macht weiter.',
         'Manche kommen nicht zurück. Wird die Person verhaftet, die euch anführt, oder verliert die Gruppe allen Mut, ist das Spiel vorbei. Eine Chronik erzählt dann, wie es weiterging.',
       ),
     ],

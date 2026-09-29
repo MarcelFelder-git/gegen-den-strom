@@ -827,6 +827,26 @@ export function ArrestScene({ team = ['m'], atHome = false }: { team?: Gender[];
   )
 }
 
+/** Zwei Unterstützer kommen am Abend zur Tür, um weiterzumachen, als niemand mehr frei ist */
+export function ArrivalScene({ team = ['m', 'w'] }: { team?: Gender[] }) {
+  return (
+    <Frame sky="#22222a">
+      <Skyline />
+      {/* Haus und Tür links, damit der Stempel unten rechts niemanden verdeckt */}
+      <rect x="40" y="80" width="250" height="208" fill={HOUSE} />
+      <rect x="70" y="110" width="34" height="44" fill={LAMP} opacity="0.55" />
+      <rect x="210" y="110" width="34" height="44" fill={HOUSE2} />
+      <rect x="170" y="190" width="44" height="98" fill="#0a0a0c" />
+      <rect x="170" y="190" width="44" height="98" fill={LAMP} opacity="0" className={c.doorLight} />
+      <Lamp x={330} y={288} h={140} />
+      <Ground y={288} fill="#0d0d10" />
+      <g className={c.walkFromRight}>
+        <Team team={team} x={258} y={288} spacing={-30} walking fill="#6a6860" />
+      </g>
+    </Frame>
+  )
+}
+
 /* ---------- Einsätze in der Nacht ---------- */
 
 export type SceneOutcome = 'gelungen' | 'gescheitert' | 'entdeckt'

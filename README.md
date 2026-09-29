@@ -57,7 +57,7 @@ Die Tests prüfen Spiellogik, Haft und Nachfolge, beide Sprachstufen (keine Geda
 | `src/game/data/photos.ts` | Alle Fotos mit Bildnachweis (Dateien in `public/fotos`) |
 | `src/game/data/missions.ts` | Die Auftragsarten, solidarische Aufträge zählen „Menschen geholfen“ |
 | `src/game/data/prison.ts` | Haftorte nach Zeit und Hilfe von außen |
-| `src/game/data/cards.ts` | Dreizehn echte Vorbilder |
+| `src/game/data/cards.ts` | Dreizehn echte Vorbilder, acht in Kapitel 1 und fünf in Kapitel 2 |
 | `src/game/logic.ts` | Würfel, Erfolgsaussicht, Gefahr, Effekte (rein und getestet) |
 | `src/store/GameStore.ts` | Zustand-Store mit Wochenablauf, gespeichert im Browser |
 | `src/components/week/` | Der Wochenablauf in vier Schritten mit Zurück-Blättern |

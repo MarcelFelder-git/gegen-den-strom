@@ -13,9 +13,7 @@ export interface Shot {
   stamp?: { text: string; tone: 'ink' | 'blood' }
   /** Nach so vielen Millisekunden automatisch weiter (nachdem der Titel steht) */
   auto?: number
-  /** Dauergeräusch während der Szene */
-  ambience?: 'regen' | 'feuer'
-  /** Geräusch zu Beginn der Szene, etwa das Abreißen des Kalenderblatts */
+  /** Geräusch zu Beginn der Szene, etwa ein Klopfen an der Tür */
   sfx?: () => void
   /** Der Wurf eines Auftrags, sichtbar als laufender Zeiger */
   roll?: RollData
@@ -59,22 +57,16 @@ export function Cinema({ shots, label, onDone, doneLabel = 'Weiter' }: { shots: 
   }, [shotId, reduced, captionLength])
   useEffect(() => {
     if (full) return
-    const t = setTimeout(() => {
-      setTyped((n) => n + 1)
-      if (typed % 2 === 0 && shot.caption[typed] !== ' ') sound.typeKey()
-    }, 26)
+    const t = setTimeout(() => setTyped((n) => n + 1), 26)
     return () => clearTimeout(t)
-  }, [typed, full, shot.caption])
+  }, [typed, full])
 
-  // Glocke am Zeilenende, Stempel, Geräusche der Szene
+  // Der Stempel schlägt auf, sobald der Titel steht
   const hasStamp = !!shot.stamp
   useEffect(() => {
-    if (!ready) return
-    sound.bell()
-    if (hasStamp) {
-      const t = setTimeout(() => sound.stamp(), 120)
-      return () => clearTimeout(t)
-    }
+    if (!ready || !hasStamp) return
+    const t = setTimeout(() => sound.stamp(), 120)
+    return () => clearTimeout(t)
   }, [ready, shotId, hasStamp])
   // Bei einem Wurf kommt das Geräusch erst mit dem Ergebnis, sonst verrät es den Ausgang
   const hasRoll = !!shot.roll
@@ -84,16 +76,8 @@ export function Cinema({ shots, label, onDone, doneLabel = 'Weiter' }: { shots: 
   }, [ready, hasRoll, shotId])
   useEffect(() => {
     if (!shot.roll) shot.sfx?.()
-    if (!shot.ambience) return
-    const kind = shot.ambience
-    sound.startLoop(kind)
-    return () => sound.stopLoop(kind)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shotId])
-  useEffect(() => {
-    sound.startLoop('projektor')
-    return () => sound.stopLoop('projektor')
-  }, [])
 
   const next = useCallback(() => {
     if (!full) return setTyped(shot.caption.length)

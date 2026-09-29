@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { sound } from '../../audio/sound'
 
 export interface RollData {
   /** Erfolgsaussicht in Prozent, gelungen bei Wurf kleiner oder gleich */
@@ -93,7 +92,6 @@ function Gauge({
     // Zweimal über die ganze Skala, dann langsamer werdend bis zum Ergebnis
     const distance = 200 + value
     const start = performance.now()
-    let lastTick = -1
     let frame = 0
     const step = (now: number) => {
       const t = Math.min(1, (now - start) / SWEEP_MS)
@@ -102,11 +100,6 @@ function Gauge({
       const cycle = d % 200
       const p = t >= 1 ? value : cycle <= 100 ? cycle : 200 - cycle
       setPos(p)
-      const tick = Math.floor(d / 12)
-      if (tick !== lastTick) {
-        lastTick = tick
-        sound.typeKey()
-      }
       if (t < 1) frame = requestAnimationFrame(step)
       else stop.current()
     }

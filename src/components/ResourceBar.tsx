@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { BookOpen, ChevronRight, HandHeart, House, Mail, Medal, Volume2, VolumeX } from 'lucide-react'
 import s from '../styles/period.module.css'
 import { chapterOf, weekInChapter, weeksInChapter } from '../game/data/chapters'
-import { CARDS } from '../game/data/cards'
+import { cardsOfChapter } from '../game/data/cards'
 import { quoted } from '../game/data/group'
 import { ITEM_LABELS } from '../game/logic'
 import type { ItemKey } from '../game/types'
@@ -39,8 +39,10 @@ export function ResourceBar({ onMenu }: { onMenu: () => void }) {
   const weeks = useWeeks()
   const openLexicon = useUi((u) => u.openLexicon)
   const openAlbum = useUi((u) => u.openAlbum)
-  const cardCount = useGame((g) => g.cards.length)
   const chapter = chapterOf(weekIndex)
+  // Das Album zählt nur die Vorbilder des Kapitels, das gerade gespielt wird
+  const chapterCards = cardsOfChapter(chapter.id)
+  const cardCount = useGame((g) => chapterCards.filter((c) => g.cards.includes(c.id)).length)
   const groupName = useGame((g) => g.groupName)
   const muted = useUi((u) => u.muted)
   const toggleMuted = useUi((u) => u.toggleMuted)
@@ -77,7 +79,7 @@ export function ResourceBar({ onMenu }: { onMenu: () => void }) {
             <MenuButton label={muted ? 'Ton: aus' : 'Ton: an'} title={muted ? 'Ton ist aus. Einschalten' : 'Ton ist an. Ausschalten'} onClick={toggleMuted}>
               {muted ? <VolumeX size={16} aria-hidden /> : <Volume2 size={16} aria-hidden />}
             </MenuButton>
-            <MenuButton label={`Vorbilder ${cardCount}/${CARDS.length}`} title="Album der echten Vorbilder" onClick={openAlbum}>
+            <MenuButton label={`Vorbilder ${cardCount}/${chapterCards.length}`} title="Album der echten Vorbilder" onClick={openAlbum}>
               <Medal size={16} aria-hidden />
             </MenuButton>
             <MenuButton label="Wörter" title="Worterklärungen" onClick={() => openLexicon()}>

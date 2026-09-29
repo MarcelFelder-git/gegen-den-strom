@@ -10,7 +10,6 @@ import { goalById } from '../game/data/goals'
 import { useGame } from '../store/GameStore'
 import { MISSION_ICONS } from './icons'
 import { useMissions, useT } from '../store/content'
-import { sound } from '../audio/sound'
 
 /**
  * Die Einführung: das Spielprinzip auf wenigen Seiten, beim ersten Mal auf der Stadtkarte.
@@ -31,10 +30,7 @@ export function Tutorial({ weekIndex, onClose }: { weekIndex: number; onClose: (
     return () => document.removeEventListener('keydown', onKey)
   }, [page, last])
 
-  const go = (to: number) => {
-    sound.tear()
-    setPage(to)
-  }
+  const go = (to: number) => setPage(to)
 
   return (
     <Modal label={`So geht’s, Seite ${page + 1} von ${TUTORIAL.length}`} onClose={onClose} width="max-w-2xl" closeOnBackdrop={false}>
