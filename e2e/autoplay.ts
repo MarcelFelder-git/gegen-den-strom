@@ -139,6 +139,8 @@ export async function play(page: Page, problems: Problems, o: PlayOptions): Prom
         tried.add(hit.label)
       }
     }
+    // Ein Fenster ohne Weiter, etwa die Gesichter-Wand: wieder schließen
+    if (!hit && idle >= 3 && s.dialog) hit = s.btns.find((b) => /schließen|Schließen/.test(b.label))
     if (!hit) {
       if (++idle < 60) {
         step--
