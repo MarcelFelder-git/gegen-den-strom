@@ -6,6 +6,7 @@ import type { Level } from '../game/text'
 import { currentEvent, useGame } from './GameStore'
 import { goalById, weekGoal } from '../game/data/goals'
 import { STORIES } from '../game/data/stories'
+import { TOTAL_WEEKS } from '../game/data/weeks'
 import { fateOf } from '../game/data/fates'
 import { companionName, renamed } from '../game/names'
 import { t } from '../game/text'
@@ -182,6 +183,29 @@ describe('Wenn niemand mehr frei ist', () => {
       expect(useGame.getState().report?.recruited).toHaveLength(2)
       useGame.getState().nextWeek()
     }
+  })
+})
+
+describe('Vorschau für Lehrkräfte', () => {
+  it('springt direkt in eine Woche, ohne Einführung, und ein neues Spiel ist danach wieder normal', () => {
+    useGame.getState().startPreview(16, 'schwer')
+    let s = useGame.getState()
+    expect(s.weekIndex).toBe(16)
+    expect(s.level).toBe('schwer')
+    expect(s.phase).toBe('newspaper')
+    expect(s.tutorialSeen).toBe(true)
+    expect(s.preview).toBe(true)
+    expect(s.members).toHaveLength(4)
+
+    useGame.getState().startGame(draft('lehrer', 'christlich'))
+    s = useGame.getState()
+    expect(s.preview).toBe(false)
+    expect(s.tutorialSeen).toBe(false)
+  })
+
+  it('bleibt innerhalb der vorhandenen Wochen', () => {
+    useGame.getState().startPreview(99, 'leicht')
+    expect(useGame.getState().weekIndex).toBe(TOTAL_WEEKS - 1)
   })
 })
 

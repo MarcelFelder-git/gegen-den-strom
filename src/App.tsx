@@ -40,6 +40,12 @@ export default function App() {
   const tutorialPending = useGame((g) => !g.tutorialSeen && g.history.length === 0)
   const { introSeen, nightSeen, markIntro, markNight, resetCutscenes, draftLevel, setDraftLevel, startChapter } = useUi()
   const [before, setBefore] = useState<Before>('title')
+  // Die Vorschau für Lehrkräfte startet ein Spiel aus den Hinweisen heraus: direkt ins Spiel wechseln
+  const gameRequest = useUi((u) => u.gameRequest)
+  useEffect(() => {
+    if (gameRequest) setBefore(null)
+  }, [gameRequest])
+  const preview = useGame((g) => !!g.preview)
 
   const setStartChapter = useUi((u) => u.setStartChapter)
   const newGame = (chapter: 1 | 2 = 1) => {
@@ -103,7 +109,7 @@ export default function App() {
             <WeekIntro
               weekIndex={weekIndex}
               onDone={() => markIntro(weekIndex)}
-              founding={history.length === 0 && decisions.length === 0}
+              founding={!preview && history.length === 0 && decisions.length === 0}
               groupName={groupName}
             />
           ))}

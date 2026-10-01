@@ -108,11 +108,15 @@ interface GameData extends ResourceState {
   goalId?: string
   /** Stand von „Geholfen“ zu Wochenbeginn: Jede Hilfe der Woche zählt für das Ziel */
   weekHelpedStart?: number
+  /** Von Lehrkräften gestartete Vorschau ab einer bestimmten Woche, ohne Gründungsszene */
+  preview?: boolean
 }
 
 interface GameActions {
   goTo: (phase: 'title' | 'creation') => void
   startGame: (draft: LeaderDraft, startWeek?: number) => void
+  /** Für Lehrkräfte: direkt in eine Woche springen, mit einer fertigen Beispielgruppe */
+  startPreview: (week: number, level: Level) => void
   /** Nach dem Ende von Kapitel 1 mit derselben Gruppe weiterspielen */
   continueToChapter2: () => void
   answerSource: (optionIndex: number) => boolean
@@ -170,6 +174,7 @@ const initialData: GameData = {
   crisis: false,
   chapterHelpedStart: 0,
   tutorialSeen: false,
+  preview: false,
   helpedPeople: [],
   lastLetterWeek: -10,
   lettersRead: 0,
@@ -430,6 +435,23 @@ export const useGame = create<GameState>()(
           motto: draft.motto,
         }
         set(beginWeek(base, startWeek))
+      },
+
+      startPreview: (week, level) => {
+        get().startGame(
+          {
+            level,
+            name: 'Frieda',
+            groupName: 'Vorschau',
+            motto: 'Wir sehen nicht weg.',
+            codename: CODENAMES[0],
+            avatar: { gender: 'w', face: 'oval', headwear: 'welle', hairTone: 'dunkel', glasses: false, clothing: 'kleid' },
+            profession: 'lehrer',
+            ideology: 'humanistisch',
+          },
+          Math.max(0, Math.min(week, TOTAL_WEEKS - 1)),
+        )
+        set({ tutorialSeen: true, preview: true })
       },
 
       continueToChapter2: () => {

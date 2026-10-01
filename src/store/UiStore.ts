@@ -29,6 +29,9 @@ interface UiState {
   resetCutscenes: () => void
   muted: boolean
   toggleMuted: () => void
+  /** Zählt hoch, wenn ein Spiel von außerhalb des Titels gestartet wurde, etwa die Vorschau für Lehrkräfte */
+  gameRequest: number
+  requestGame: () => void
 }
 
 /** Flüchtiger Oberflächenzustand, wird nicht gespeichert */
@@ -51,6 +54,8 @@ export const useUi = create<UiState>()((set) => ({
   markIntro: (week) => set({ introSeen: week }),
   markNight: (week) => set({ nightSeen: week }),
   resetCutscenes: () => set({ introSeen: null, nightSeen: null }),
+  gameRequest: 0,
+  requestGame: () => set((u) => ({ gameRequest: u.gameRequest + 1, overlay: null, introSeen: null, nightSeen: null })),
   muted: isMuted(),
   toggleMuted: () =>
     set((u) => {

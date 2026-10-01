@@ -1,9 +1,11 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { Images, QrCode, X } from 'lucide-react'
+import { Eye, Images, QrCode, X } from 'lucide-react'
 import s from '../styles/period.module.css'
 import { Modal } from './ui/Modal'
 import { StampButton } from './ui/StampButton'
 import { useUi } from '../store/UiStore'
+import { hasSavedGame, useGame } from '../store/GameStore'
+import type { Level } from '../game/text'
 
 /** QR-Code der aktuellen Adresse, damit die Klasse das Spiel mit dem Tablet öffnen kann */
 function ClassQr({ big }: { big: boolean }) {
@@ -33,6 +35,17 @@ export function TeacherNotes() {
   const close = useUi((u) => u.close)
   const openCredits = useUi((u) => u.openCredits)
   const [bigQr, setBigQr] = useState(false)
+  const [previewLevel, setPreviewLevel] = useState<Level>('leicht')
+  const startPreview = useGame((g) => g.startPreview)
+  const requestGame = useUi((u) => u.requestGame)
+  const hasGame = useGame(hasSavedGame)
+
+  const preview = (week: number) => {
+    // Ein laufendes Spiel auf diesem Gerät würde ersetzt: lieber einmal nachfragen
+    if (hasGame && !window.confirm('Das ersetzt das laufende Spiel auf diesem Gerät. Trotzdem ansehen?')) return
+    startPreview(week, previewLevel)
+    requestGame()
+  }
 
   if (bigQr) {
     return (
@@ -108,21 +121,54 @@ export function TeacherNotes() {
               <li>Eine Begegnung darf man auch nur lesen und still eine Wahl treffen. Niemand muss die eigene Wahl vorstellen.</li>
               <li>Vor Kapitel 2 (Novemberpogrom, Kindertransporte) die Eltern kurz informieren.</li>
             </ul>
+            <div className="mt-4 border-2 border-ink bg-paper-dark p-3">
+              <p className="font-serif text-[15px] leading-snug">
+                <strong>Vorschau:</strong> Mit „Ansehen“ springt ihr direkt in eine Woche, mit einer fertigen Beispielgruppe. So lässt
+                sich etwa das Novemberpogrom zeigen, ohne vorher alle Wochen zu spielen. Ein laufendes Spiel auf diesem Gerät wird
+                dabei ersetzt.
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Stufe der Vorschau">
+                <span className="font-type text-[13px] font-bold">Stufe:</span>
+                {(['leicht', 'schwer'] as const).map((l) => (
+                  <button
+                    key={l}
+                    role="radio"
+                    aria-checked={previewLevel === l}
+                    onClick={() => setPreviewLevel(l)}
+                    className={`${s.chip} px-3 py-1.5 font-type text-[13px]`}
+                  >
+                    {l === 'leicht' ? '6. bis 8. Klasse' : 'ab 9. Klasse'}
+                  </button>
+                ))}
+              </div>
+            </div>
             <table className="mt-3 w-full border-collapse font-type text-[13px] leading-snug">
               <caption className="mb-1 text-left font-bold">Übersicht der Wochen</caption>
               <thead>
                 <tr className="border-b-2 border-ink text-left">
                   <th className="py-1 pr-2">Woche</th>
                   <th className="py-1 pr-2">Thema</th>
-                  <th className="py-1">Belastung</th>
+                  <th className="py-1 pr-2">Belastung</th>
+                  <th className="py-1">
+                    <span className="sr-only">Vorschau</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {WEEK_OVERVIEW.map((w) => (
+                {WEEK_OVERVIEW.map((w, i) => (
                   <tr key={w.week} className="border-b border-ink/20 align-top">
                     <td className="py-1 pr-2 whitespace-nowrap">{w.week}</td>
                     <td className="py-1 pr-2">{w.theme}</td>
-                    <td className={`py-1 ${w.load === 'hoch' ? 'font-bold text-crimson' : ''}`}>{w.load}</td>
+                    <td className={`py-1 pr-2 ${w.load === 'hoch' ? 'font-bold text-crimson' : ''}`}>{w.load}</td>
+                    <td className="py-1 text-right">
+                      <button
+                        onClick={() => preview(i)}
+                        className="inline-flex min-h-8 items-center gap-1 border border-ink px-2 font-bold whitespace-nowrap hover:bg-ink hover:text-paper"
+                        aria-label={`Woche ${w.week} ansehen`}
+                      >
+                        <Eye size={14} aria-hidden /> Ansehen
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -209,7 +255,7 @@ export function TeacherNotes() {
   )
 }
 
-/** Themen und Belastung jeder Woche, damit sich die Lehrkraft vorbereiten kann */
+/** Themen und Belastung jeder Woche, damit sich die Lehrkraft vorbereiten kann. Die Reihenfolge entspricht WEEKS. */
 const WEEK_OVERVIEW: { week: string; theme: string; load: 'gering' | 'mittel' | 'hoch' }[] = [
   { week: 'K1, W1', theme: 'Hitler wird Reichskanzler, die Gruppe gründet sich', load: 'gering' },
   { week: 'K1, W2', theme: 'SA und SS werden Hilfspolizei, die Hauswartsfrau Frau Pagel', load: 'mittel' },
