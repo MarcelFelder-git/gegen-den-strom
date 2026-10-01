@@ -1,5 +1,5 @@
 import { L, type Txt } from '../text'
-import type { AvatarConfig, Clothing, FaceShape, Gender, HairTone, Headwear, MissionType } from '../types'
+import type { AvatarConfig, Clothing, ClothingTone, FaceShape, Gender, HairTone, Headwear, MissionType } from '../types'
 
 /**
  * Die Menschen hinter der Zahl „Geholfen“. Sie sind erfunden, aber ihre Lage war typisch:
@@ -160,8 +160,15 @@ export function hash(text: string): number {
 }
 
 const FACES: FaceShape[] = ['oval', 'rund', 'kantig', 'schmal']
-const HEAD: Record<Gender, Headwear[]> = { m: ['schiebermuetze', 'fedora', 'kurz'], w: ['zoepfe', 'welle', 'glocke', 'kurz'] }
-const CLOTHES: Record<Gender, Clothing[]> = { m: ['arbeiterjacke', 'trenchcoat', 'weste'], w: ['kleid', 'trenchcoat', 'arbeiterjacke'] }
+const HEAD: Record<Gender, Headwear[]> = {
+  m: ['schiebermuetze', 'fedora', 'kurz', 'scheitel', 'locken', 'baskenmuetze'],
+  w: ['zoepfe', 'welle', 'glocke', 'bubikopf', 'knoten', 'baskenmuetze'],
+}
+const CLOTHES: Record<Gender, Clothing[]> = {
+  m: ['arbeiterjacke', 'trenchcoat', 'weste', 'anzug', 'strickjacke'],
+  w: ['kleid', 'trenchcoat', 'arbeiterjacke', 'bluse', 'strickjacke'],
+}
+const TONES: ClothingTone[] = ['schwarz', 'grau', 'blau', 'gruen', 'weinrot', 'braun']
 const HAIR: HairTone[] = ['dunkel', 'dunkel', 'hell', 'grau']
 
 /** Ein festes Gesicht für einen Namen, damit dieselbe Person immer gleich aussieht */
@@ -174,5 +181,6 @@ export function portraitFor(name: string, gender: Gender): AvatarConfig {
     hairTone: HAIR[(h >> 5) % HAIR.length],
     glasses: (h >> 7) % 4 === 0,
     clothing: CLOTHES[gender][(h >> 9) % CLOTHES[gender].length],
+    tone: TONES[(h >> 12) % TONES.length],
   }
 }

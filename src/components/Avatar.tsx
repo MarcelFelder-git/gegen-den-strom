@@ -1,10 +1,33 @@
 import { useId } from 'react'
-import type { AvatarConfig, AvatarDetail, FaceShape } from '../game/types'
+import type { AvatarConfig, AvatarDetail, Clothing as ClothingKey, ClothingTone, FaceShape } from '../game/types'
 
 const INK = '#1c1c1e'
 const PAPER = '#f4f1ea'
 const SKIN = '#efe6d2'
 const SLATE = '#4a4f57'
+/** Filz des Glockenhuts: ein weiches Graubraun statt Schwarz */
+const FELT = '#5f5862'
+
+/** Gedeckte Stofffarben. Alle sind dunkel genug, dass helle Nähte und Knöpfe darauf sichtbar bleiben. */
+export const TONES: Record<ClothingTone, string> = {
+  schwarz: INK,
+  grau: SLATE,
+  blau: '#283752',
+  gruen: '#2e4637',
+  weinrot: '#5c2228',
+  braun: '#56402f',
+}
+/** Grundfarbe jeder Kleidung, solange keine eigene Farbe gewählt ist */
+export const DEFAULT_TONE: Record<ClothingKey, ClothingTone> = {
+  arbeiterjacke: 'schwarz',
+  trenchcoat: 'grau',
+  weste: 'schwarz',
+  kleid: 'schwarz',
+  strickjacke: 'braun',
+  bluse: 'blau',
+  anzug: 'grau',
+}
+export const toneOf = (c: Pick<AvatarConfig, 'clothing' | 'tone'>): ClothingTone => c.tone ?? DEFAULT_TONE[c.clothing]
 
 interface FaceGeo {
   path: string
@@ -55,6 +78,7 @@ export function Avatar({ config, size = 96, className, title, crossed }: AvatarP
           : `url(#${id('hairHatch')})`
   // Mehrere Besonderheiten zugleich; ältere Spielstände hatten nur eine
   const has = (d: AvatarDetail) => !!config.details?.includes(d) || config.detail === d
+  const tone = TONES[toneOf(config)]
 
   return (
     <svg
@@ -87,7 +111,7 @@ export function Avatar({ config, size = 96, className, title, crossed }: AvatarP
           <line x1="0" y1="0" x2="0" y2="4" stroke={PAPER} strokeWidth="1.1" opacity="0.8" />
         </pattern>
         <pattern id={id('dots')} width="6" height="6" patternUnits="userSpaceOnUse">
-          <rect width="6" height="6" fill={INK} />
+          <rect width="6" height="6" fill={tone} />
           <circle cx="3" cy="3" r="0.9" fill={PAPER} />
         </pattern>
         <clipPath id={id('face')}>
@@ -110,7 +134,7 @@ export function Avatar({ config, size = 96, className, title, crossed }: AvatarP
         <path d="M42.5 74 L42.5 94 L57.5 94 L57.5 74 Z" fill={SKIN} stroke={INK} strokeWidth="1.6" />
         <path d="M50 78 L57.5 76 L57.5 92 Z" fill={`url(#${id('shade')})`} />
 
-        <Clothing config={config} dots={`url(#${id('dots')})`} />
+        <Clothing config={config} dots={`url(#${id('dots')})`} tone={tone} />
 
         {/* Schal um den Hals */}
         {has('schal') && (
@@ -246,12 +270,40 @@ function HairBack({ config, L, R, top, fill }: HairProps) {
     case 'glocke':
       return (
         <path
-          d={`M${L - 3} 66 Q${L - 5} 56 ${L - 1} 50 L${R + 1} 50 Q${R + 5} 56 ${R + 3} 66 Q${R} 68 ${R - 1} 62 L${L + 1} 62 Q${L} 68 ${L - 3} 66 Z`}
+          d={`M${L - 4} 64 Q${L - 5} ${top} 50 ${top} Q${R + 5} ${top} ${R + 4} 64 Q${R + 1} 67 ${R - 1} 62 L${L + 1} 62 Q${L - 1} 67 ${L - 4} 64 Z`}
           fill={fill}
           stroke={INK}
           strokeWidth="1.2"
         />
       )
+    case 'bubikopf':
+      // Glatter Bob bis zum Kinn
+      return (
+        <path
+          d={`M${L - 4.5} 69 Q${L - 6.5} ${top - 9} 50 ${top - 9} Q${R + 6.5} ${top - 9} ${R + 4.5} 69 Q${R} 71 ${R - 2} 66 L${L + 2} 66 Q${L} 71 ${L - 4.5} 69 Z`}
+          fill={fill}
+          stroke={INK}
+          strokeWidth="1.4"
+        />
+      )
+    case 'knoten':
+      // Der Knoten sitzt hinten oben und schaut über den Kopf
+      return (
+        <g fill={fill} stroke={INK} strokeWidth="1.3">
+          <circle cx="50" cy={top - 7} r="7.5" />
+          <path d={`M44 ${top - 8} Q50 ${top - 12} 56 ${top - 8}`} fill="none" stroke={PAPER} strokeWidth="0.7" opacity="0.8" />
+        </g>
+      )
+    case 'baskenmuetze':
+      // Frauen tragen darunter einen kurzen Bob, Männer kurzes Haar
+      return config.gender === 'w' ? (
+        <path
+          d={`M${L - 4} 66 Q${L - 5} ${top} 50 ${top} Q${R + 5} ${top} ${R + 4} 66 Q${R + 1} 68 ${R - 1} 63 L${L + 1} 63 Q${L - 1} 68 ${L - 4} 66 Z`}
+          fill={fill}
+          stroke={INK}
+          strokeWidth="1.3"
+        />
+      ) : null
     default:
       return null
   }
@@ -299,16 +351,132 @@ function HairFront({ config, L, R, top, fill }: HairProps) {
         </g>
       )
     case 'glocke':
+      // Weicher Filzhut, tief in der Stirn, darunter schauen Locken hervor. Statt eines Streifens eine kleine Schleife.
+      return (
+        <g>
+          <g fill={fill} stroke={INK} strokeWidth="1.1">
+            <circle cx={L - 0.5} cy={top + 17.5} r="3.3" />
+            <circle cx={L + 0.8} cy={top + 22.5} r="2.7" />
+            <circle cx={R + 0.5} cy={top + 17.5} r="3.3" />
+            <circle cx={R - 0.8} cy={top + 22.5} r="2.7" />
+          </g>
+          <path
+            d={`M${L - 3} ${top + 10} Q${L - 4} ${top - 11} 50 ${top - 12} Q${R + 4} ${top - 11} ${R + 3} ${top + 10} Z`}
+            fill={FELT}
+            stroke={INK}
+            strokeWidth="1.4"
+          />
+          <path d={`M${L + 2} ${top - 3} Q50 ${top - 10} ${R - 5} ${top - 6}`} fill="none" stroke={PAPER} strokeWidth="0.8" opacity="0.45" />
+          <path
+            d={`M${L - 6} ${top + 16} Q${L - 5} ${top + 8} ${L - 2} ${top + 7.5} Q50 ${top + 4.5} ${R + 2} ${top + 7.5} Q${R + 5} ${top + 8} ${R + 6} ${top + 16} Q50 ${top + 10.5} ${L - 6} ${top + 16} Z`}
+            fill={FELT}
+            stroke={INK}
+            strokeWidth="1.4"
+          />
+          <path d={`M${L - 2.5} ${top + 6} Q50 ${top + 2} ${R + 2.5} ${top + 6}`} fill="none" stroke={INK} strokeWidth="2.4" />
+          <g fill={PAPER} stroke={INK} strokeWidth="0.6">
+            <path d={`M${R - 4} ${top + 4} q-4.5 -3.2 -5.5 0.8 q3.2 2.2 5.5 -0.8 Z`} />
+            <path d={`M${R - 4} ${top + 4} q4.5 -3.2 5.5 0.8 q-3.2 2.2 -5.5 -0.8 Z`} />
+            <circle cx={R - 4} cy={top + 4} r="1.1" />
+          </g>
+        </g>
+      )
+    case 'bubikopf':
+      // Glatter Pony bis knapp über die Augenbrauen
       return (
         <g>
           <path
-            d={`M${L - 4} ${top + 15} Q${L - 5} ${top - 9} 50 ${top - 10} Q${R + 5} ${top - 9} ${R + 4} ${top + 15} Q50 ${top + 10} ${L - 4} ${top + 15} Z`}
-            fill={INK}
+            d={`M${L - 2} 60 Q${L - 3} ${top - 7} 50 ${top - 7} Q${R + 3} ${top - 7} ${R + 2} 60 L${R - 1} 60 L${R - 1} ${top + 11} L${L + 1} ${top + 11} L${L + 1} 60 Z`}
+            fill={fill}
+            stroke={INK}
+            strokeWidth="1.5"
+            strokeLinejoin="round"
           />
-          <path d={`M${L - 3} ${top + 7} Q50 ${top + 2} ${R + 3} ${top + 7}`} fill="none" stroke="#8b0000" strokeWidth="2.6" />
-          <path d={`M${L - 3} ${top + 7} Q50 ${top + 2} ${R + 3} ${top + 7}`} fill="none" stroke={PAPER} strokeWidth="0.5" />
-          <path d={`M${R - 2} ${top + 3} q5 -1 6 3 q-3 1 -6 -3 Z`} fill={PAPER} stroke={INK} strokeWidth="0.6" />
-          <path d={`M${L - 4} ${top + 15} Q50 ${top + 10} ${R + 4} ${top + 15}`} fill="none" stroke={PAPER} strokeWidth="0.8" />
+          <g stroke={PAPER} strokeWidth="0.7" opacity="0.6">
+            <path d={`M43 ${top + 3} L43.5 ${top + 9.5} M50 ${top + 2} L50 ${top + 9.5} M57 ${top + 3} L56.5 ${top + 9.5}`} />
+          </g>
+          <path d={`M${L + 3} ${top - 2} Q50 ${top - 7} ${R - 4} ${top - 3}`} fill="none" stroke={PAPER} strokeWidth="0.8" opacity="0.7" />
+        </g>
+      )
+    case 'knoten':
+      // Straff zurückgekämmt, mit Mittelscheitel
+      return (
+        <g>
+          <path
+            d={`M${L - 0.5} 55 Q${L - 1.5} ${top - 5} 50 ${top - 5} Q${R + 1.5} ${top - 5} ${R + 0.5} 55 Q${R - 1} 46 ${R - 5} ${top + 8} Q56 ${top + 3} 50 ${top + 1.5} Q44 ${top + 3} ${L + 5} ${top + 8} Q${L + 1} 46 ${L - 0.5} 55 Z`}
+            fill={fill}
+            stroke={INK}
+            strokeWidth="1.5"
+          />
+          <path d={`M50 ${top - 4} L50 ${top + 1.5}`} stroke={PAPER} strokeWidth="1" />
+          <g fill="none" stroke={PAPER} strokeWidth="0.6" opacity="0.6">
+            <path d={`M47 ${top - 3} Q${L + 4} ${top} ${L + 1} 50`} />
+            <path d={`M53 ${top - 3} Q${R - 4} ${top} ${R - 1} 50`} />
+          </g>
+        </g>
+      )
+    case 'scheitel':
+      // Seitenscheitel, glatt nach rechts gekämmt
+      return (
+        <g>
+          <path
+            d={`M${L - 1} 52 Q${L - 2} ${top - 6} 46 ${top - 6.5} Q${R + 3} ${top - 7} ${R + 1} 52 Q${R - 1} 45 ${R - 6} ${top + 8} Q52 ${top + 3.5} 43 ${top + 6} Q${L + 3} ${top + 8} ${L - 1} 52 Z`}
+            fill={fill}
+            stroke={INK}
+            strokeWidth="1.5"
+          />
+          <path d={`M43 ${top - 6} L43.6 ${top + 5}`} stroke={PAPER} strokeWidth="1" />
+          <g fill="none" stroke={PAPER} strokeWidth="0.6" opacity="0.7">
+            <path d={`M46 ${top - 4} Q56 ${top - 5} ${R - 1} ${top + 4}`} />
+            <path d={`M46 ${top} Q55 ${top - 1} ${R - 3} ${top + 7}`} />
+          </g>
+        </g>
+      )
+    case 'locken':
+      return (
+        <g>
+          <path
+            d={`M${L - 1} 52 Q${L - 2} ${top - 5} 50 ${top - 6} Q${R + 2} ${top - 5} ${R + 1} 52 Q${R - 2} 46 ${R - 5} ${top + 9} Q50 ${top + 6} ${L + 5} ${top + 9} Q${L + 2} 46 ${L - 1} 52 Z`}
+            fill={fill}
+            stroke={INK}
+            strokeWidth="1.3"
+          />
+          <g fill={fill} stroke={INK} strokeWidth="1.1">
+            {[200, 218, 236, 254, 272, 290, 308, 326, 344].map((deg) => {
+              const a = (deg * Math.PI) / 180
+              return <circle key={deg} cx={50 + (R - 50 + 1.5) * Math.cos(a)} cy={top + 8 + 14 * Math.sin(a)} r="4.2" />
+            })}
+            <circle cx="44" cy={top + 8.5} r="2.6" />
+            <circle cx="50" cy={top + 7.5} r="2.6" />
+            <circle cx="56" cy={top + 8.5} r="2.6" />
+          </g>
+        </g>
+      )
+    case 'baskenmuetze':
+      // Tief und leicht schräg aufgesetzt, darunter das eigene Haar
+      return (
+        <g>
+          {config.gender === 'w' ? (
+            <path
+              d={`M${L - 2} 60 Q${L - 3} ${top - 5} 50 ${top - 5} Q${R + 3} ${top - 5} ${R + 2} 60 L${R - 1} 60 Q${R - 2} 47 ${R - 6} ${top + 10} Q50 ${top + 6} ${L + 6} ${top + 10} Q${L + 2} 47 ${L + 1} 60 Z`}
+              fill={fill}
+              stroke={INK}
+              strokeWidth="1.4"
+            />
+          ) : (
+            <path
+              d={`M${L - 1} 53 Q${L - 2.5} ${top - 5} 50 ${top - 5} Q${R + 2.5} ${top - 5} ${R + 1} 53 Q${R - 1} 45 ${R - 5} ${top + 10} Q50 ${top + 7} ${L + 5} ${top + 10} Q${L + 3} 45 ${L - 1} 53 Z`}
+              fill={fill}
+              stroke={INK}
+              strokeWidth="1.4"
+            />
+          )}
+          <g transform={`rotate(-8 50 ${top + 2})`}>
+            <ellipse cx="50" cy={top + 0.5} rx={R - 50 + 8.5} ry="8" fill={INK} />
+            <path d={`M${L - 3} ${top + 4.5} Q50 ${top + 8.5} ${R + 3} ${top + 4.5}`} fill="none" stroke={PAPER} strokeWidth="0.7" opacity="0.55" />
+            <path d={`M${L} ${top - 3} Q50 ${top - 8.5} ${R + 3} ${top - 3}`} fill="none" stroke={PAPER} strokeWidth="0.7" opacity="0.6" />
+            <path d={`M50 ${top - 7.5} L50.6 ${top - 11}`} stroke={INK} strokeWidth="1.8" strokeLinecap="round" />
+          </g>
         </g>
       )
     case 'schiebermuetze':
@@ -348,16 +516,16 @@ function HairFront({ config, L, R, top, fill }: HairProps) {
 
 const w = (L: number, R: number) => (R - L) / 2
 
-function Clothing({ config, dots }: { config: AvatarConfig; dots: string }) {
+function Clothing({ config, dots, tone }: { config: AvatarConfig; dots: string; tone: string }) {
   const shoulders = 'M4 121 Q7 99 29 93 L42.5 90 L57.5 90 L71 93 Q93 99 96 121 Z'
   switch (config.clothing) {
     case 'arbeiterjacke':
       return (
         <g>
-          <path d={shoulders} fill={INK} />
+          <path d={shoulders} fill={tone} stroke={INK} strokeWidth="1.5" />
           <path d="M43 90 L50 103 L57 90 Z" fill={PAPER} stroke={INK} strokeWidth="1" />
-          <path d="M42.5 90 L50 104 L40 111 L35 95 Z" fill={INK} stroke={PAPER} strokeWidth="0.9" />
-          <path d="M57.5 90 L50 104 L60 111 L65 95 Z" fill={INK} stroke={PAPER} strokeWidth="0.9" />
+          <path d="M42.5 90 L50 104 L40 111 L35 95 Z" fill={tone} stroke={PAPER} strokeWidth="0.9" />
+          <path d="M57.5 90 L50 104 L60 111 L65 95 Z" fill={tone} stroke={PAPER} strokeWidth="0.9" />
           <g stroke={PAPER} strokeWidth="0.7" opacity="0.6">
             <path d="M18 104 L20 116 M24 101 L25 114 M76 101 L75 114 M82 104 L80 116" />
           </g>
@@ -368,11 +536,11 @@ function Clothing({ config, dots }: { config: AvatarConfig; dots: string }) {
     case 'trenchcoat':
       return (
         <g>
-          <path d={shoulders} fill={SLATE} stroke={INK} strokeWidth="1.5" />
+          <path d={shoulders} fill={tone} stroke={INK} strokeWidth="1.5" />
           <path d="M44 90 L50 100 L56 90 Z" fill={PAPER} stroke={INK} strokeWidth="1" />
           <path d="M48.5 91 L51.5 91 L52.5 99 L50 102 L47.5 99 Z" fill={INK} />
-          <path d="M42.5 88 L36 84 L33 97 L41 101 L50 104 Z" fill={SLATE} stroke={INK} strokeWidth="1.3" />
-          <path d="M57.5 88 L64 84 L67 97 L59 101 L50 104 Z" fill={SLATE} stroke={INK} strokeWidth="1.3" />
+          <path d="M42.5 88 L36 84 L33 97 L41 101 L50 104 Z" fill={tone} stroke={INK} strokeWidth="1.3" />
+          <path d="M57.5 88 L64 84 L67 97 L59 101 L50 104 Z" fill={tone} stroke={INK} strokeWidth="1.3" />
           <path d="M50 104 L44 121 M50 104 L58 121" stroke={INK} strokeWidth="1.3" />
           <g fill={INK}>
             <circle cx="42" cy="111" r="1.3" />
@@ -389,7 +557,7 @@ function Clothing({ config, dots }: { config: AvatarConfig; dots: string }) {
         <g>
           <path d={shoulders} fill={PAPER} stroke={INK} strokeWidth="1.5" />
           <path d="M42.5 90 L46 96 L50 91 Z M57.5 90 L54 96 L50 91 Z" fill={PAPER} stroke={INK} strokeWidth="1" />
-          <path d="M22 121 L28 97 L43 92 L50 112 L57 92 L72 97 L78 121 Z" fill={INK} />
+          <path d="M22 121 L28 97 L43 92 L50 112 L57 92 L72 97 L78 121 Z" fill={tone} stroke={INK} strokeWidth="1" />
           <path d="M48.3 92 L51.7 92 L52.8 104 L50 108 L47.2 104 Z" fill="#8b0000" stroke={INK} strokeWidth="0.8" />
           <g fill={PAPER}>
             <circle cx="50" cy="114" r="1.1" />
@@ -406,6 +574,59 @@ function Clothing({ config, dots }: { config: AvatarConfig; dots: string }) {
           <path d="M42.5 90 Q36 92 37.5 99 Q44 102 50 96 Z" fill={PAPER} stroke={INK} strokeWidth="1.2" />
           <path d="M57.5 90 Q64 92 62.5 99 Q56 102 50 96 Z" fill={PAPER} stroke={INK} strokeWidth="1.2" />
           <circle cx="50" cy="99" r="1.8" fill="#8b0000" stroke={INK} strokeWidth="0.6" />
+        </g>
+      )
+    case 'strickjacke':
+      return (
+        <g>
+          <path d={shoulders} fill={tone} stroke={INK} strokeWidth="1.5" />
+          {/* Gerippter Strick */}
+          <g stroke={PAPER} strokeWidth="0.6" opacity="0.35">
+            <path d="M14 106 L15 121 M20 101 L21 121 M26 98 L27 121 M74 98 L73 121 M80 101 L79 121 M86 106 L85 121" />
+          </g>
+          {/* Hemd oder Bluse im V-Ausschnitt */}
+          <path d="M42.5 90 L50 112 L57.5 90 Z" fill={PAPER} stroke={INK} strokeWidth="1.1" />
+          <path d="M42.5 90 L46.5 96 L50 91.5 Z M57.5 90 L53.5 96 L50 91.5 Z" fill={PAPER} stroke={INK} strokeWidth="0.9" />
+          <path d="M50 112 L50 121" stroke={INK} strokeWidth="1.2" />
+          <g fill={PAPER} stroke={INK} strokeWidth="0.5">
+            <circle cx="50" cy="115" r="1.3" />
+            <circle cx="50" cy="119.5" r="1.3" />
+          </g>
+        </g>
+      )
+    case 'bluse':
+      return (
+        <g>
+          <path d={shoulders} fill={PAPER} stroke={INK} strokeWidth="1.5" />
+          <path d="M10 112 Q14 100 24 97 M90 112 Q86 100 76 97" fill="none" stroke={INK} strokeWidth="0.9" />
+          {/* Rock mit Trägern in der gewählten Farbe */}
+          <path d="M33 95 L38 95 L41 121 L35 121 Z M67 95 L62 95 L59 121 L65 121 Z" fill={tone} stroke={INK} strokeWidth="1" />
+          <path d="M5.9 113 L94.1 113 L96 121 L4 121 Z" fill={tone} stroke={INK} strokeWidth="1.2" />
+          {/* Bubikragen mit Schleife */}
+          <path d="M42.5 90 Q35 91 37 98 Q44 100 50 94 Z" fill={PAPER} stroke={INK} strokeWidth="1.1" />
+          <path d="M57.5 90 Q65 91 63 98 Q56 100 50 94 Z" fill={PAPER} stroke={INK} strokeWidth="1.1" />
+          <path d="M50 97 L44.5 94 L44.5 100 Z M50 97 L55.5 94 L55.5 100 Z" fill={tone} stroke={INK} strokeWidth="0.7" />
+          <circle cx="50" cy="97" r="1.4" fill={tone} stroke={INK} strokeWidth="0.7" />
+          <g fill={INK}>
+            <circle cx="50" cy="104" r="0.9" />
+            <circle cx="50" cy="109" r="0.9" />
+          </g>
+        </g>
+      )
+    case 'anzug':
+      return (
+        <g>
+          <path d={shoulders} fill={tone} stroke={INK} strokeWidth="1.5" />
+          {/* Hemd und Krawatte */}
+          <path d="M42.5 90 L50 108 L57.5 90 Z" fill={PAPER} stroke={INK} strokeWidth="1" />
+          <path d="M48.4 91.5 L51.6 91.5 L52.6 103 L50 107 L47.4 103 Z" fill={INK} />
+          <path d="M42.5 90 L46.5 95.5 L50 91 Z M57.5 90 L53.5 95.5 L50 91 Z" fill={PAPER} stroke={INK} strokeWidth="0.9" />
+          {/* Revers */}
+          <path d="M42.5 90 L50 108 L44 112 L38 100 L41 96 L36 94 Z" fill={tone} stroke={PAPER} strokeWidth="0.8" />
+          <path d="M57.5 90 L50 108 L56 112 L62 100 L59 96 L64 94 Z" fill={tone} stroke={PAPER} strokeWidth="0.8" />
+          {/* Einstecktuch und Knopf */}
+          <path d="M66 103 L72 103 L71.2 106 L66.8 106 Z" fill={PAPER} stroke={INK} strokeWidth="0.6" />
+          <circle cx="50" cy="116" r="1.3" fill={PAPER} />
         </g>
       )
   }

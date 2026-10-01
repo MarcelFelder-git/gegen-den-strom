@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { ExternalLink, Lock, Medal, X } from 'lucide-react'
 import s from '../styles/period.module.css'
 import h from './heroes.module.css'
@@ -123,7 +124,9 @@ export function CardReveal() {
   const last = index >= cards.length - 1
   const next = () => (last ? dismiss() : setIndex(index + 1))
 
-  return (
+  // Wie alle Fenster direkt am body: So liegt die Karte auch im Seitenaufbau über dem Wochenbericht,
+  // nicht nur auf dem Bildschirm. Vorlesehilfen und Tests sehen dasselbe oberste Fenster wie die Kinder.
+  return createPortal(
     <div className={h.stage} role="dialog" aria-modal="true" aria-label={`Neues Vorbild: ${card.name}`}>
       <div className={h.beam} aria-hidden />
       <div className="relative mx-auto flex min-h-full max-w-3xl flex-col items-center justify-center px-4 py-10">
@@ -144,7 +147,8 @@ export function CardReveal() {
           </StampButton>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 

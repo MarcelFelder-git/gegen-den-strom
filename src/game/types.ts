@@ -3,8 +3,21 @@ export type Stats = Record<StatKey, number>
 
 export type Gender = 'm' | 'w'
 export type FaceShape = 'oval' | 'rund' | 'kantig' | 'schmal'
-export type Headwear = 'schiebermuetze' | 'fedora' | 'kurz' | 'zoepfe' | 'welle' | 'glocke'
-export type Clothing = 'arbeiterjacke' | 'trenchcoat' | 'weste' | 'kleid'
+export type Headwear =
+  | 'schiebermuetze'
+  | 'fedora'
+  | 'kurz'
+  | 'zoepfe'
+  | 'welle'
+  | 'glocke'
+  | 'baskenmuetze'
+  | 'bubikopf'
+  | 'knoten'
+  | 'scheitel'
+  | 'locken'
+export type Clothing = 'arbeiterjacke' | 'trenchcoat' | 'weste' | 'kleid' | 'strickjacke' | 'bluse' | 'anzug'
+/** Gedeckte Stofffarben der Zeit; ohne Angabe hat jede Kleidung ihre eigene Grundfarbe */
+export type ClothingTone = 'schwarz' | 'grau' | 'blau' | 'gruen' | 'weinrot' | 'braun'
 export type HairTone = 'dunkel' | 'hell' | 'rot' | 'grau'
 /** Besonderheiten im Gesicht oder an der Kleidung, mehrere zugleich möglich */
 export type AvatarDetail = 'sommersprossen' | 'schal' | 'schnurrbart' | 'ohrringe'
@@ -16,6 +29,7 @@ export interface AvatarConfig {
   hairTone: HairTone
   glasses: boolean
   clothing: Clothing
+  tone?: ClothingTone
   details?: AvatarDetail[]
   /** Älterer Spielstand: nur eine Besonderheit */
   detail?: AvatarDetail | 'keine'

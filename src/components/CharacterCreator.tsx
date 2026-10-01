@@ -1,7 +1,7 @@
 import { useMemo, useState, type ComponentProps, type ReactNode } from 'react'
 import { ArrowLeft, ArrowRight, Check, Dices, PenLine } from 'lucide-react'
 import s from '../styles/period.module.css'
-import { Avatar } from './Avatar'
+import { Avatar, TONES, toneOf } from './Avatar'
 import { StampButton } from './ui/StampButton'
 import { StatPips } from './ui/StatPips'
 import {
@@ -13,18 +13,7 @@ import {
   getProfession,
   leaderStats,
 } from '../game/data/professions'
-import type {
-  AvatarConfig,
-  AvatarDetail,
-  Clothing,
-  FaceShape,
-  Gender,
-  HairTone,
-  Headwear,
-  IdeologyKey,
-  ProfessionKey,
-  StatKey,
-} from '../game/types'
+import type { AvatarConfig, AvatarDetail, Clothing, ClothingTone, FaceShape, Gender, HairTone, Headwear, IdeologyKey, ProfessionKey, StatKey } from '../game/types'
 import { useGame } from '../store/GameStore'
 import { useUi } from '../store/UiStore'
 import { CHAPTERS } from '../game/data/chapters'
@@ -42,6 +31,11 @@ const HEADWEAR_LABELS: Record<Headwear, string> = {
   zoepfe: 'Zöpfe',
   welle: 'Wasserwelle',
   glocke: 'Glockenhut',
+  baskenmuetze: 'Baskenmütze',
+  bubikopf: 'Bubikopf',
+  knoten: 'Haarknoten',
+  scheitel: 'Seitenscheitel',
+  locken: 'Locken',
 }
 const HAIR_TONE_LABELS: Record<HairTone, string> = { dunkel: 'Dunkel', hell: 'Blond', rot: 'Rot', grau: 'Ergraut' }
 const CLOTHING_LABELS: Record<Clothing, string> = {
@@ -49,6 +43,17 @@ const CLOTHING_LABELS: Record<Clothing, string> = {
   trenchcoat: 'Trenchcoat',
   weste: 'Weste und Krawatte',
   kleid: 'Kleid mit Kragen',
+  strickjacke: 'Strickjacke',
+  bluse: 'Bluse und Rock',
+  anzug: 'Anzug',
+}
+const TONE_LABELS: Record<ClothingTone, string> = {
+  schwarz: 'Schwarz',
+  grau: 'Grau',
+  blau: 'Dunkelblau',
+  gruen: 'Flaschengrün',
+  weinrot: 'Weinrot',
+  braun: 'Braun',
 }
 const DETAIL_LABELS: Record<AvatarDetail, string> = {
   sommersprossen: 'Sommersprossen',
@@ -61,12 +66,12 @@ const DETAIL_BY_GENDER: Record<Gender, AvatarDetail[]> = {
   w: ['sommersprossen', 'schal', 'ohrringe'],
 }
 const HEADWEAR_BY_GENDER: Record<Gender, Headwear[]> = {
-  m: ['schiebermuetze', 'fedora', 'kurz'],
-  w: ['zoepfe', 'welle', 'glocke', 'kurz', 'fedora'],
+  m: ['schiebermuetze', 'kurz', 'scheitel', 'locken', 'fedora', 'baskenmuetze'],
+  w: ['welle', 'bubikopf', 'zoepfe', 'knoten', 'glocke', 'baskenmuetze', 'fedora'],
 }
 const CLOTHING_BY_GENDER: Record<Gender, Clothing[]> = {
-  m: ['arbeiterjacke', 'trenchcoat', 'weste'],
-  w: ['kleid', 'trenchcoat', 'arbeiterjacke'],
+  m: ['arbeiterjacke', 'anzug', 'weste', 'strickjacke', 'trenchcoat'],
+  w: ['kleid', 'bluse', 'strickjacke', 'trenchcoat', 'arbeiterjacke'],
 }
 const DEFAULT_AVATAR: Record<Gender, AvatarConfig> = {
   m: { gender: 'm', face: 'kantig', headwear: 'schiebermuetze', hairTone: 'dunkel', glasses: false, clothing: 'arbeiterjacke' },
@@ -106,7 +111,7 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
     if (g === gender) return
     // Nur Besonderheiten behalten, die es für das neue Geschlecht gibt
     const details = (avatar.details ?? []).filter((d) => DETAIL_BY_GENDER[g].includes(d))
-    setAvatar({ ...DEFAULT_AVATAR[g], face: avatar.face, glasses: avatar.glasses, hairTone: avatar.hairTone, details })
+    setAvatar({ ...DEFAULT_AVATAR[g], face: avatar.face, glasses: avatar.glasses, hairTone: avatar.hairTone, details, tone: avatar.tone })
     // Ein ausgewürfelter Vorname passt nicht mehr: neu würfeln. Einen selbst getippten Namen nie ändern.
     if (FIRST_NAMES[gender].includes(name.trim())) setName(shuffle(FIRST_NAMES[g], ''))
   }
@@ -330,6 +335,16 @@ export function CharacterCreator({ onBack }: { onBack: () => void }) {
                           <PreviewChip key={c} checked={avatar.clothing === c} onClick={() => patch({ clothing: c })} config={{ ...avatar, clothing: c }}>
                             {CLOTHING_LABELS[c]}
                           </PreviewChip>
+                        ))}
+                      </ChipGroup>
+                    </Field>
+                    <Field label="Farbe der Kleidung">
+                      <ChipGroup label="Farbe der Kleidung">
+                        {(Object.keys(TONE_LABELS) as ClothingTone[]).map((t) => (
+                          <Chip key={t} checked={toneOf(avatar) === t} onClick={() => patch({ tone: t })} className="flex items-center gap-2 px-3 py-2.5">
+                            <span className="h-5 w-5 shrink-0 border border-ink" style={{ background: TONES[t] }} aria-hidden />
+                            {TONE_LABELS[t]}
+                          </Chip>
                         ))}
                       </ChipGroup>
                     </Field>
