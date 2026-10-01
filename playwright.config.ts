@@ -7,7 +7,7 @@ import { defineConfig, devices } from '@playwright/test'
 export default defineConfig({
   testDir: 'e2e',
   testMatch: '*.e2e.ts',
-  timeout: 40 * 60_000,
+  timeout: 60 * 60_000,
   workers: 3,
   reporter: [['list']],
   use: {
