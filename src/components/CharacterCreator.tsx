@@ -32,9 +32,7 @@ const HEADWEAR_LABELS: Record<Headwear, string> = {
   welle: 'Wasserwelle',
   glocke: 'Glockenhut',
   baskenmuetze: 'Baskenmütze',
-  bubikopf: 'Bubikopf',
   knoten: 'Haarknoten',
-  scheitel: 'Seitenscheitel',
   locken: 'Locken',
 }
 const HAIR_TONE_LABELS: Record<HairTone, string> = { dunkel: 'Dunkel', hell: 'Blond', rot: 'Rot', grau: 'Ergraut' }
@@ -66,8 +64,8 @@ const DETAIL_BY_GENDER: Record<Gender, AvatarDetail[]> = {
   w: ['sommersprossen', 'schal', 'ohrringe'],
 }
 const HEADWEAR_BY_GENDER: Record<Gender, Headwear[]> = {
-  m: ['schiebermuetze', 'kurz', 'scheitel', 'locken', 'fedora', 'baskenmuetze'],
-  w: ['welle', 'bubikopf', 'zoepfe', 'knoten', 'glocke', 'baskenmuetze', 'fedora'],
+  m: ['schiebermuetze', 'kurz', 'locken', 'fedora', 'baskenmuetze'],
+  w: ['welle', 'zoepfe', 'knoten', 'glocke', 'baskenmuetze', 'fedora'],
 }
 const CLOTHING_BY_GENDER: Record<Gender, Clothing[]> = {
   m: ['arbeiterjacke', 'anzug', 'weste', 'strickjacke', 'trenchcoat'],

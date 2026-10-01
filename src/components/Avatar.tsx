@@ -276,16 +276,6 @@ function HairBack({ config, L, R, top, fill }: HairProps) {
           strokeWidth="1.2"
         />
       )
-    case 'bubikopf':
-      // Glatter Bob bis zum Kinn
-      return (
-        <path
-          d={`M${L - 4.5} 69 Q${L - 6.5} ${top - 9} 50 ${top - 9} Q${R + 6.5} ${top - 9} ${R + 4.5} 69 Q${R} 71 ${R - 2} 66 L${L + 2} 66 Q${L} 71 ${L - 4.5} 69 Z`}
-          fill={fill}
-          stroke={INK}
-          strokeWidth="1.4"
-        />
-      )
     case 'knoten':
       // Der Knoten sitzt hinten oben und schaut über den Kopf
       return (
@@ -381,23 +371,6 @@ function HairFront({ config, L, R, top, fill }: HairProps) {
           </g>
         </g>
       )
-    case 'bubikopf':
-      // Glatter Pony bis knapp über die Augenbrauen
-      return (
-        <g>
-          <path
-            d={`M${L - 2} 60 Q${L - 3} ${top - 7} 50 ${top - 7} Q${R + 3} ${top - 7} ${R + 2} 60 L${R - 1} 60 L${R - 1} ${top + 11} L${L + 1} ${top + 11} L${L + 1} 60 Z`}
-            fill={fill}
-            stroke={INK}
-            strokeWidth="1.5"
-            strokeLinejoin="round"
-          />
-          <g stroke={PAPER} strokeWidth="0.7" opacity="0.6">
-            <path d={`M43 ${top + 3} L43.5 ${top + 9.5} M50 ${top + 2} L50 ${top + 9.5} M57 ${top + 3} L56.5 ${top + 9.5}`} />
-          </g>
-          <path d={`M${L + 3} ${top - 2} Q50 ${top - 7} ${R - 4} ${top - 3}`} fill="none" stroke={PAPER} strokeWidth="0.8" opacity="0.7" />
-        </g>
-      )
     case 'knoten':
       // Straff zurückgekämmt, mit Mittelscheitel
       return (
@@ -412,23 +385,6 @@ function HairFront({ config, L, R, top, fill }: HairProps) {
           <g fill="none" stroke={PAPER} strokeWidth="0.6" opacity="0.6">
             <path d={`M47 ${top - 3} Q${L + 4} ${top} ${L + 1} 50`} />
             <path d={`M53 ${top - 3} Q${R - 4} ${top} ${R - 1} 50`} />
-          </g>
-        </g>
-      )
-    case 'scheitel':
-      // Seitenscheitel, glatt nach rechts gekämmt
-      return (
-        <g>
-          <path
-            d={`M${L - 1} 52 Q${L - 2} ${top - 6} 46 ${top - 6.5} Q${R + 3} ${top - 7} ${R + 1} 52 Q${R - 1} 45 ${R - 6} ${top + 8} Q52 ${top + 3.5} 43 ${top + 6} Q${L + 3} ${top + 8} ${L - 1} 52 Z`}
-            fill={fill}
-            stroke={INK}
-            strokeWidth="1.5"
-          />
-          <path d={`M43 ${top - 6} L43.6 ${top + 5}`} stroke={PAPER} strokeWidth="1" />
-          <g fill="none" stroke={PAPER} strokeWidth="0.6" opacity="0.7">
-            <path d={`M46 ${top - 4} Q56 ${top - 5} ${R - 1} ${top + 4}`} />
-            <path d={`M46 ${top} Q55 ${top - 1} ${R - 3} ${top + 7}`} />
           </g>
         </g>
       )

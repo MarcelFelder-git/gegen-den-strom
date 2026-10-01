@@ -161,8 +161,8 @@ export function hash(text: string): number {
 
 const FACES: FaceShape[] = ['oval', 'rund', 'kantig', 'schmal']
 const HEAD: Record<Gender, Headwear[]> = {
-  m: ['schiebermuetze', 'fedora', 'kurz', 'scheitel', 'locken', 'baskenmuetze'],
-  w: ['zoepfe', 'welle', 'glocke', 'bubikopf', 'knoten', 'baskenmuetze'],
+  m: ['schiebermuetze', 'fedora', 'kurz', 'locken', 'baskenmuetze'],
+  w: ['zoepfe', 'welle', 'glocke', 'knoten', 'baskenmuetze'],
 }
 const CLOTHES: Record<Gender, Clothing[]> = {
   m: ['arbeiterjacke', 'trenchcoat', 'weste', 'anzug', 'strickjacke'],

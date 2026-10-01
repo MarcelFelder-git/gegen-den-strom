@@ -11,9 +11,7 @@ export type Headwear =
   | 'welle'
   | 'glocke'
   | 'baskenmuetze'
-  | 'bubikopf'
   | 'knoten'
-  | 'scheitel'
   | 'locken'
 export type Clothing = 'arbeiterjacke' | 'trenchcoat' | 'weste' | 'kleid' | 'strickjacke' | 'bluse' | 'anzug'
 /** Gedeckte Stofffarben der Zeit; ohne Angabe hat jede Kleidung ihre eigene Grundfarbe */
