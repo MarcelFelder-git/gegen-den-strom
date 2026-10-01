@@ -8,15 +8,20 @@ const SLATE = '#4a4f57'
 /** Filz des Glockenhuts: ein weiches Graubraun statt Schwarz */
 const FELT = '#5f5862'
 
-/** Gedeckte Stofffarben. Alle sind dunkel genug, dass helle Nähte und Knöpfe darauf sichtbar bleiben. */
+/**
+ * Gedeckte Stofffarben der Zeit. Auf den dunklen Tönen sind Nähte und Knöpfe hell (mindestens 6,5 : 1),
+ * auf dem hellen Ton dunkel (8,8 : 1).
+ */
 export const TONES: Record<ClothingTone, string> = {
   schwarz: INK,
   grau: SLATE,
   blau: '#283752',
-  gruen: '#2e4637',
+  gruen: '#4f5b34',
   weinrot: '#5c2228',
   braun: '#56402f',
+  hellblau: '#a9bdd0',
 }
+const LIGHT_TONES: ClothingTone[] = ['hellblau']
 /** Grundfarbe jeder Kleidung, solange keine eigene Farbe gewählt ist */
 export const DEFAULT_TONE: Record<ClothingKey, ClothingTone> = {
   arbeiterjacke: 'schwarz',
@@ -79,6 +84,8 @@ export function Avatar({ config, size = 96, className, title, crossed }: AvatarP
   // Mehrere Besonderheiten zugleich; ältere Spielstände hatten nur eine
   const has = (d: AvatarDetail) => !!config.details?.includes(d) || config.detail === d
   const tone = TONES[toneOf(config)]
+  // Nähte, Knöpfe und Tupfen: hell auf dunklem Stoff, dunkel auf hellem
+  const stitch = LIGHT_TONES.includes(toneOf(config)) ? INK : PAPER
 
   return (
     <svg
@@ -112,7 +119,7 @@ export function Avatar({ config, size = 96, className, title, crossed }: AvatarP
         </pattern>
         <pattern id={id('dots')} width="6" height="6" patternUnits="userSpaceOnUse">
           <rect width="6" height="6" fill={tone} />
-          <circle cx="3" cy="3" r="0.9" fill={PAPER} />
+          <circle cx="3" cy="3" r="0.9" fill={stitch} />
         </pattern>
         <clipPath id={id('face')}>
           <path d={f.path} />
@@ -134,7 +141,7 @@ export function Avatar({ config, size = 96, className, title, crossed }: AvatarP
         <path d="M42.5 74 L42.5 94 L57.5 94 L57.5 74 Z" fill={SKIN} stroke={INK} strokeWidth="1.6" />
         <path d="M50 78 L57.5 76 L57.5 92 Z" fill={`url(#${id('shade')})`} />
 
-        <Clothing config={config} dots={`url(#${id('dots')})`} tone={tone} />
+        <Clothing config={config} dots={`url(#${id('dots')})`} tone={tone} stitch={stitch} />
 
         {/* Schal um den Hals */}
         {has('schal') && (
@@ -472,7 +479,7 @@ function HairFront({ config, L, R, top, fill }: HairProps) {
 
 const w = (L: number, R: number) => (R - L) / 2
 
-function Clothing({ config, dots, tone }: { config: AvatarConfig; dots: string; tone: string }) {
+function Clothing({ config, dots, tone, stitch }: { config: AvatarConfig; dots: string; tone: string; stitch: string }) {
   const shoulders = 'M4 121 Q7 99 29 93 L42.5 90 L57.5 90 L71 93 Q93 99 96 121 Z'
   switch (config.clothing) {
     case 'arbeiterjacke':
@@ -480,13 +487,13 @@ function Clothing({ config, dots, tone }: { config: AvatarConfig; dots: string; 
         <g>
           <path d={shoulders} fill={tone} stroke={INK} strokeWidth="1.5" />
           <path d="M43 90 L50 103 L57 90 Z" fill={PAPER} stroke={INK} strokeWidth="1" />
-          <path d="M42.5 90 L50 104 L40 111 L35 95 Z" fill={tone} stroke={PAPER} strokeWidth="0.9" />
-          <path d="M57.5 90 L50 104 L60 111 L65 95 Z" fill={tone} stroke={PAPER} strokeWidth="0.9" />
-          <g stroke={PAPER} strokeWidth="0.7" opacity="0.6">
+          <path d="M42.5 90 L50 104 L40 111 L35 95 Z" fill={tone} stroke={stitch} strokeWidth="0.9" />
+          <path d="M57.5 90 L50 104 L60 111 L65 95 Z" fill={tone} stroke={stitch} strokeWidth="0.9" />
+          <g stroke={stitch} strokeWidth="0.7" opacity="0.6">
             <path d="M18 104 L20 116 M24 101 L25 114 M76 101 L75 114 M82 104 L80 116" />
           </g>
-          <circle cx="50" cy="110" r="1.4" fill={PAPER} />
-          <circle cx="50" cy="117" r="1.4" fill={PAPER} />
+          <circle cx="50" cy="110" r="1.4" fill={stitch} />
+          <circle cx="50" cy="117" r="1.4" fill={stitch} />
         </g>
       )
     case 'trenchcoat':
@@ -515,12 +522,12 @@ function Clothing({ config, dots, tone }: { config: AvatarConfig; dots: string; 
           <path d="M42.5 90 L46 96 L50 91 Z M57.5 90 L54 96 L50 91 Z" fill={PAPER} stroke={INK} strokeWidth="1" />
           <path d="M22 121 L28 97 L43 92 L50 112 L57 92 L72 97 L78 121 Z" fill={tone} stroke={INK} strokeWidth="1" />
           <path d="M48.3 92 L51.7 92 L52.8 104 L50 108 L47.2 104 Z" fill="#8b0000" stroke={INK} strokeWidth="0.8" />
-          <g fill={PAPER}>
+          <g fill={stitch}>
             <circle cx="50" cy="114" r="1.1" />
             <circle cx="50" cy="119" r="1.1" />
           </g>
-          <path d="M35 104 L42 102" stroke={PAPER} strokeWidth="0.9" />
-          <path d="M65 104 L58 102" stroke={PAPER} strokeWidth="0.9" />
+          <path d="M35 104 L42 102" stroke={stitch} strokeWidth="0.9" />
+          <path d="M65 104 L58 102" stroke={stitch} strokeWidth="0.9" />
         </g>
       )
     case 'kleid':
@@ -537,7 +544,7 @@ function Clothing({ config, dots, tone }: { config: AvatarConfig; dots: string; 
         <g>
           <path d={shoulders} fill={tone} stroke={INK} strokeWidth="1.5" />
           {/* Gerippter Strick */}
-          <g stroke={PAPER} strokeWidth="0.6" opacity="0.35">
+          <g stroke={stitch} strokeWidth="0.6" opacity="0.35">
             <path d="M14 106 L15 121 M20 101 L21 121 M26 98 L27 121 M74 98 L73 121 M80 101 L79 121 M86 106 L85 121" />
           </g>
           {/* Hemd oder Bluse im V-Ausschnitt */}
@@ -578,11 +585,11 @@ function Clothing({ config, dots, tone }: { config: AvatarConfig; dots: string; 
           <path d="M48.4 91.5 L51.6 91.5 L52.6 103 L50 107 L47.4 103 Z" fill={INK} />
           <path d="M42.5 90 L46.5 95.5 L50 91 Z M57.5 90 L53.5 95.5 L50 91 Z" fill={PAPER} stroke={INK} strokeWidth="0.9" />
           {/* Revers */}
-          <path d="M42.5 90 L50 108 L44 112 L38 100 L41 96 L36 94 Z" fill={tone} stroke={PAPER} strokeWidth="0.8" />
-          <path d="M57.5 90 L50 108 L56 112 L62 100 L59 96 L64 94 Z" fill={tone} stroke={PAPER} strokeWidth="0.8" />
+          <path d="M42.5 90 L50 108 L44 112 L38 100 L41 96 L36 94 Z" fill={tone} stroke={stitch} strokeWidth="0.8" />
+          <path d="M57.5 90 L50 108 L56 112 L62 100 L59 96 L64 94 Z" fill={tone} stroke={stitch} strokeWidth="0.8" />
           {/* Einstecktuch und Knopf */}
           <path d="M66 103 L72 103 L71.2 106 L66.8 106 Z" fill={PAPER} stroke={INK} strokeWidth="0.6" />
-          <circle cx="50" cy="116" r="1.3" fill={PAPER} />
+          <circle cx="50" cy="116" r="1.3" fill={stitch} />
         </g>
       )
   }

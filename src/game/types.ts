@@ -15,7 +15,7 @@ export type Headwear =
   | 'locken'
 export type Clothing = 'arbeiterjacke' | 'trenchcoat' | 'weste' | 'kleid' | 'strickjacke' | 'bluse' | 'anzug'
 /** Gedeckte Stofffarben der Zeit; ohne Angabe hat jede Kleidung ihre eigene Grundfarbe */
-export type ClothingTone = 'schwarz' | 'grau' | 'blau' | 'gruen' | 'weinrot' | 'braun'
+export type ClothingTone = 'schwarz' | 'grau' | 'blau' | 'gruen' | 'weinrot' | 'braun' | 'hellblau'
 export type HairTone = 'dunkel' | 'hell' | 'rot' | 'grau'
 /** Besonderheiten im Gesicht oder an der Kleidung, mehrere zugleich möglich */
 export type AvatarDetail = 'sommersprossen' | 'schal' | 'schnurrbart' | 'ohrringe'

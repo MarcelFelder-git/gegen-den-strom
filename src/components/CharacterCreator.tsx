@@ -49,9 +49,10 @@ const TONE_LABELS: Record<ClothingTone, string> = {
   schwarz: 'Schwarz',
   grau: 'Grau',
   blau: 'Dunkelblau',
-  gruen: 'Flaschengrün',
+  gruen: 'Grün',
   weinrot: 'Weinrot',
   braun: 'Braun',
+  hellblau: 'Hellblau',
 }
 const DETAIL_LABELS: Record<AvatarDetail, string> = {
   sommersprossen: 'Sommersprossen',

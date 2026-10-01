@@ -168,7 +168,7 @@ const CLOTHES: Record<Gender, Clothing[]> = {
   m: ['arbeiterjacke', 'trenchcoat', 'weste', 'anzug', 'strickjacke'],
   w: ['kleid', 'trenchcoat', 'arbeiterjacke', 'bluse', 'strickjacke'],
 }
-const TONES: ClothingTone[] = ['schwarz', 'grau', 'blau', 'gruen', 'weinrot', 'braun']
+const TONES: ClothingTone[] = ['schwarz', 'grau', 'blau', 'gruen', 'weinrot', 'braun', 'hellblau']
 const HAIR: HairTone[] = ['dunkel', 'dunkel', 'hell', 'grau']
 
 /** Ein festes Gesicht für einen Namen, damit dieselbe Person immer gleich aussieht */
